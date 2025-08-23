@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.ant-input-outlined {
+    border-color: white;
+    color: black;
+}
+
+.ant-input-outlined:focus-within{
+    background-color: white;
+    color: black;
+}
+
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+
+/* For custom radio color #CBA135 */
+.custom-radio-brown .ant-radio-checked .ant-radio-inner {
+  border-color: #CBA135 !important;
+  background-color: #CBA135 !important;
+}
+
+.custom-radio-brown .ant-radio-inner {
+  border-width: 2px;
+}
+
+
+.custom-input:hover {
+  border-color: #d9d9d9 !important;
+  box-shadow: none !important;
+}
+/* Set brown color for selected radio */
+.custom-radio .ant-radio-checked .ant-radio-inner {
+  border-color: #CBA135; /* brown border */
+  background-color: #CBA135; /* brown fill */
+}
+
+.custom-radio .ant-radio-inner {
+  border-width: 2px; /* thicker border */
+}
+
+
+/* Keep your custom track and handle color */
+.ant-slider .ant-slider-track {
+  background-color: #CBA135;
+}
+
+:where(.css-dev-only-do-not-override-7t2xvq).ant-slider .ant-slider-handle::after {
+  background-color: #CBA135;
+}
+
+/* Disable hover effect on the handle */
+:where(.css-dev-only-do-not-override-7t2xvq).ant-slider:hover .ant-slider-handle::after {
+  background-color: #CBA135 !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Optional: Disable hover effect on the track */
+:where(.css-dev-only-do-not-override-7t2xvq).ant-slider:hover .ant-slider-track {
+  background-color: #CBA135 !important;
+}
+
+.ant-rate .ant-rate-star{
+    color: #CBA135;
+}
+
+.ant-pagination .ant-pagination-item-active{
+background-color: #CBA135;
+border: none;
+color: white;
+}
+
+.ant-rate-star-zero svg {
+  fill: #a0a0a0 !important; /* Brighter gray for better visibility */
+  opacity: 1 !important;
+}
+
+.ant-modal .ant-modal-content {
+  padding: 0 0 0 0;
+  background-color: #FAF8F2;
+}
+
+.ant-menu-item:hover {
+  background-color: #EAE7E1 !important;  /* Change to your preferred color */
+  color: #CBA135 !important;  /* Change text color on hover */
+}
+
+/* Optional: Change the active item (selected item) background color */
+.ant-menu-item-selected {
+  background-color: #EAE7E1 !important;  /* Change active item background color */
+  color: #CBA135 !important;  /* Active item text color */
+  
+}
+
+
+/* 👇 Remove border and focus ring from the input */
+.PhoneInput input {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 3px;
+}
+
+.PhoneInput input:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+
+
+.poplight {
+  font-family: "Poppins", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.popreg {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.popmed {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.popbold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* global.css or wherever your styles are */
+.ant-rate-star-full .anticon {
+  color: #FACC15 !important;
+}
