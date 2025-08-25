@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Select, message } from 'antd';
 import { IoEyeOutline } from 'react-icons/io5';
 import { MdDelete } from 'react-icons/md';
@@ -6,6 +6,7 @@ import { RiArrowDropDownLine } from 'react-icons/ri';
 import CustomerModal from './CustomerModal/CustomerModal';
 import Swal from 'sweetalert2';
 import { useDeleteCustomersMutation, useGetAllCustomersQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { handleDelete } from '../../../utils/deleteHandler';
 
 const { Option } = Select;
 
@@ -15,6 +16,14 @@ const CustomerTable = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteCustomers] = useDeleteCustomersMutation()
+
+  console.log(customerList,'this is customer list')
+
+  useEffect(()=>{
+    fetch("http://10.10.13.16:15000/api/admin/customers/13/view")
+    .then(res => res.json())
+    .then(data=> console.log(data))
+  },[])
 
   // Transform API data for table
   const dataSource =
@@ -96,7 +105,7 @@ const CustomerTable = () => {
           <MdDelete
             className="text-red-400 cursor-pointer"
             size={20}
-            onClick={() => handleDelete([record.key], record.actions?.delete_url)}
+            onClick={() => onDelete([record.key], record.actions?.delete_url)}
           />
         </div>
       ),
@@ -118,9 +127,11 @@ const CustomerTable = () => {
 
   // http://10.10.13.16:15000/api/admin/customers/4/delete  /admin/customers/2/delete
 
-const handleDelete = (keys, apiUrl) => {
-console.log(keys[0])
-};
+  const onDelete = () => {
+    handleDelete([123], () => {
+      console.log("Deleted successfully, refresh data here");
+    });
+  };
 
 
   return (

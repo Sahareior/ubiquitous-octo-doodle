@@ -1,5 +1,6 @@
 import { Button } from 'antd';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const SellersHero = () => {
   return (
@@ -20,12 +21,15 @@ const SellersHero = () => {
         <p className="popreg md:text-lg drop-shadow-sm">
           Join our curated marketplace and grow your home business with trusted tools.
         </p>
+        {/*  */}
+       <Link to='/regester-seller'>
         <Button
           className="bg-[#CBA135] hover:bg-[#b8962e] py-6 popmed text-white font-medium px-9 rounded-md shadow-lg transition-all"
           type="primary"
         >
           Apply to Sell
         </Button>
+       </Link>
       </div>
     </div>
   );

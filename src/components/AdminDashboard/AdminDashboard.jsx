@@ -12,12 +12,13 @@ import { Layout, Menu, theme, Input, Badge, Avatar } from 'antd';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { GoGraph } from 'react-icons/go';
 import { FaCartShopping } from 'react-icons/fa6';
-import { FaBox, FaEdit, FaFantasyFlightGames } from 'react-icons/fa';
+import { FaBox, FaCaretSquareRight, FaEdit, FaFantasyFlightGames } from 'react-icons/fa';
 import { IoIosPeople } from 'react-icons/io';
 import { IoPricetagSharp } from 'react-icons/io5';
 import { LuMessageSquareText } from 'react-icons/lu';
 import { GrAnalytics } from 'react-icons/gr';
 import { MdLogout } from 'react-icons/md';
+import { TbCategoryPlus } from "react-icons/tb";
 
 const { Header, Content, Sider } = Layout;
 
@@ -41,6 +42,11 @@ const items = [
     key: 'vendors',
     icon: <IoPricetagSharp size={16}/>,
     label: <Link to="vendors">Vendor</Link>,
+  },
+  {
+    key: 'category',
+    icon: <TbCategoryPlus  size={16}/>,
+    label: <Link to="category">Categorys</Link>,
   },
   {
     key: 'sellers-apply',

@@ -7,7 +7,7 @@ const FloatingChat = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
     { text: "Hi there! 👋", sender: "bot" },
-    { text: "Hey!", sender: "user" },
+    { text: "Hey!", sender: "z" },
     { text: "How can I help you today?", sender: "bot" }
   ]);
 

@@ -16,23 +16,27 @@ const VProductsTable = () => {
   const [pageSize, setPageSize] = useState(10);
   const { data, isLoading, error,refetch } = useGetAllProductsQuery();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selected, setSelected] = useState({})
   const [deleteProduct, {isLoading:deleteLoading}] = useDeleteProductMutation()
-
+console.log('allProducts',data?.results)
   // Transform API data to match table structure
   const dataSource = data?.results?.map(product => ({
-    key: product.id,
-    productName: product.name,
-    productId: product.prod_id,
-    category: product.categories?.join(', ') || 'N/A',
-    price: parseFloat(product.active_price || product.price1 || 0),
-    stock: product.is_stock ? 
-      (product.stock_quantity > 10 ? 'In Stock' : 'Low Stock') : 
+    key: product?.id,
+    images: product?.images[0]?.image,
+    productName: product?.name,
+    productId: product?.prod_id,
+    category: product?.categories?.join(', ') || 'N/A',
+    price: parseFloat(product?.active_price || product?.price1 || 0),
+    stock: product?.is_stock ? 
+      (product?.stock_quantity > 10 ? 'In Stock' : 'Low Stock') : 
       'Out of Stock',
-    status: product.status === 'active' ? 'Active' : 
-           product.status === 'draft' ? 'Draft' : 
-           product.status === 'approved' ? 'Active' : 'Pending',
+    status: product?.status === 'active' ? 'Active' : 
+           product?.status === 'draft' ? 'Draft' : 
+           product?.status === 'approved' ? 'Active' : 'Pending',
     originalData: product // Keep original data for reference
   })) || [];
+
+
 
 const handleDelete = async (keys) => {
   const result = await Swal.fire({
@@ -47,19 +51,26 @@ const handleDelete = async (keys) => {
 
   if (result.isConfirmed) {
     try {
-      // Wait for deletion to complete
-      await deleteProduct(keys[0]);
+      await deleteProduct(keys[0]); // fire delete request
 
-      // Clear selection
-      setSelectedRowKeys([]);
-      refetch()
-      // Show success message only if deletion succeeds
-      message.success(`${keys.length} product(s) deleted.`);
-      Swal.fire({
-        title: "Deleted!",
-        text: "Your product has been deleted.",
-        icon: "success"
-      });
+      // Now refetch data
+      const refreshed = await refetch();
+
+      // Check if item is really deleted
+      const stillExists = refreshed?.data?.some(item => item.id === keys[0]);
+
+      if (!stillExists) {
+        setSelectedRowKeys([]);
+        message.success(`${keys.length} product(s) deleted.`);
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your product has been deleted.",
+          icon: "success"
+        });
+      } else {
+        message.error("Delete failed. Product still exists.");
+      }
+
     } catch (error) {
       console.error(error);
       message.error("Failed to delete product.");
@@ -92,21 +103,22 @@ const handleDelete = async (keys) => {
         </div>
       ),
     },
-    {
-      title: 'Product Name',
-      dataIndex: 'productName',
-      key: 'productName',
-      render: (text) => (
-        <span className="popmed flex items-center gap-3 text-[16px]">
-          <img 
-            className='w-7 rounded-full h-7' 
-            src="https://plus.unsplash.com/premium_photo-1661964014750-963a28aeddea?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-            alt="" 
-          /> 
-          {text}
-        </span>
-      ),
-    },
+  {
+  title: 'Product Name',
+  dataIndex: 'productName',
+  key: 'productName',
+  render: (_, record) => (
+    <span className="popmed flex items-center gap-3 text-[16px]">
+      <img 
+        className='w-7 rounded-full h-7 object-cover' 
+        src={record.images || "/fallback.png"} 
+        alt={record.productName} 
+      /> 
+      {record.productName}
+    </span>
+  ),
+},
+
     {
       title: 'Category',
       dataIndex: 'category',
@@ -172,7 +184,10 @@ const handleDelete = async (keys) => {
       render: (_, record) => (
         <div className="flex items-center gap-3">
           <IoEyeOutline 
-            onClick={() => setIsModalOpen(true)} 
+            onClick={() => {
+              setIsModalOpen(true),
+              setSelected(record)
+            }} 
             className="text-gray-400 cursor-pointer" 
             size={23} 
           />
@@ -258,7 +273,7 @@ const handleDelete = async (keys) => {
           </div>
         )}
       />
-      <ProductsModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+      <ProductsModal product={selected} setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
     </div>
   );
 };

@@ -63,6 +63,10 @@ import VEditProducts from './components/VendorDashboard/Pages/Vendorproducts/VEd
 import SellerApplications from './components/AdminDashboard/pages/SellerApplications/SellerApplications.jsx';
 import NewVendorAddProducts from './components/VendorDashboard/Pages/Vendorproducts/NewVendorAddProducts.jsx';
 import EditContent from './components/AdminDashboard/pages/content/EditContent.jsx';
+import EditAdminProducts from './components/AdminDashboard/pages/products/EditAdminProducts.jsx';
+import CategoryManagement from './components/AdminDashboard/pages/Category/CategoryManagement.jsx';
+import EditCategory from './components/AdminDashboard/pages/Category/Page/EditCategory.jsx';
+import CreateCategory from './components/AdminDashboard/pages/Category/CreateCategory.jsx';
 
 const router = createBrowserRouter([
   {
@@ -142,8 +146,20 @@ const router = createBrowserRouter([
         element: <CustomerList />
       },
       {
+        path: 'category',
+        element: <CategoryManagement />
+      },
+      {
         path: 'vendors',
         element: <VendorList />
+      },
+      {
+        path: 'create-category',
+        element: <CreateCategory />
+      },
+      {
+        path: 'edit-category/:id',
+        element: <EditCategory />
       },
       {
         path: 'sellers-apply',
@@ -160,6 +176,10 @@ const router = createBrowserRouter([
       {
         path: 'productslist/admin-overview/addproducts',
         element: <AddnewProducts />
+      },
+      {
+        path: 'editAdminProducts',
+        element: <EditAdminProducts />
       },
       {
         path: 'messages',

@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { Table } from 'antd';
 import TableModal from './TableModal';
+import { useGetLatestOrdersQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import dayjs from 'dayjs';
 
 const DashTable = () => {
- const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: latestOrders, isLoading } = useGetLatestOrdersQuery();
+  console.log(latestOrders, 'this is latest orders');
 
   const columns = [
     {
       title: 'Order ID',
       dataIndex: 'orderId',
       key: 'orderId',
-      render: text => <a>{text}</a>,
+      render: (text) => <a>{text}</a>,
     },
     {
       title: 'Customer',
@@ -27,7 +31,17 @@ const DashTable = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <span className={`text-sm font-medium ${status === 'Delivered' ? 'text-green-600' : status === 'Pending' ? 'text-yellow-600' : 'text-red-500'}`}>
+        <span
+          className={`text-sm font-medium ${
+            status.toLowerCase() === 'delivered'
+              ? 'text-green-600'
+              : status.toLowerCase() === 'pending'
+              ? 'text-yellow-600'
+              : status.toLowerCase() === 'processing'
+              ? 'text-blue-600'
+              : 'text-red-500'
+          }`}
+        >
           {status}
         </span>
       ),
@@ -46,33 +60,24 @@ const DashTable = () => {
     },
   ];
 
-  const data = [
-    {
-      key: '1',
-      orderId: '#A1023',
-      customer: 'John Brown',
-      date: '2025-07-20',
-      status: 'Delivered',
-    },
-    {
-      key: '2',
-      orderId: '#B2045',
-      customer: 'Jim Green',
-      date: '2025-07-21',
-      status: 'Pending',
-    },
-    {
-      key: '3',
-      orderId: '#C3067',
-      customer: 'Joe Black',
-      date: '2025-07-22',
-      status: 'Cancelled',
-    },
-  ];
+  // 🔑 Transform API response to match AntD table
+  const data =
+    latestOrders?.map((order, index) => ({
+      key: index,
+      orderId: order?.order_id,
+      customer: order?.customer_name,
+      date: dayjs(order?.order_date).format('YYYY-MM-DD HH:mm'),
+      status: order?.order_status,
+    })) || [];
 
   return (
     <div>
-      <Table columns={columns} dataSource={data} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        loading={isLoading}
+        pagination={{ pageSize: 5 }}
+      />
       <TableModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
     </div>
   );

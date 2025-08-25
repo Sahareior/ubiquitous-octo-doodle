@@ -1,13 +1,16 @@
-import { Button, DatePicker, Input, Select, Steps, message } from 'antd';
-import React, { useState } from 'react';
+import { Button, DatePicker, Select, Steps, message } from 'antd';
+import React, { useState, useCallback, useMemo } from 'react';
 import { CgProfile } from 'react-icons/cg';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 import { FaCar, FaCloudUploadAlt } from 'react-icons/fa';
 import { FaHandshakeSimple } from 'react-icons/fa6';
 import { FiChevronDown } from 'react-icons/fi';
 import { usePostSellerMutation } from '../../../../redux/slices/apiSlice';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
-
+const MySwal = withReactContent(Swal);
 // Reusable components
 const SectionHeader = ({ icon, title, subtitle }) => (
   <div className="flex items-center gap-3 mb-6">
@@ -19,11 +22,31 @@ const SectionHeader = ({ icon, title, subtitle }) => (
   </div>
 );
 
-const FileUploader = ({ title, name, onChange, multiple = false }) => {
-  const handleFileChange = (e) => {
+const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
+  const [previewUrls, setPreviewUrls] = useState([]);
+
+  const handleFileChange = useCallback((e) => {
     const files = multiple ? Array.from(e.target.files) : e.target.files[0];
+    
+    // Create preview URLs for images
+    if (files) {
+      if (multiple) {
+        const urls = files.map(file => URL.createObjectURL(file));
+        setPreviewUrls(urls);
+      } else {
+        setPreviewUrls([URL.createObjectURL(files)]);
+      }
+    }
+    
     onChange(name, files);
-  };
+  }, [name, multiple, onChange]);
+
+  const clearFileInput = useCallback(() => {
+    const input = document.getElementById(name);
+    if (input) input.value = '';
+    setPreviewUrls([]);
+    onChange(name, multiple ? [] : null);
+  }, [name, multiple, onChange]);
 
   return (
     <div className="space-y-3 mt-7">
@@ -32,7 +55,7 @@ const FileUploader = ({ title, name, onChange, multiple = false }) => {
         <FaCloudUploadAlt className="text-4xl text-[#CBA135]" />
         <p className="popmed text-[16px] text-gray-700">Drag & drop images here</p>
         <p className="popreg text-[14px] text-gray-600 text-center">
-          or click to browse (Min 1, Max 6 images)
+          or click to browse {multiple ? '(Min 1, Max 6 images)' : ''}
         </p>
         <input
           type="file"
@@ -42,12 +65,40 @@ const FileUploader = ({ title, name, onChange, multiple = false }) => {
           multiple={multiple}
           onChange={handleFileChange}
         />
-        <label
-          htmlFor={name}
-          className="bg-[#CBA135] hover:bg-[#b8962e] text-white px-6 py-2 rounded-md shadow-sm transition-all cursor-pointer"
-        >
-          Browse Files
-        </label>
+        
+        {/* Image preview */}
+        {previewUrls.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            {previewUrls.map((url, index) => (
+              <div key={index} className="relative w-20 h-20 border rounded-md overflow-hidden">
+                <img 
+                  src={url} 
+                  alt={`Preview ${index + 1}`} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex gap-2 mt-3">
+          <label
+            htmlFor={name}
+            className="bg-[#CBA135] hover:bg-[#b8962e] text-white px-6 py-2 rounded-md shadow-sm transition-all cursor-pointer"
+          >
+            {previewUrls.length > 0 ? 'Change Files' : 'Browse Files'}
+          </label>
+          
+          {previewUrls.length > 0 && (
+            <button
+              type="button"
+              onClick={clearFileInput}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md shadow-sm transition-all cursor-pointer"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -55,7 +106,8 @@ const FileUploader = ({ title, name, onChange, multiple = false }) => {
 
 const SellerReg = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [postSeller] = usePostSellerMutation()
+  const [postSeller] = usePostSellerMutation();
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     // Contact Information
     firstName: '',
@@ -77,19 +129,19 @@ const SellerReg = () => {
     tradeRegisterNumber: '',
 
     // Verify Information
-    frontId: [],
-    backId: [],
-    businessOwner: [],
+    frontId: null,
+    backId: null,
+    businessOwner: null,
     homeLocalizationPlan: '',
     businessLocalizationPlan: '',
-    taxFile: '',
-    tradeFile: '',
+    taxFile: null,
+    tradeFile: null,
     
     // Verification
     captcha: ''
   });
 
-  const steps = [
+  const steps = useMemo(() => [
     {
       title: 'Contact Info',
       content: <ContactInfoStep formData={formData} setFormData={setFormData} />,
@@ -102,19 +154,19 @@ const SellerReg = () => {
       title: 'Verify',
       content: <VerifyInfoStep formData={formData} setFormData={setFormData} />,
     },
-  ];
+  ], [formData]);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (validateStep(currentStep)) {
       setCurrentStep(currentStep + 1);
     }
-  };
+  }, [currentStep, formData]);
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     setCurrentStep(currentStep - 1);
-  };
+  }, [currentStep]);
 
-  const validateStep = (step) => {
+  const validateStep = useCallback((step) => {
     switch (step) {
       case 0: // Contact Info
         if (!formData.firstName || !formData.lastName || !formData.jobTitle || !formData.email || !formData.phone) {
@@ -131,9 +183,9 @@ const SellerReg = () => {
         }
         return true;
       case 2: // Verify
-        if (formData.frontId.length === 0 || formData.backId.length === 0 || 
-            formData.businessOwner.length === 0 || !formData.homeLocalizationPlan || 
-            !formData.businessLocalizationPlan || !formData.taxFile || !formData.tradeFile) {
+        if (!formData.frontId || !formData.backId || !formData.businessOwner || 
+            !formData.homeLocalizationPlan || !formData.businessLocalizationPlan || 
+            !formData.taxFile || !formData.tradeFile) {
           message.error('Please fill all required fields in Verification');
           return false;
         }
@@ -141,72 +193,97 @@ const SellerReg = () => {
       default:
         return true;
     }
-  };
+  }, [formData]);
 
-const handleApply = async () => {
-  try {
-    const formPayload = new FormData();
+const handleApply = useCallback(async () => {
+    try {
+      // Show loading alert
+      MySwal.fire({
+        title: 'Uploading...',
+        text: 'Please wait while your application is being submitted',
+        allowOutsideClick: false,
+        didOpen: () => {
+          MySwal.showLoading();
+        }
+      });
 
-    // Append regular fields
-    formPayload.append("job_title", formData.jobTitle);
-    formPayload.append("phone_number", formData.phone);
-    formPayload.append("legal_business_name", formData.businessName);
-    formPayload.append("business_address", formData.businessAddress);
-    formPayload.append("country", formData.country);
-    formPayload.append("city_town", formData.city);
-    formPayload.append("state_province", formData.state);
-    formPayload.append("postal_code", formData.postalCode);
-    formPayload.append("established_date", formData.date);
-    formPayload.append("business_type", formData.businessType);
-    formPayload.append("taxpayer_number", formData.taxpayerNumber);
-    formPayload.append("trade_register_number", formData.tradeRegisterNumber);
-    formPayload.append("status", "pending");
-    formPayload.append("home_localization_plan", formData.homeLocalizationPlan);
-    formPayload.append("business_localization_plan", formData.businessLocalizationPlan);
-    formPayload.append("user", 9); // replace with logged-in user ID
+      const formPayload = new FormData();
+      // Append fields and files as before
+      formPayload.append("job_title", formData.jobTitle);
+      formPayload.append("phone_number", formData.phone);
+      formPayload.append("legal_business_name", formData.businessName);
+      formPayload.append("business_address", formData.businessAddress);
+      formPayload.append("country", formData.country);
+      formPayload.append("city_town", formData.city);
+      formPayload.append("state_province", formData.state);
+      formPayload.append("postal_code", formData.postalCode);
+      formPayload.append("established_date", formData.date);
+      formPayload.append("business_type", formData.businessType);
+      formPayload.append("taxpayer_number", formData.taxpayerNumber);
+      formPayload.append("trade_register_number", formData.tradeRegisterNumber);
+      formPayload.append("status", "pending");
+      formPayload.append("home_localization_plan", formData.homeLocalizationPlan);
+      formPayload.append("business_localization_plan", formData.businessLocalizationPlan);
+      formPayload.append("user", 9);
 
-    // Append files
-    if (formData.frontId) {
-      if (Array.isArray(formData.frontId)) {
-        formData.frontId.forEach(file => formPayload.append("nid_front", file));
-      } else {
-        formPayload.append("nid_front", formData.frontId);
-      }
+      if (formData.frontId) formPayload.append("nid_front", formData.frontId);
+      if (formData.backId) formPayload.append("nid_back", formData.backId);
+      if (formData.businessOwner) formPayload.append("business_owner", formData.businessOwner);
+      if (formData.taxFile) formPayload.append("taxpayer_doc", formData.taxFile);
+      if (formData.tradeFile) formPayload.append("trade_register_doc", formData.tradeFile);
+
+      await postSeller(formPayload).unwrap();
+
+      MySwal.close();
+
+      MySwal.fire({
+        icon: 'success',
+        title: 'Application Submitted!',
+        text: 'Please wait, Admin is reviewing your application.',
+        confirmButtonColor: '#CBA135'
+      });
+
+      // Reset form state
+      setFormData({
+        firstName: '',
+        lastName: '',
+        jobTitle: '',
+        email: '',
+        phone: '',
+        businessName: '',
+        businessAddress: '',
+        country: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        date: '',
+        businessType: '',
+        taxpayerNumber: '',
+        tradeRegisterNumber: '',
+        frontId: null,
+        backId: null,
+        businessOwner: null,
+        homeLocalizationPlan: '',
+        businessLocalizationPlan: '',
+        taxFile: null,
+        tradeFile: null,
+        captcha: ''
+      });
+
+      navigate('/');
+
+    } catch (error) {
+      console.error(error);
+      MySwal.close();
+
+      MySwal.fire({
+        icon: 'error',
+        title: 'Submission Failed',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#CBA135'
+      });
     }
-
-    if (formData.backId) {
-      if (Array.isArray(formData.backId)) {
-        formData.backId.forEach(file => formPayload.append("nid_back", file));
-      } else {
-        formPayload.append("nid_back", formData.backId);
-      }
-    }
-
-    if (formData.businessOwner) {
-      if (Array.isArray(formData.businessOwner)) {
-        formData.businessOwner.forEach(file => formPayload.append("business_owner", file));
-      } else {
-        formPayload.append("business_owner", formData.businessOwner);
-      }
-    }
-
-    if (formData.taxFile) {
-      formPayload.append("taxpayer_doc", formData.taxFile);
-    }
-
-    if (formData.tradeFile) {
-      formPayload.append("trade_register_doc", formData.tradeFile);
-    }
-
-    // Send via mutation
-    await postSeller(formPayload).unwrap();
-    message.success("Application submitted successfully!");
-  } catch (error) {
-    console.error(error);
-    message.error("Failed to submit application");
-  }
-};
-
+  }, [formData, postSeller, navigate]);
 
   return (
     <div className="bg-[#FAF8F2] px-6 md:px-20 py-20 pb-28">
@@ -261,14 +338,14 @@ const handleApply = async () => {
 
 // Step Components
 const ContactInfoStep = ({ formData, setFormData }) => {
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [setFormData]);
 
-  const handleSelect = (name, value) => {
+  const handleSelect = useCallback((name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [setFormData]);
 
   return (
     <>
@@ -308,10 +385,8 @@ const ContactInfoStep = ({ formData, setFormData }) => {
             className="w-full h-[44px]"
             suffixIcon={<FiChevronDown className="text-gray-500" />}
             onChange={(value) => handleSelect('jobTitle', value)}
-            defaultValue="Select Job Title"
             value={formData.jobTitle}
           >
-            
             <Option value="owner">Owner</Option>
             <Option value="manager">Manager</Option>
             <Option value="designer">Designer</Option>
@@ -344,18 +419,18 @@ const ContactInfoStep = ({ formData, setFormData }) => {
 };
 
 const BusinessInfoStep = ({ formData, setFormData }) => {
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [setFormData]);
 
-  const handleSelect = (name, value) => {
+  const handleSelect = useCallback((name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [setFormData]);
 
-  const handleDate = (date, dateString) => {
+  const handleDate = useCallback((date, dateString) => {
     setFormData(prev => ({ ...prev, date: dateString }));
-  };
+  }, [setFormData]);
 
   return (
     <>
@@ -476,14 +551,14 @@ const BusinessInfoStep = ({ formData, setFormData }) => {
 };
 
 const VerifyInfoStep = ({ formData, setFormData }) => {
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [setFormData]);
 
-  const handleFileChange = (name, files) => {
+  const handleFileChange = useCallback((name, files) => {
     setFormData(prev => ({ ...prev, [name]: files }));
-  };
+  }, [setFormData]);
 
   return (
     <>
@@ -501,21 +576,24 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
         title="Front of National ID"
         name="frontId"
         onChange={handleFileChange}
-         multiple={false}
+        multiple={false}
+        value={formData.frontId}
       />
 
       <FileUploader 
         title="Back of national ID"
         name="backId"
         onChange={handleFileChange}
-         multiple={false}
+        multiple={false}
+        value={formData.backId}
       />
 
       <FileUploader 
         title="Business owner"
         name="businessOwner"
         onChange={handleFileChange}
-         multiple={false}
+        multiple={false}
+        value={formData.businessOwner}
       />
 
       <div className="flex flex-col sm:flex-row mt-6 gap-4">
@@ -549,39 +627,30 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
       <div className="flex flex-col sm:flex-row mt-6 gap-4">
         <div className="flex-1">
           <label className="block mb-1 popbold text-[14px] text-gray-700">
-            Taxpayer Number *
+            Taxpayer Document *
           </label>
-          <div className="flex gap-2">
-
-
-              <FileUploader 
-        title="Business owner"
-        name="taxFile"
-        onChange={handleFileChange}
-         multiple={false}
-      />
-
-          </div>
+          <FileUploader 
+            title="Taxpayer Document"
+            name="taxFile"
+            onChange={handleFileChange}
+            multiple={false}
+            value={formData.taxFile}
+          />
         </div>
 
         <div className="flex-1">
           <label className="block mb-1 popbold text-[14px] text-gray-700">
-            Trade Register Number *
+            Trade Register Document *
           </label>
-          <div className="flex gap-2">
-
-
-              <FileUploader 
-        title="Business owner"
-        name="tradeFile"
-        onChange={handleFileChange}
-         multiple={false}
-      />
-
-          </div>
+          <FileUploader 
+            title="Trade Register Document"
+            name="tradeFile"
+            onChange={handleFileChange}
+            multiple={false}
+            value={formData.tradeFile}
+          />
         </div>
       </div>
-
     </>
   );
 };

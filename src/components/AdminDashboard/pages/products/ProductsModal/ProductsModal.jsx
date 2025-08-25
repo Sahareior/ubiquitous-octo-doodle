@@ -7,29 +7,29 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen,productData }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [acceptProducts] = useAcceptProductsMutation()
 
-  console.log('selected', productData.key)
+  console.log('selected', productData)
 
 const handleApprove = async () => {
   if (!productData) return;
 
   const payload = {
-    categories: productData.category ? [parseInt(productData.category)] : [0],
+    categories: productData?.category ? [parseInt(productData?.category)] : [0],
     tags: [0],
     seo: 0,
-    name: productData.productName || 'string',
-    sku: productData.productId || 'string',
+    name: productData?.productName || 'string',
+    sku: productData?.productId || 'string',
     short_description: 'string',
     full_description: 'string',
-    price1: productData.price?.toString() || '0',
+    price1: productData?.price?.toString() || '0',
     price2: '0',
     price3: '0',
     option1: 'string',
     option2: 'string',
     option3: 'string',
     option4: 'string',
-    is_stock: productData.stock?.includes('In Stock') || true,
+    is_stock: productData?.stock?.includes('In Stock') || true,
     stock_quantity: productData.stock
-      ? parseInt(productData.stock.match(/\d+/)?.[0] || '0')
+      ? parseInt(productData?.stock.match(/\d+/)?.[0] || '0')
       : 0,
     home_delivery: true,
     pickup: true,
@@ -38,7 +38,7 @@ const handleApprove = async () => {
     estimated_delivery_days: 0,
   };
 
-  const productId = productData.key; // separate id
+  const productId = productData?.key; // separate id
 
   try {
     // Send id separately, for example as the first argument to the mutation
@@ -55,9 +55,7 @@ const handleApprove = async () => {
 
   return (
     <>
-      <Button type="primary" onClick={() => setIsModalOpen(true)}>
-        Open Modal
-      </Button>
+
 
       {/* Customer Details Modal */}
       <Modal

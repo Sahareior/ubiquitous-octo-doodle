@@ -1,17 +1,19 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { data } from "react-router-dom";
+
 
 // Get token from localStorage
-const token = localStorage.getItem("access_token");
 
 export const apiSlice = createApi({
   reducerPath: "apiSlice",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
+      const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
+      
+
       return headers;
     },
   }),

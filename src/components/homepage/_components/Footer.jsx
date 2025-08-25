@@ -2,9 +2,16 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
 import CustomModal from '../../checkout/modal/CustomModal';
+import { useDispatch } from 'react-redux';
+import { selectedLocation } from '../../../redux/slices/customerSlice';
 
 const Footer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const dispatch = useDispatch()
+
+  const handelClick=()=>{
+    dispatch(selectedLocation('vendor'));
+  }
 
   return (
     <footer className="bg-black text-white px-6 py-12">
@@ -43,6 +50,7 @@ const Footer = () => {
             <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-white">Track Order</li>
             <li><Link to="/active" className="hover:text-white">Help Center/Live Chat</Link></li>
             <li><Link to="/return" className="hover:text-white">Return Request</Link></li>
+            <li className='hover:cursor-pointer'><div onClick={()=> handelClick()} className="hover:text-white">Be a Vendor</div></li>
             <li><Link to="/return-policy" className="hover:text-white">Return Policy</Link></li>
           </ul>
         </div>

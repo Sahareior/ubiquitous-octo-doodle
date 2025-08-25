@@ -37,7 +37,7 @@ const handleLogin = async (e) => {
 
     // Save to localStorage
     localStorage.setItem("access_token", res.access_token);
-    localStorage.setItem("customerId", res?.user?.id);
+    localStorage.setItem("customerId", JSON.stringify(res));
 
     const token = localStorage.getItem("access_token");
 
@@ -51,7 +51,7 @@ const handleLogin = async (e) => {
       });
 
       // Redux actions & navigation
-      dispatch(selectedLocation("seller"));
+      dispatch(selectedLocation(res?.user?.role));
       dispatch(addCustomerId(res?.user?.id));
       navigate("/");
     }

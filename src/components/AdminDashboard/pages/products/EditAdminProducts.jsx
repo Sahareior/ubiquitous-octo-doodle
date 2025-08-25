@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
-import { useGetCategoriesQuery, useGetTagsQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
-import Swal from "sweetalert2";
-import ProductSpecificationForm from "./shared/ProductSpecificationForm";
+import { 
+  useGetCategoriesQuery, 
+  useGetTagsQuery,
+  useVendorEditProductMutation, 
+   
+} from "../../../../redux/slices/Apis/vendorsApi";
+import { useLocation } from "react-router-dom";
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -43,17 +47,23 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-const NewVendorAddProducts = () => {
-  const [images, setImages] = useState([]);
+const EditAdminProducts = () => {
+  const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const productData = location.state?.productData?.originalData;
+  const [vendorEditProduct] = useVendorEditProductMutation()
 
-  const [vendorProductCreate] = useVendorProductCreateMutation()
+  console.log(location.state,'adadad')
+
+
+
   // 🔹 State for all form data
   const [formData, setFormData] = useState({
     name: "",
     category: [],
-    short_description: "",
-    full_description: "",
+    shortDescription: "",
+    fullDescription: "",
     price1: "",
     price2: "",
     price3: "",
@@ -61,40 +71,77 @@ const NewVendorAddProducts = () => {
     stockQuantity: "",
     colors: [],
     sizes: [],
-    inStock: true,
+    inStock: false,
     homeDeliveryEnabled: false,
     option1: "",
     pickUpEnabled: false,
     option2: "",
     partnerDeliveryEnabled: false,
     option3: "",
-    estimated_delivery_days: "",
+    deliveryTime: "",
     seoTitle: "",
     metaDescription: "",
     tag: [],
-    dimensions: "",
-    assemblyRequired: "",
-    material: "",
-    warranty: "",
-    color: "",
-    careInstructions: "",
-    weight: "",
-    countryOfOrigin: "",
+    images: []
   });
 
+  // Initialize form data when productData is available
+  useEffect(() => {
+    if (productData) {
+      setFormData({
+        name: productData.name || "",
+        category: productData.categories || [],
+        shortDescription: productData.short_description || "",
+        fullDescription: productData.full_description || "",
+        price1: productData.price1 || "",
+        price2: productData.price2 || "",
+        price3: productData.price3 || "",
+        sku: productData.sku || "",
+        stockQuantity: productData.stock_quantity || "",
+        colors: [],
+        sizes: [],
+        inStock: productData.is_stock || false,
+        homeDeliveryEnabled: productData.home_delivery || false,
+        option1: productData.option1 || "",
+        pickUpEnabled: productData.pickup || false,
+        option2: productData.option2 || "",
+        partnerDeliveryEnabled: productData.partner_delivery || false,
+        option3: productData.option3 || "",
+        deliveryTime: productData.estimated_delivery_days || "",
+        seoTitle: productData.seo?.title || "",
+        metaDescription: productData.seo?.meta_description || "",
+        tag: productData.tags || [],
+        images: productData.images?.map(img => ({
+          id: img.id,
+          url: img.image,
+          createdAt: img.created_at
+        })) || []
+      });
+    }
+  }, [productData]);
+
   const handleImageUpload = (files) => {
-    const newImages = files.map(file => ({
+    const uploadedImages = files.map(file => ({
       file,
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
+      isNew: true
     }));
-    setImages([...images, ...newImages]);
+    setNewImages([...newImages, ...uploadedImages]);
   };
 
-  const handleImageRemove = (index) => {
-    const newImages = [...images];
-    URL.revokeObjectURL(newImages[index].preview);
-    newImages.splice(index, 1);
-    setImages(newImages);
+  const handleImageRemove = (index, isNew) => {
+    if (isNew) {
+      // Remove from new images
+      const updatedNewImages = [...newImages];
+      URL.revokeObjectURL(updatedNewImages[index].preview);
+      updatedNewImages.splice(index, 1);
+      setNewImages(updatedNewImages);
+    } else {
+      // Remove from existing images
+      const updatedImages = [...formData.images];
+      updatedImages.splice(index, 1);
+      setFormData(prev => ({ ...prev, images: updatedImages }));
+    }
   };
 
   // 🔹 Handle generic input change
@@ -103,101 +150,65 @@ const NewVendorAddProducts = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
-const initialFormData = {
-  name: "",
-  category: [],
-  short_description: "",
-  full_description: "",
-  price1: "",
-  price2: "",
-  price3: "",
-  sku: "",
-  stockQuantity: "",
-  colors: [],
-  sizes: [],
-  inStock: true,
-  homeDeliveryEnabled: false,
-  option1: "",
-  pickUpEnabled: false,
-  option2: "",
-  partnerDeliveryEnabled: false,
-  option3: "",
-  estimated_delivery_days: "",
-  seoTitle: "",
-  metaDescription: "",
-  tag: [],
-};
-
-const handleSubmit = async () => {
-  if (images.length === 0) {
-    Swal.fire({
-      icon: "warning",
-      title: "No Image Uploaded",
-      text: "Please upload at least one product image.",
-      confirmButtonColor: "#3085d6",
-    });
-    return;
-  }
-
-  setLoading(true);
-
-  const formDataToSend = new FormData();
-
-  Object.keys(formData).forEach((key) => {
-    if (Array.isArray(formData[key])) {
-      formDataToSend.append(key, JSON.stringify(formData[key]));
-    } else if (typeof formData[key] === "boolean") {
-      formDataToSend.append(key, formData[key].toString());
-    } else {
-      formDataToSend.append(key, formData[key]);
-    }
-  });
-
-  images.forEach((image) => {
-    formDataToSend.append("uploaded_images", image.file);
-  });
-
-  try {
-    const res = await vendorProductCreate(formDataToSend);
-    console.log('this is res', res)
-    if (res?.data?.id ) {
-      Swal.fire({
-        title: "Success!",
-        text: "Product created successfully 🎉",
-        icon: "success",
-        confirmButtonColor: "#3085d6",
-        customClass: {
-          popup: "rounded-2xl shadow-lg",
-          confirmButton: "px-4 py-2 rounded-lg",
-        },
-      });
-
-      // ✅ Reset all fields & images
-      setFormData(initialFormData);
-      setImages([]);
-    } else {
-      Swal.fire({
-        title: "Failed!",
-        text: "Something went wrong while creating the product.",
-        icon: "error",
-        confirmButtonColor: "#d33",
-      });
+  const handleSubmit = async () => {
+    if (formData.images.length === 0 && newImages.length === 0) {
+      message.error("Please upload at least one product image");
+      return;
     }
 
-    setLoading(false);
-  } catch (error) {
-    console.error("Failed to create product", error);
-    Swal.fire({
-      title: "Error!",
-      text: "Server error occurred. Please try again.",
-      icon: "error",
-      confirmButtonColor: "#d33",
+    setLoading(true);
+    
+    // Create FormData object
+    const formDataToSend = new FormData();
+    
+    // Add product ID for update
+    formDataToSend.append('id', productData.id);
+    
+    // Append all form fields
+    Object.keys(formData).forEach(key => {
+      if (key === 'images') return; // Skip images as they're handled separately
+      
+      if (Array.isArray(formData[key])) {
+        // Stringify array fields
+        formDataToSend.append(key, JSON.stringify(formData[key]));
+      } else if (typeof formData[key] === 'boolean') {
+        // Convert boolean to string
+        formDataToSend.append(key, formData[key].toString());
+      } else {
+        formDataToSend.append(key, formData[key]);
+      }
     });
-    setLoading(false);
-  }
-};
+    
+    // Append new image files
+    newImages.forEach(image => {
+      formDataToSend.append('uploaded_images', image.file);
+    });
+    
+    // Append existing image IDs to keep
+    const existingImageIds = formData.images.map(img => img.id);
+    formDataToSend.append('existing_images', JSON.stringify(existingImageIds));
+    
+    try {
+      // Use update mutation instead of create
+    const res = await vendorEditProduct({id:productData.id, formDataToSend})
+      
+  
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to update product", error);
+      message.error("Failed to update product");
+      setLoading(false);
+    }
+  };
 
+  // Combine existing and new images for display
+  const allImages = [
+    ...formData.images.map(img => ({ ...img, isNew: false })),
+    ...newImages
+  ];
+
+  console.log(allImages,'asa')
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg space-y-8">
@@ -228,15 +239,15 @@ const handleSubmit = async () => {
         </div>
         <TextareaField 
           label="Short Description" 
-          name="short_description" 
-          value={formData.short_description} 
+          name="shortDescription" 
+          value={formData.shortDescription} 
           onChange={handleChange} 
           placeholder="Enter a brief description"
         />
         <TextareaField 
           label="Full Description" 
-          name="full_description" 
-          value={formData.full_description} 
+          name="fullDescription" 
+          value={formData.fullDescription} 
           onChange={handleChange} 
           placeholder="Enter a detailed description"
         />
@@ -267,19 +278,19 @@ const handleSubmit = async () => {
             </label>
           </div>
 
-          {images.length > 0 && (
+          {allImages.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              {images.map((image, index) => (
+              {allImages.map((image, index) => (
                 <div key={index} className="relative group">
                   <img
-                    src={image.preview}
+                    src={image.isNew ? image.preview : image.url}
                     alt={`Preview ${index + 1}`}
                     className="h-32 w-full object-cover rounded-lg"
                   />
                   <button
                     type="button"
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleImageRemove(index)}
+                    onClick={() => handleImageRemove(index, image.isNew)}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -442,8 +453,8 @@ const handleSubmit = async () => {
         </div>
         <InputField 
           label="Estimated Delivery Time" 
-          name="estimated_delivery_days" 
-          value={formData.estimated_delivery_days} 
+          name="deliveryTime" 
+          value={formData.deliveryTime} 
           onChange={handleChange} 
           placeholder="e.g., 3-5 business days" 
         />
@@ -482,7 +493,6 @@ const handleSubmit = async () => {
           />
         </div>
 
-          <ProductSpecificationForm setFormData={setFormData} formData={formData} />
         <div className="flex justify-end gap-4 mt-6">
           <Button className="bg-white border px-8 py-5 border-gray-400">Save as Draft</Button>
           <Button 
@@ -490,7 +500,7 @@ const handleSubmit = async () => {
             onClick={handleSubmit}
             loading={loading}
           >
-            Submit Product
+            Update Product
           </Button>
         </div>
       </Section>
@@ -498,4 +508,4 @@ const handleSubmit = async () => {
   );
 };
 
-export default NewVendorAddProducts;
+export default EditAdminProducts;

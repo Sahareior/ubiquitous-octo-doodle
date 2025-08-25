@@ -1,63 +1,259 @@
-import { Button } from "antd";
-import React from "react";
 import { Link } from "react-router-dom";
+import React, { useRef, useState, useEffect } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, A11y, Keyboard, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
+
+// Skeleton loader component for better UX
+const CardSkeleton = () => (
+  <div className="bg-white rounded-xl shadow hover:shadow-md transition relative animate-pulse">
+    <div className="w-full h-[192px] bg-gray-200 rounded-t-xl"></div>
+    <div className="p-4 flex flex-col items-center mt-4 pb-5 gap-4">
+      <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-9 bg-gray-200 rounded w-24"></div>
+    </div>
+  </div>
+);
 
 const categories = [
-  {
-    id: 1,
-    title: "Living Room",
-    image: "https://plus.unsplash.com/premium_photo-1669324450657-1dbd23d8c6d4?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    link: "/filter?category=living-room",
-  },
-  {
-    id: 2,
-    title: "Bedroom",
-    image: "https://plus.unsplash.com/premium_photo-1746718185719-a05ffddf579d?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    link: "/filter?category=bedroom",
-  },
-  {
-    id: 3,
-    title: "Office",
-    image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGhvbWUlMjBmdXJuaXR1cmV8ZW58MHx8MHx8fDA%3D",
-    link: "/filter?category=office",
-  },
+  { id: 1, title: "Living Room", image: "https://plus.unsplash.com/premium_photo-1669324450657-1dbd23d8c6d4?q=80&w=871&auto=format&fit=crop", link: "/filter?category=living-room" },
+  { id: 2, title: "Bedroom", image: "https://plus.unsplash.com/premium_photo-1746718185719-a05ffddf579d?q=80&w=870&auto=format&fit=crop", link: "/filter?category=bedroom" },
+  { id: 3, title: "Office", image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=500&auto=format&fit=crop", link: "/filter?category=office" },
+  { id: 4, title: "Dining Room", image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop", link: "/filter?category=dining" },
+  { id: 5, title: "Kitchen", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop", link: "/filter?category=kitchen" },
+  { id: 6, title: "Outdoor", image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop", link: "/filter?category=outdoor" },
+  { id: 10, title: "Decor Accents", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop", link: "/filter?category=decor" },
 ];
 
-const ShopCategory = () => {
+const Card = ({ category, loading = false }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  if (loading) {
+    return <CardSkeleton />;
+  }
+
   return (
-    <div className="px-6 md:px-16 py-8">
-      <h3 className="text-center text-[30px] popmed pb-9">Shop by Category</h3>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 justify-items-center">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="bg-white rounded-xl shadow hover:shadow-md w-full transition relative"
-            style={{
-              boxShadow: "0px 10px 15px 0px #0000001A",
-            }}
-          >
-            <img
-              src={category.image}
-              alt={category.title}
-              className="w-full h-[192px] object-cover rounded-t-xl"
-            />
-
-            <div className="p-4 flex flex-col items-center mt-4 pb-5 gap-4">
-              <h2 className="text-lg popreg font-semibold text-gray-800 text-center">
-                {category.title}
-              </h2>
-
-              <Link to={category.link}>
-                <button className="bg-[#CBA135] popreg text-white border-none px-6 py-1.5 rounded">
-                  Explore
-                </button>
-              </Link>
-            </div>
+    <div
+      className="bg-white rounded-xl shadow hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
+      style={{ boxShadow: "0px 10px 15px 0px #0000001A" }}
+    >
+      <div className="relative overflow-hidden">
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse z-10"></div>
+        )}
+        <img
+          src={category.image}
+          alt={category.title}
+          className={`w-full h-[192px] object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
+        />
+        {imageError && (
+          <div className="w-full h-[192px] bg-gray-100 flex items-center justify-center rounded-t-xl">
+            <span className="text-gray-400">Image not available</span>
           </div>
-        ))}
+        )}
+      </div>
+      <div className="p-4 flex flex-col items-center mt-4 pb-5 gap-4">
+        <h2 className="text-lg font-semibold text-gray-800 text-center line-clamp-1">
+          {category.title}
+        </h2>
+        <Link to={category.link} className="w-full flex justify-center">
+          <button className="bg-[#CBA135] text-white border-none px-6 py-2.5 rounded-md transition-all duration-300 hover:bg-[#b38d2d] focus:ring-2 focus:ring-[#CBA135] focus:ring-opacity-50 focus:outline-none w-full max-w-[120px]">
+            Explore
+          </button>
+        </Link>
       </div>
     </div>
+  );
+};
+
+const ShopCategory = () => {
+  const topRef = useRef(null);
+  const bottomRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const breakpoints = {
+    0: { slidesPerView: 1, spaceBetween: 20 },
+    480: { slidesPerView: 2, spaceBetween: 20 },
+    768: { slidesPerView: 3, spaceBetween: 20 },
+    1024: { slidesPerView: 4, spaceBetween: 30 },
+    1280: { slidesPerView: 5, spaceBetween: 30 },
+  };
+
+  // Duplicate categories for seamless infinite loop
+  const duplicatedCategories = [...categories, ...categories, ...categories];
+
+  return (
+    <section aria-labelledby="shop-by-category-heading" className="px-6 md:px-10 py-12 bg-gray-50">
+      <div className="w-full mx-auto">
+        <h2 id="shop-by-category-heading" className="text-center text-3xl md:text-4xl font-medium text-gray-900 pb-10">
+          Shop by Category
+        </h2>
+
+        {/* Navigation Controls */}
+        <div className="flex justify-end gap-3 mb-4">
+          <button 
+            className="category-prev bg-white p-2 rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#CBA135]"
+            aria-label="Previous categories"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            className="category-next bg-white p-2 rounded-full shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#CBA135]"
+            aria-label="Next categories"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* TOP ROW - Right to Left */}
+        <div 
+          className="relative mb-10"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Swiper
+            onSwiper={(sw) => {
+              topRef.current = sw;
+            }}
+            modules={[Navigation, A11y, Keyboard, Autoplay]}
+            navigation={{
+              prevEl: ".category-prev",
+              nextEl: ".category-next",
+            }}
+            a11y={{
+              prevSlideMessage: 'Previous categories',
+              nextSlideMessage: 'Next categories',
+            }}
+            keyboard={{
+              enabled: true,
+              onlyInViewport: true,
+            }}
+            loop={true}
+            speed={8000}
+            spaceBetween={20}
+            breakpoints={breakpoints}
+            autoplay={{
+              delay: 1,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+              reverseDirection: false
+            }}
+            freeMode={{
+              enabled: true,
+              momentum: false,
+            }}
+            slidesPerView="auto"
+            resistance={false}
+            resistanceRatio={0}
+            simulateTouch={true}
+            allowTouchMove={true}
+            className="category-swiper"
+            style={{ 
+              transitionTimingFunction: 'linear',
+              cursor: 'grab'
+            }}
+          >
+            {duplicatedCategories.map((c, index) => (
+              <SwiperSlide key={`top-${c.id}-${index}`} style={{ width: 'auto' }}>
+                <Card category={c} loading={isLoading} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          
+          {/* Gradient overlay for top row */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none"></div>
+        </div>
+
+        {/* BOTTOM ROW - Left to Right */}
+        <div 
+          className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Swiper
+            onSwiper={(sw) => {
+              bottomRef.current = sw;
+            }}
+            modules={[Navigation, A11y, Keyboard, Autoplay]}
+            navigation={false}
+            a11y={{
+              enabled: false,
+            }}
+            loop={true}
+            speed={8000}
+            spaceBetween={20}
+            breakpoints={breakpoints}
+            autoplay={{
+              delay: 1,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+              reverseDirection: true // This makes it go left to right
+            }}
+            freeMode={{
+              enabled: true,
+              momentum: false,
+            }}
+            slidesPerView="auto"
+            resistance={false}
+            resistanceRatio={0}
+            simulateTouch={true}
+            allowTouchMove={true}
+            className="category-swiper"
+            style={{ 
+              transitionTimingFunction: 'linear',
+              cursor: 'grab'
+            }}
+          >
+            {duplicatedCategories.map((c, index) => (
+              <SwiperSlide key={`bottom-${c.id}-${index}`} style={{ width: 'auto' }}>
+                <Card category={c} loading={isLoading} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          
+          {/* Gradient overlay for bottom row */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none"></div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .category-swiper {
+          padding: 10px 5px 20px;
+        }
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .swiper-wrapper {
+          transition-timing-function: linear !important;
+        }
+      `}</style>
+    </section>
   );
 };
 

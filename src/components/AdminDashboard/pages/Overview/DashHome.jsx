@@ -11,59 +11,62 @@ import {
 } from "react-icons/md";
 import { FaCheck, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useAdminOverViewQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import AdminSellsOverview from "./_subComponents/AdminSellsOverview";
 
 const DashHome = () => {
-  
-const cards = [
-  {
-    title: "Total Revenue",
-    value: "$127,500",
-    change: "+12.5%",
-    color: "#16A34A",
-    icon: <MdOutlineAttachMoney className="text-[#CBA135]" size={26} />,
-    footerText: "Increase in sales revenue",
-  },
-  {
-    title: "Total Orders",
-    value: "3,420",
-    change: "+8.2%",
-    color: "#3B82F6",
-    icon: <MdOutlineShoppingCart className="text-[#3B82F6]" size={26} />,
-    footerText: "More orders received",
-  },
-  {
-    title: "New Customers",
-    value: "1,120",
-    change: "+5.7%",
-    color: "#10B981",
-    icon: <MdPeopleAlt className="text-[#10B981]" size={26} />,
-    footerText: "Growth in customer base",
-  },
-  {
-    title: "Active Sellers",
-    value: "23%",
-    change: "-3.2%",
-    color: "#EF4444",
-    icon: <MdStore className="text-[#EF4444]" size={26} />,
-    footerText: "Drop in active sellers",
-  },
-  {
-    title: "Low Stock",
-    value: "15,300",
-    change: "+9.1%",
-    color: "#8B5CF6",
-    icon: <MdInventory className="text-[#8B5CF6]" size={26} />,
-    footerText: "Items running low",
-  },
-  {
-    title: "Pending Returns",
-    value: "980",
-    change: "+4.6%",
-    color: "#F59E0B",
-    icon: <MdReplay className="text-red-400" size={26} />,
-    footerText: "Returns awaiting action",
-  },
-];
+  const {data} = useAdminOverViewQuery()
+
+  const cards = [
+    {
+      title: "Total Revenue",
+      value: data?.total_revenue?.value,
+      change: data?.total_revenue?.change,
+      color: "#16A34A",
+      icon: <MdOutlineAttachMoney className="text-[#CBA135]" size={26} />,
+      footerText: data?.total_revenue?.note,
+    },
+    {
+      title: "Total Orders",
+      value: data?.total_orders?.value,
+      change: data?.total_orders?.change,
+      color: "#3B82F6",
+      icon: <MdOutlineShoppingCart className="text-[#3B82F6]" size={26} />,
+      footerText: data?.total_orders?.note,
+    },
+    {
+      title: "New Customers",
+      value: data?.new_customers?.value,
+      change: data?.new_customers?.change,
+      color: "#10B981",
+      icon: <MdPeopleAlt className="text-[#10B981]" size={26} />,
+      footerText: data?.new_customers?.note,
+    },
+    {
+      title: "Active Sellers",
+      value: data?.active_sellers?.value,
+      change: data?.active_sellers?.change,
+      color: "#EF4444",
+      icon: <MdStore className="text-[#EF4444]" size={26} />,
+      footerText: data?.active_sellers?.note,
+    },
+    {
+      title: "Low Stock",
+      value: data?.low_stock?.value,
+      change: data?.low_stock?.change,
+      color: "#8B5CF6",
+      icon: <MdInventory className="text-[#8B5CF6]" size={26} />,
+      footerText: data?.low_stock?.note,
+    },
+    {
+      title: "Pending Returns",
+      value: data?.pending_returns?.value,
+      change: data?.pending_returns?.change,
+      color: "#F59E0B",
+      icon: <MdReplay className="text-red-400" size={26} />,
+      footerText: data?.pending_returns?.note,
+    },
+  ];
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen p-6">
@@ -91,7 +94,7 @@ const cards = [
       <div className="flex flex-col lg:flex-row gap-6 min-h-[600px]">
         {/* === Left Column === */}
         <div className="flex-1 flex flex-col space-y-6">
-          <SalesOverview />
+          <AdminSellsOverview />
 
           <div className="bg-white p-6 rounded-xl shadow-md flex-1">
             <div className="flex justify-between items-center mb-4">
@@ -110,16 +113,16 @@ const cards = [
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-  <Link to='addproducts ' className="block">
-              <button className="bg-[#CBA135] text-white py-3 px-4 rounded-xl w-full flex items-center gap-2 hover:opacity-90">
-                <FaPlus /> Add New Product
-              </button>
-  </Link>
-             <Link to= 'd' className="block">
+ <Link to='/vendor-dashboard/addproducts'  className="block">
+                <button className="bg-[#CBA135] text-white py-3 w-full sm:w-72 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition">
+          <FaPlus /> Add New Product
+        </button>
+        </Link>
+             {/* <Link to= 'd' className="block">
               <button className="bg-[#EAE7E1] text-gray-800 py-3 px-4 rounded-xl w-full flex items-center gap-2 hover:opacity-90">
                 <FaCheck /> Approve Sellers
               </button>
-             </Link>
+             </Link> */}
             </div>
           </div>
 

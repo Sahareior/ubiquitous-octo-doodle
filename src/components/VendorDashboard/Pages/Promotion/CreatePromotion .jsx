@@ -4,8 +4,10 @@ import {
   useCreatePromotionMutation,
   useEditPromotionMutation,
   useGetAllProductsQuery,
+  useGetPromotionQuery,
 } from "../../../../redux/slices/Apis/vendorsApi";
 import { useLocation } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const CreatePromotion = () => {
   const [name, setName] = useState("");
@@ -23,6 +25,7 @@ const CreatePromotion = () => {
 
   const location = useLocation();
   const [createPromotion] = useCreatePromotionMutation();
+    const { data,refetch } = useGetPromotionQuery();
   const [editPromotion] = useEditPromotionMutation()
   const { data: productsData, isLoading, error } = useGetAllProductsQuery();
 
@@ -75,26 +78,64 @@ const CreatePromotion = () => {
     setSelectedProducts(selectedProducts.filter((p) => p.prod_id !== prodId));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    const payload = {
-      name,
-      discount_type: discountType,
-      discount_value: discountValue,
-      products: selectedProducts.map((p) => p.id),
-      start_datetime: new Date(startDateTime).toISOString(),
-      end_datetime: new Date(endDateTime).toISOString(),
-      description,
-      is_active: isActive,
-    };
 
-    if(location.state){
-      await editPromotion({id:location.state.id,payload})
-    }
-    const res = await createPromotion(payload);
-    console.log("Final Payload:", res);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    name,
+    discount_type: discountType,
+    discount_value: discountValue,
+    products: selectedProducts.map((p) => p.id),
+    start_datetime: new Date(startDateTime).toISOString(),
+    end_datetime: new Date(endDateTime).toISOString(),
+    description,
+    is_active: isActive,
   };
+
+  try {
+    if (location.state) {
+      // Edit promotion
+      await editPromotion({ id: location.state.id, payload }).unwrap();
+      Swal.fire({
+        icon: "success",
+        title: "Promotion Updated!",
+        text: "The promotion has been successfully updated.",
+        confirmButtonColor: "#CBA135",
+      });
+      refetch()
+    } else {
+      // Create promotion
+      await createPromotion(payload).unwrap();
+      Swal.fire({
+        icon: "success",
+        title: "Promotion Created!",
+        text: "Your promotion has been successfully created.",
+        confirmButtonColor: "#CBA135",
+      });
+
+      // Reset form after creation
+      setName("");
+      setDiscountType("percentage");
+      setDiscountValue("");
+      setStartDateTime("");
+      setEndDateTime("");
+      setDescription("");
+      setSelectedProducts([]);
+      setSearchQuery("");
+      refetch()
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Something went wrong. Please try again.",
+      confirmButtonColor: "#CBA135",
+    });
+  }
+};
 
   if (isLoading) return <p>Loading products...</p>;
   if (error) return <p>Error loading products</p>;

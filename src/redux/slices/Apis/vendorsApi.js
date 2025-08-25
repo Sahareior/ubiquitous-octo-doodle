@@ -9,6 +9,9 @@ export const vendorsApi = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
+
+
+
       return headers;
     },
   }),

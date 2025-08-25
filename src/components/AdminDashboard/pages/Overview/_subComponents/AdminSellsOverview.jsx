@@ -2,18 +2,17 @@ import React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Text
 } from 'recharts';
-import { useVendorSellsPerfomenceQuery } from '../../../../../redux/slices/Apis/vendorsApi';
+import { useGetFurnitureSellsQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 
-const SalesOverview = () => {
-  const { data, isLoading, error } = useVendorSellsPerfomenceQuery();
+const AdminSellsOverview = () => {
+  const { data, isLoading, error } = useGetFurnitureSellsQuery();
+  console.log(data, 'furniture overview');
 
-  console.log("this is graph data", data?.sales_performance);
-
-  // Check if all values are zero or if data is empty
-  const allZero = data?.sales_performance?.every(item => item.value === 0) || !data?.sales_performance;
+  // Check if all sales are zero
+  const allZero = data?.every(item => item.sales === 0);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md w-full">
+    <div className="bg-white p rounded-xl shadow-md w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800">Sales Overview</h2>
         <select className="border px-3 py-1 rounded-md text-sm text-gray-700">
@@ -34,40 +33,40 @@ const SalesOverview = () => {
       ) : allZero ? (
         <div className="h-[350px] flex flex-col items-center justify-center">
           <p className="text-gray-500 mb-2">No sales data available</p>
-          <p className="text-sm text-gray-400 text-center">
+          <p className="text-sm text-gray-400">
             Your sales chart will appear here when you make sales
           </p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={350}>
-          <AreaChart data={data?.sales_performance}>
+          <AreaChart data={data}>
             <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#CBA135" stopOpacity={0.8} />
                 <stop offset="95%" stopColor="#CBA135" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis 
-              dataKey="month" 
+            <XAxis
+              dataKey="month"
               stroke="#888888"
               tick={<CustomizedAxisTick />}
             />
-            <YAxis 
-              tickFormatter={(val) => `$${val}`} 
+            <YAxis
+              tickFormatter={(val) => `$${val / 1000}k`}
               stroke="#888888"
-              domain={[0, 'auto']} // Set minimum to 0
+              domain={['auto', 'auto']}
             />
-            <Tooltip 
+            <Tooltip
               formatter={(val) => [`$${val.toLocaleString()}`, 'Sales']}
               labelFormatter={(label) => `Month: ${label}`}
             />
             <Area
               type="monotone"
-              dataKey="value"
+              dataKey="sales"
               stroke="#CBA135"
               strokeWidth={2}
               fillOpacity={1}
-              fill="url(#colorValue)"
+              fill="url(#colorSales)"
               activeDot={{ r: 6 }}
             />
           </AreaChart>
@@ -77,7 +76,7 @@ const SalesOverview = () => {
   );
 };
 
-// Custom XAxis tick component to handle month names better
+// Custom XAxis tick component for months
 const CustomizedAxisTick = ({ x, y, payload }) => {
   return (
     <g transform={`translate(${x},${y})`}>
@@ -95,4 +94,4 @@ const CustomizedAxisTick = ({ x, y, payload }) => {
   );
 };
 
-export default SalesOverview;
+export default AdminSellsOverview;

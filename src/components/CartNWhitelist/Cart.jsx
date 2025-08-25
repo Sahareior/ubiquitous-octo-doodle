@@ -8,6 +8,7 @@ import Breadcrumb from "../others/Breadcrumb";
 import {
   useCartQuantityDecrementMutation,
   useCartQuantityIncreaseMutation,
+  useDeleteFromCartMutation,
   useGetAppCartQuery,
 } from "../../redux/slices/Apis/customersApi";
 
@@ -69,7 +70,7 @@ const Cart = () => {
   const [cartQuantityDecrement] = useCartQuantityDecrementMutation();
   const [cartQuantityIncrease] = useCartQuantityIncreaseMutation();
   const { data: cartData } = useGetAppCartQuery();
-
+  const [deleteFromCart] = useDeleteFromCartMutation()
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
 
@@ -135,8 +136,10 @@ const Cart = () => {
 };
 
 
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  const removeItem = async (id) => {
+    const res =deleteFromCart(id)
+    console.log(res)
+    // setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const subtotal = cartItems.reduce(

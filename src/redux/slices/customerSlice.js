@@ -1,23 +1,26 @@
 import { createSlice } from '@reduxjs/toolkit'
+import socket from '../../components/utils/socket'
+
 
 const initialState = {
   value: 0,
   route: [],
-  customerid:null,
+  customerid: null,
   location: null,
   cart: [],
-  wishlist: []
+  activeChat: '',
+  wishlist: [],
+  onlineUsers: [],   // 👈 new for socket.io
+  messages: []       // 👈 chat/messages
 }
 
+    const customerData = JSON.parse(localStorage.getItem("customerId"));
+
 export const customerSlice = createSlice({
-  name: 'counter',
+  name: 'customer',
   initialState,
   reducers: {
     increment: (state) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
       state.value += 1
     },
     decrement: (state) => {
@@ -32,33 +35,69 @@ export const customerSlice = createSlice({
     },
     
     selectedLocation : (state,action) =>{
-
-      console.log(action)
       state.location = action.payload
     },
+
     addCustomerId: (state,action) => {
       state.customerid = action.payload
     },
 
-addToCart: (state, action) => {
-  const itemExists = state.cart.find(item => item.id === action.payload.id);
-  if (!itemExists) {
-    state.cart.push(action.payload);
-  }
-},
+    addToCart: (state, action) => {
+      const itemExists = state.cart.find(item => item.id === action.payload.id);
+      if (!itemExists) {
+        state.cart.push(action.payload);
+      }
+    },
 
-addToWishList: (state, action) => {
-  const itemExists = state.wishlist.find(item => item.id === action.payload.id);
-  if (!itemExists) {
-    state.wishlist.push(action.payload);
-  }
+    addToWishList: (state, action) => {
+      const itemExists = state.wishlist.find(item => item.id === action.payload.id);
+      if (!itemExists) {
+        state.wishlist.push(action.payload);
+      }
+    },
+
+    // ---------------- SOCKET.IO REDUCERS ----------------
+    setOnlineUsers: (state, action) => {
+      state.onlineUsers = action.payload.filter(items => items.uid === customerData.user.id)
+    },
+    addMessage: (state, action) => {
+      state.messages.push(action.payload)
+    },
+    setActiveChat: (state, action) => {
+  state.activeChat = action.payload  // which user we are chatting with
 }
-
-
   },
 })
 
-// Action creators are generated for each case reducer function
-export const { increment, decrement,addCustomerId, incrementByAmount,selectedLocation,addToCart,addToWishList } = customerSlice.actions
+// Extract actions
+export const { 
+  increment, decrement, incrementByAmount, 
+  addToRoute, selectedLocation, addCustomerId, 
+  addToCart, addToWishList, setActiveChat,
+  setOnlineUsers, addMessage 
+} = customerSlice.actions
 
 export default customerSlice.reducer
+
+// ---------------- SOCKET.IO THUNKS ----------------
+export const initSocket = (currentUser) => (dispatch) => {
+  if (!currentUser) return;
+
+  // 1. Add user when connected
+  socket.emit("addUser", currentUser);
+
+  // 2. Listen for online users
+  socket.on("getUsers", (users) => {
+    dispatch(setOnlineUsers(users));
+  });
+
+  // 3. Listen for incoming messages
+  socket.on("getMessage", (data) => {
+    dispatch(addMessage(data));
+  });
+};
+
+// Send a message to another user
+export const sendMessage = (message) => () => {
+  socket.emit("sendMessage", message);
+};

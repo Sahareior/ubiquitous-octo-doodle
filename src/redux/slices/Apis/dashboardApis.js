@@ -11,7 +11,9 @@ export const dashboardApis = createApi({
        if (token) {
          headers.set("Authorization", `Bearer ${token}`);
        }
-       return headers;
+ 
+
+      return headers;
      },
    }),
   endpoints: (build) => ({
@@ -91,7 +93,7 @@ export const dashboardApis = createApi({
 
    deleteBanner: build.mutation({
     query: (id) => ({
-      url: `admin/banners/${id}`,
+      url: `admin/banners/${id}/`,
       method: "DELETE"
     })
    }),
@@ -106,7 +108,7 @@ export const dashboardApis = createApi({
 
    deleteOrdersById:build.mutation({
     query: (id) => ({
-      url: `orders/${id}`,
+      url: `orders/${id}/`,
       method: "DELETE"
     })
    }),
@@ -114,6 +116,35 @@ export const dashboardApis = createApi({
   viewVendors: build.query({
   query: (uri) => uri,  // just return the full URI
 }),
+
+getLowStacks: build.query({
+  query: ()=> 'admin/alerts/low-stock/'
+}),
+
+getCategorySells: build.query({
+  query: ()=> 'admin/category-sales/'
+}),
+
+getFurnitureSells: build.query({
+  query: ()=> '/admin/furniture-sales-comparison/'
+}),
+
+getLatestOrders: build.query({
+  query: ()=> 'admin/latest-orders/'
+}),
+
+getTopSells: build.query({
+  query: () => 'top/sell/products/'
+}),
+
+adminOverView: build.query({
+  query: () => 'admin/stats/'
+}),
+
+adminVendorPerfomence: build.query({
+  query: ()=> 'admin/vendor-performance/'
+}),
+
 
    vendorOrderNameDetails: build.query({
     query: ()=> 'vendor/order/list/'
@@ -126,8 +157,10 @@ export const dashboardApis = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetPokemonByNameQuery,useGetAllProductsQuery,useVendorAcceptProductMutation,useAcceptSellerMutation,useAcceptProductsMutation,
-  useGetAllVendorsQuery, useGetAllCustomersQuery,useViewVendorsQuery,
+export const { useGetPokemonByNameQuery,useAdminOverViewQuery,useGetTopSellsQuery, useAdminVendorPerfomenceQuery, useGetFurnitureSellsQuery,useGetLatestOrdersQuery,
+  
+  useGetAllProductsQuery,useVendorAcceptProductMutation,useAcceptSellerMutation,useAcceptProductsMutation,
+  useGetAllVendorsQuery, useGetAllCustomersQuery,useViewVendorsQuery,useGetLowStacksQuery,useGetCategorySellsQuery,
    useDeleteCustomersMutation, useGetAllBannersQuery, useUpdateBannerMutation,useDeleteOrdersByIdMutation,
   useGetAllOrdersQuery, useGetAllSellerApplicationQuery, useBannerUploadMutation, useDeleteBannerMutation, useVendorOrderNameDetailsQuery
 

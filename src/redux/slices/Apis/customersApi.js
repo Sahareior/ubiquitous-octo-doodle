@@ -18,9 +18,13 @@ export const customersApi = createApi({
       query: (name) => `pokemon/${name}`,
     }),
 
-    getCustomerProducts: build.query({
-      query: () => "products/",
-    }),
+ getCustomerProducts: build.query({
+  query: () => ({
+    url: "products/",
+
+  }),
+}),
+
 
     addProductToCart: build.mutation({
       query: (data) => ({
@@ -32,6 +36,13 @@ export const customersApi = createApi({
 
     getAppCart: build.query({
       query: () => "cart/",
+    }),
+
+    deleteFromCart: build.mutation({
+      query: (id) => ({
+        url: `cart/${id}/`,
+        method: 'DELETE'
+      })
     }),
 
 
@@ -52,6 +63,22 @@ export const customersApi = createApi({
     }),
     getCategories: build.query({
       query: ()=> 'categories/'
+    }),
+
+    postCategories: build.mutation({
+      query: (data) =>({
+        url: "categories/",
+        method:"POST",
+        body: data
+      })
+    }),
+
+    editCategory: build.mutation({
+      query: ({id,data}) =>({
+        url: `category/${id}/`,
+        method: "PATCH",
+        body: data
+      })
     }),
 
     cartQuantityIncrease: build.mutation({
@@ -117,7 +144,9 @@ export const customersApi = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useDeleteFromCartMutation,
   usePostAddressMutation,
+  useEditCategoryMutation,
   useGetAddressQuery,
   useGetCustomerProductsQuery,
   useAddProductToCartMutation,
@@ -129,5 +158,6 @@ export const {
   useCartQuantityDecrementMutation,
   useCreateOrderFromCartMutation,
   useCreateCheckoutMutation,
-  useGetReceptQuery
+  useGetReceptQuery,
+  usePostCategoriesMutation
 } = customersApi;

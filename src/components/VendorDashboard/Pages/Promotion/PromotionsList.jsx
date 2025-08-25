@@ -2,6 +2,7 @@ import React from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useDeletePromotionsMutation, useGetPromotionQuery } from "../../../../redux/slices/Apis/vendorsApi";
+import Swal from "sweetalert2";
 
 const PromotionsList = () => {
   const { data,refetch } = useGetPromotionQuery();
@@ -10,11 +11,41 @@ const PromotionsList = () => {
   // Check if data exists
   const promotions = data?.results || [];
 
-  const handelDelete= async (id)=>{
-    
-    await deletePromotions(id)
-    refetch()
+const handelDelete = async (id) => {
+  // Step 1: Show confirmation popup
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#CBA135",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  });
+
+  // Step 2: If confirmed, delete
+  if (result.isConfirmed) {
+    try {
+      await deletePromotions(id).unwrap(); // make sure to unwrap if using RTK Query
+      refetch(); // refresh the list
+      Swal.fire({
+        title: "Deleted!",
+        text: "Promotion has been deleted successfully.",
+        icon: "success",
+        confirmButtonColor: "#CBA135",
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        title: "Error!",
+        text: "Something went wrong while deleting.",
+        icon: "error",
+        confirmButtonColor: "#CBA135",
+      });
+    }
   }
+};
 
   return (
     <div className="p-6 bg-[#FAF8F2] min-h-screen">

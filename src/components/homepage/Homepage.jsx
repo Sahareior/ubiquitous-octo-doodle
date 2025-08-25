@@ -8,29 +8,31 @@ import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlic
 import { useEffect } from 'react';
 
 const Homepage = () => {
-  const userType = 'customer'; // hardcoded for now
+  // const user = 'customer'; // hardcoded for now
   const dispatch = useDispatch();
 
-  // const data = useSelector(state => state.customer.location)
+  // const user = useSelector(state => state?.customer?.location)
+  const user ='customer'
 
+console.log('this isdatasa', user)
 
-//  useEffect(() => {
-//     const token = localStorage.getItem('token');
-//     const customerId = localStorage.getItem('customerId');
+ useEffect(() => {
+    const token = localStorage.getItem('token');
+    const customerId = localStorage.getItem('customerId');
 
-//     if (token && customerId) {
-//       dispatch(selectedLocation('customer'));
-//       dispatch(addCustomerId(customerId));
-//     }
-//   }, [dispatch]);
+    if (token && customerId) {
+      dispatch(selectedLocation('customer'));
+      dispatch(addCustomerId(customerId));
+    }
+  }, [dispatch]);
 
-  if (userType === 'customer') {
+  if (user === 'customer') {
     return (
       <CustomerLayout>
         <Outlet />
       </CustomerLayout>
     );
-  } else if (userType === 'seller') {
+  } else if (user === 'vendor') {
     return (
       <SellersLayout>
         <Outlet />

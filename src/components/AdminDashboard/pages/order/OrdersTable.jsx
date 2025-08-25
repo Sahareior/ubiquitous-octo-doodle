@@ -11,7 +11,7 @@ import { useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQu
 const { Option } = Select;
 
 const OrdersTable = () => {
-  const { data: orders } = useGetAllOrdersQuery();
+  const { data: orders, refetch } = useGetAllOrdersQuery();
   const [pageSize, setPageSize] = useState(10);
   const {data:vendors} =useGetAllVendorsQuery()
   const {data:customers} =useGetAllCustomersQuery()
@@ -20,7 +20,7 @@ const OrdersTable = () => {
   const [target, setTarget] = useState(true);
   const [dataSource, setDataSource] = useState([]);
   const {data:orderNames} = useVendorOrderNameDetailsQuery()
-  const [deleteOrdersById] = useDeleteOrdersByIdMutation()
+  const [deleteOrdersById, {isLoading,status}] = useDeleteOrdersByIdMutation()
   const [selectedData, setSelectedData] = useState({})
 
 
@@ -121,8 +121,8 @@ const OrdersTable = () => {
       key: 'action',
       render: (_, record) => (
         <div className="flex items-center gap-3">
-          <FaEdit size={20} onClick={() => { setIsModalOpen(true); setTarget(true); setSelectedData(record) }} />
-          <IoEyeOutline size={20} className="text-gray-400 cursor-pointer" onClick={() => { setIsModalOpen(true); setTarget(false); }} />
+        
+          <IoEyeOutline size={20} className="text-gray-400 cursor-pointer" onClick={() => { setIsModalOpen(true); setTarget(false); setSelectedData(record) }} />
           <MdDelete size={20} className="text-red-400 cursor-pointer" onClick={() => handleDelete([record.key])} />
         </div>
       ),
@@ -141,7 +141,7 @@ const OrdersTable = () => {
     }
   };
 
-  const handleDelete =  (keys) => {
+  const handleDelete =  async (keys) => {
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -150,12 +150,13 @@ const OrdersTable = () => {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!"
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
         console.log(keys[0],'aeeee')
-         deleteOrdersById(keys[0])
-        const newData = dataSource.filter(item => !keys.includes(item.key));
-        setDataSource(newData);
+        const res = await deleteOrdersById(keys[0]).unwrap()
+        refetch()
+        console.log(res)
+
         setSelectedRowKeys([]);
         message.success(`${keys.length} order(s) deleted.`);
         Swal.fire("Deleted!", "Your order(s) has been deleted.", "success");

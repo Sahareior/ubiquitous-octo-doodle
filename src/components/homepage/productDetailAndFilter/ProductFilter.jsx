@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin } from 'antd';
 import { FaRegHeart } from "react-icons/fa6";
-import { RxCross1 } from "react-icons/rx";
 import Breadcrumb from '../../others/Breadcrumb';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { RiArrowDropDownLine } from "react-icons/ri";
@@ -24,12 +23,14 @@ const ProductFilter = () => {
   const [selectedRating, setSelectedRating] = useState(null);
   const [availability, setAvailability] = useState(false);
   const [sort, setSort] = useState('Newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
 
-  // Fetch products
-  const { data: allProducts, isLoading, isError } = useGetCustomerProductsQuery();
-  const {data: fetchedCategories} = useGetCategoriesQuery();
+  // Fetch products & categories
+  const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
+  const { data: fetchedCategories } = useGetCategoriesQuery();
 
-  // Extract unique categories and brands dynamically
+  // Category map
   const categoryMap = useMemo(() => {
     const map = {};
     fetchedCategories?.results?.forEach(cat => {
@@ -38,23 +39,17 @@ const ProductFilter = () => {
     return map;
   }, [fetchedCategories]);
 
+  // Unique categories from products
   const categories = useMemo(() => {
     if (!allProducts?.results) return [];
-    
-    const allCatIds = allProducts.results
-      .map(p => p.categories || [])
-      .flat();
-    
+    const allCatIds = allProducts.results.map(p => p.categories || []).flat();
     const uniqueCatIds = [...new Set(allCatIds.filter(Boolean))];
-    
-    return uniqueCatIds
-      .map(id => categoryMap[id])
-      .filter(Boolean);
+    return uniqueCatIds.map(id => categoryMap[id]).filter(Boolean);
   }, [allProducts, categoryMap]);
 
+  // Unique brands
   const brands = useMemo(() => {
     if (!allProducts?.results) return [];
-    
     const brs = allProducts.results.map(p => p.name);
     return [...new Set(brs)];
   }, [allProducts]);
@@ -65,12 +60,11 @@ const ProductFilter = () => {
       .map(([id]) => Number(id));
   }, [selectedCategory, categoryMap]);
 
+  // Filtered products
   const filteredProducts = useMemo(() => {
     if (!allProducts?.results) return [];
-    
     return allProducts.results
       .filter(p => {
-        // Handle cases where categories might be undefined
         const productCategories = p.categories || [];
         return !selectedCategoryIds.length || productCategories.some(c => selectedCategoryIds.includes(c));
       })
@@ -78,20 +72,29 @@ const ProductFilter = () => {
       .filter(p => !selectedRating || (p.average_rating || 0) >= selectedRating)
       .filter(p => !availability || p.is_stock)
       .filter(p => {
-        // Use price1 as active_price if active_price doesn't exist
         const price = p.active_price || parseFloat(p.price1) || 0;
         return price >= priceRange[0] && price <= priceRange[1];
       })
       .sort((a, b) => {
-        // Use price1 as active_price if active_price doesn't exist
         const priceA = a.active_price || parseFloat(a.price1) || 0;
         const priceB = b.active_price || parseFloat(b.price1) || 0;
-        
         if (sort === 'Price: Low to High') return priceA - priceB;
         if (sort === 'Price: High to Low') return priceB - priceA;
         return new Date(b.created_at) - new Date(a.created_at);
       });
   }, [allProducts, selectedCategoryIds, selectedBrand, selectedRating, availability, priceRange, sort]);
+
+  // Paginated products
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrand, selectedRating, availability, priceRange, sort]);
 
   const handleCart = (product) => {
     dispatch(addToCart(product));
@@ -117,7 +120,7 @@ const ProductFilter = () => {
       </div>
 
       {location.pathname === "/filter" && (
-        <div className="flex gap-6 pb-12 px-20 ">
+        <div className="flex gap-6 pb-12 px-20">
           {/* Filters */}
           <div className="w-72 bg-white p-4">
             <div className='flex justify-between '>
@@ -126,7 +129,7 @@ const ProductFilter = () => {
                 setSelectedCategory([]);
                 setSelectedBrand([]);
                 setSelectedRating(null);
-                setPriceRange([0,5000]);
+                setPriceRange([0, 5000]);
                 setAvailability(false);
               }}>Clear All</Button>
             </div>
@@ -240,16 +243,15 @@ const ProductFilter = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {isLoading ? (
                 <Spin size="large" />
-              ) : filteredProducts.length === 0 ? (
+              ) : paginatedProducts.length === 0 ? (
                 <div className="col-span-3 text-center py-10">
                   <p>No products found matching your criteria</p>
                 </div>
               ) : (
-                filteredProducts.map(product => {
-                  // Use price1 as active_price if active_price doesn't exist
+                paginatedProducts.map(product => {
                   const price = product.active_price || parseFloat(product.price1) || 0;
                   const rating = product.average_rating || 0;
-                  
+
                   return (
                     <div key={product.id} className="bg-white rounded-2xl shadow-md relative">
                       <Link to='details' state={{product}}>
@@ -294,8 +296,14 @@ const ProductFilter = () => {
               )}
             </div>
 
+            {/* Pagination */}
             <div className="mt-6 flex justify-center">
-              <Pagination defaultCurrent={1} total={filteredProducts.length} pageSize={9} />
+              <Pagination
+                current={currentPage}
+                total={filteredProducts.length}
+                pageSize={pageSize}
+                onChange={(page) => setCurrentPage(page)}
+              />
             </div>
           </div>
         </div>
