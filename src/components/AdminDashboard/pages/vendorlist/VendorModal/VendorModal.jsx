@@ -1,30 +1,20 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
 import { LiaStarSolid } from "react-icons/lia";
-import { dashboardApis, useViewVendorsQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 
-
-const VendorModal = ({ isModalOpen, setIsModalOpen,vendorsData }) => {
+const VendorModal = ({ isModalOpen, setIsModalOpen, vendorsData }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-const [fetchVendor, { data: vdata }] = dashboardApis.useLazyViewVendorsQuery()
+  console.log('this is ven', vendorsData)
+  
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);
 
-  console.log(vdata,'asa')
-
-  const handleView =(data)=>{
-    // console.log(data,'a')
-    fetchVendor(data)
-  }
-
   return (
     <>
-
-
       {/* Customer Details Modal */}
       <Modal
         open={isModalOpen}
-        title ={
+        title={
           <div className='px-12 py-9'>
             <p className='text-2xl popbold'>Vendor Details</p>
           </div>
@@ -34,9 +24,7 @@ const [fetchVendor, { data: vdata }] = dashboardApis.useLazyViewVendorsQuery()
         footer={null}
         width={900}
       >
-        <div className="bg-[#f9f8f6] rounded-md w-full max-w-3xl  pb-10 mx-auto">
-          {/* Header */}
-        <h3 onClick={()=> handleView(vendorsData.actions.view_url)}>Delete</h3>
+        <div className="bg-[#f9f8f6] rounded-md w-full max-w-3xl pb-10 mx-auto">
           {/* Content */}
           <div className="p-6 bg-white shadow-sm rounded mt-4">
             <h3 className="text-lg popbold text-gray-700 mb-4">Vendor</h3>
@@ -45,53 +33,69 @@ const [fetchVendor, { data: vdata }] = dashboardApis.useLazyViewVendorsQuery()
               <div>
                 <p className="popmed text-[#666666]">Vendor Name</p>
                 <p className="text-[#0F0F0F] flex popreg text-[16px] items-center gap-1">
-                   Home Decor Master
+                  {vendorsData?.vendor || "N/A"}
                 </p>
               </div>
               <div>
                 <p className="popmed text-[#666666]">Email</p>
-                <p className="text-[#666666] popreg text-[16px]">xyz@gmail.com</p>
+                <p className="text-[#666666] popreg text-[16px]">
+                  {vendorsData?.email || "N/A"}
+                </p>
               </div>
               <div>
                 <p className="popmed text-[#666666]">Signup Date</p>
-                <p className="text-gray-800 popreg text-[16px]">July 15, 2025</p>
+                <p className="text-gray-800 popreg text-[16px]">
+                  {vendorsData?.signup_date || "N/A"}
+                </p>
               </div>
 
               <div>
                 <p className="popmed text-[#666666]">Vendor ID</p>
-                <p className="text-[#0F0F0F] popreg text-[16px]">1234567</p>
+                <p className="text-[#0F0F0F] popreg text-[16px]">
+                  {vendorsData?.id || "N/A"}
+                </p>
               </div>
               <div>
                 <p className="popmed text-[#666666]">Product</p>
-                <p className="text-gray-800 popreg text-[16px]">120</p>
+                <p className="text-gray-800 popreg text-[16px]">
+                  {vendorsData?.products || 0}
+                </p>
               </div>
               <div>
                 <p className="popmed text-[#666666]">Status</p>
-                <p className="text-green-600 font-semibold popreg text-[16px]">Active</p>
+                <p className={`popreg text-[16px] font-semibold ${
+                  vendorsData?.status === "approved" ? "text-green-600" : "text-red-600"
+                }`}>
+                  {vendorsData?.status || "N/A"}
+                </p>
               </div>
 
               <div>
                 <p className="popmed text-[#666666]">Total Orders</p>
-                <p className="text-gray-800 popreg text-[16px]">03</p>
+                <p className="text-gray-800 popreg text-[16px]">
+                  {vendorsData?.orders || 0}
+                </p>
               </div>
               <div>
-                <p className="popmed text-[#666666]">Total Delivery</p>
-                <p className="text-gray-800 popreg text-[16px]">170</p>
+                <p className="popmed text-[#666666]">Last Activity</p>
+                <p className="text-gray-800 popreg text-[16px]">
+                  {vendorsData?.last_activity || "No activity yet"}
+                </p>
               </div>
               <div>
-                <p className="popmed text-[#666666]"> Rating</p>
+                <p className="popmed text-[#666666]">Rating</p>
                 <button
                   className="text-yellow-600 flex items-center gap-1 underline font-medium"
                   onClick={() => setIsOrderHistoryOpen(true)}
                 >
-                 <LiaStarSolid size={16} /> <span className='text-black text-sm popreg'>2</span>
+                  <LiaStarSolid size={16} /> 
+                  <span className='text-black text-sm popreg'>{vendorsData?.rating || 0}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       </Modal>
-
     </>
   );
 };

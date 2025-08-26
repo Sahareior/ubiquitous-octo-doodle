@@ -20,7 +20,7 @@ const CustomerTable = () => {
   console.log(customerList,'this is customer list')
 
   useEffect(()=>{
-    fetch("http://10.10.13.16:15000/api/admin/customers/13/view")
+    fetch("https://311796b16064.ngrok-free.app/api/admin/customers/13/view")
     .then(res => res.json())
     .then(data=> console.log(data))
   },[])
@@ -125,7 +125,7 @@ const CustomerTable = () => {
     }
   };
 
-  // http://10.10.13.16:15000/api/admin/customers/4/delete  /admin/customers/2/delete
+  // https://311796b16064.ngrok-free.app/api/admin/customers/4/delete  /admin/customers/2/delete
 
   const onDelete = () => {
     handleDelete([123], () => {

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
 import OrderHistory from './OrderHistory';
+import { useGetAllUsersQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 
 const CustomerModal = ({ isModalOpen, setIsModalOpen }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-
+  const {data:users} = useGetAllUsersQuery()
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);
-
+console.log('this is users', users)
   return (
     <>
 

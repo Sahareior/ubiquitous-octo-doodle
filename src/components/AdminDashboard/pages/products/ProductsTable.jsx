@@ -20,28 +20,32 @@ const ProductsTable = ({ products }) => {
   const [deleteProduct] = useDeleteProductMutation();
 
   // Map API products to table format
-  useEffect(() => {
-    if (products?.results) {
-      const mappedData = products.results.map((p) => ({
-        key: p.id,
-        productId: p.prod_id,
-        productName: p.name,
-        category: p.categories?.length ? p.categories.join(', ') : '—',
-        approval: p.is_approve ? 'Approved' : 'Not Approved',
-        price: parseFloat(p.active_price || 0),
-        stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
-        status:
-          p.status === 'approved'
-            ? 'Active'
-            : p.status === 'active'
-            ? 'Active'
-            : p.status === 'draft'
-            ? 'Draft'
-            : 'Pending',
-      }));
-      setDataSource(mappedData);
-    }
-  }, [products]);
+// Map API products to table format
+useEffect(() => {
+  if (products?.results) {
+    const mappedData = products.results.map((p) => ({
+      key: p.id,
+      productId: p.prod_id,
+      productName: p.name,
+      category: p.categories?.length ? p.categories.join(', ') : '—',
+      approval: p.is_approve ? 'Approved' : 'Not Approved',
+      price: parseFloat(p.active_price || p.price1 || 0), // fallback to price1 if active_price missing
+      stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
+      status:
+        p.status === 'approved'
+          ? 'Active'
+          : p.status === 'active'
+          ? 'Active'
+          : p.status === 'draft'
+          ? 'Draft'
+          : 'Pending',
+      // 👇 keep full product here
+      fullData: p,
+    }));
+    setDataSource(mappedData);
+  }
+}, [products]);
+
 
   // 🔥 Reusable Delete with Swal2
 const handleDelete = async (keys) => {
@@ -96,6 +100,8 @@ const handleDelete = async (keys) => {
       message.info('Bulk action not implemented.');
     }
   };
+
+  console.log('selected, ' , selected)
 
   const columns = [
     {
@@ -192,17 +198,22 @@ const handleDelete = async (keys) => {
       key: 'action',
       render: (_, record) => (
         <div className="flex items-center gap-6">
-          <IoEyeOutline
-            onClick={() => {
-              setIsModalOpen(true);
-              setSelected(record);
-            }}
-            className="text-gray-500 hover:text-blue-500 cursor-pointer"
-            size={20}
-          />
-              <Link className='block' to='/admin-dashboard/editAdminProducts' state={{productData:record}}>
-          <FaEdit className="text-gray-400 cursor-pointer" size={20}/>
-          </Link>
+<IoEyeOutline
+  onClick={() => {
+    setIsModalOpen(true);
+    setSelected(record.fullData); // ✅ pass full API product
+  }}
+  className="text-gray-500 hover:text-blue-500 cursor-pointer"
+  size={20}
+/>
+
+<Link
+  className="block"
+  to="/admin-dashboard/editAdminProducts"
+  state={{ productData: record.fullData }} // ✅ full API product
+>
+  <FaEdit className="text-gray-400 cursor-pointer" size={20} />
+</Link>
           <MdDelete
             className="text-red-500 hover:text-red-600 cursor-pointer"
             size={20}

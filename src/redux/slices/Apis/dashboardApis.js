@@ -4,14 +4,14 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const dashboardApis = createApi({
   reducerPath: "dashboardApis",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.10.13.16:15000/api/",
+    baseUrl: "https://311796b16064.ngrok-free.app/api/",
 
     prepareHeaders: (headers) => {
        const token = localStorage.getItem("access_token");
        if (token) {
          headers.set("Authorization", `Bearer ${token}`);
        }
- 
+  headers.set("ngrok-skip-browser-warning", "true");
 
       return headers;
      },
@@ -145,6 +145,10 @@ adminVendorPerfomence: build.query({
   query: ()=> 'admin/vendor-performance/'
 }),
 
+getAllUsers: build.query({
+  query: ()=> '/users'
+}),
+
 
    vendorOrderNameDetails: build.query({
     query: ()=> 'vendor/order/list/'
@@ -160,7 +164,9 @@ adminVendorPerfomence: build.query({
 export const { useGetPokemonByNameQuery,useAdminOverViewQuery,useGetTopSellsQuery, useAdminVendorPerfomenceQuery, useGetFurnitureSellsQuery,useGetLatestOrdersQuery,
   
   useGetAllProductsQuery,useVendorAcceptProductMutation,useAcceptSellerMutation,useAcceptProductsMutation,
-  useGetAllVendorsQuery, useGetAllCustomersQuery,useViewVendorsQuery,useGetLowStacksQuery,useGetCategorySellsQuery,
+  useGetAllVendorsQuery,
+  useGetAllUsersQuery,
+  useGetAllCustomersQuery,useViewVendorsQuery,useGetLowStacksQuery,useGetCategorySellsQuery,
    useDeleteCustomersMutation, useGetAllBannersQuery, useUpdateBannerMutation,useDeleteOrdersByIdMutation,
   useGetAllOrdersQuery, useGetAllSellerApplicationQuery, useBannerUploadMutation, useDeleteBannerMutation, useVendorOrderNameDetailsQuery
 
