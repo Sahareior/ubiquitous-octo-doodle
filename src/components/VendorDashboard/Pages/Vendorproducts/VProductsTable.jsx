@@ -1,163 +1,197 @@
-import React, { useState } from 'react';
-import { Table, Select, message } from 'antd';
-import { IoEyeOutline } from 'react-icons/io5';
-import { MdDelete } from 'react-icons/md';
-import { RiArrowDropDownLine } from 'react-icons/ri';
-import ProductsModal from './VProductsModal/VProductsModal';
-import Swal from 'sweetalert2';
-import { useDeleteProductMutation, useGetAllProductsQuery } from '../../../../redux/slices/Apis/vendorsApi';
-import { FaEdit } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Table, Select, message } from "antd";
+import { IoEyeOutline } from "react-icons/io5";
+import { MdDelete } from "react-icons/md";
+import { RiArrowDropDownLine } from "react-icons/ri";
+import ProductsModal from "./VProductsModal/VProductsModal";
+import Swal from "sweetalert2";
+import {
+  useDeleteProductMutation,
+  useGetAllProductsQuery,
+  useGetCategoriesQuery,
+} from "../../../../redux/slices/Apis/vendorsApi";
+import { FaEdit } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const { Option } = Select;
 
 const VProductsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
-  const { data, isLoading, error,refetch } = useGetAllProductsQuery();
+  const { data, isLoading, error, refetch } = useGetAllProductsQuery();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [selected, setSelected] = useState({})
-  const [deleteProduct, {isLoading:deleteLoading}] = useDeleteProductMutation()
-console.log('allProducts',data?.results)
-  // Transform API data to match table structure
-  const dataSource = data?.results?.map(product => ({
-    key: product?.id,
-    images: product?.images[0]?.image,
-    productName: product?.name,
-    productId: product?.prod_id,
-    category: product?.categories?.join(', ') || 'N/A',
-    price: parseFloat(product?.active_price || product?.price1 || 0),
-    stock: product?.is_stock ? 
-      (product?.stock_quantity > 10 ? 'In Stock' : 'Low Stock') : 
-      'Out of Stock',
-    status: product?.status === 'active' ? 'Active' : 
-           product?.status === 'draft' ? 'Draft' : 
-           product?.status === 'approved' ? 'Active' : 'Pending',
-    originalData: product // Keep original data for reference
-  })) || [];
+  const [selected, setSelected] = useState({});
+  const [deleteProduct, { isLoading: deleteLoading }] =
+    useDeleteProductMutation();
 
+    const {data:categories} = useGetCategoriesQuery()
 
+  console.log("allProducts", data?.results);
+  console.log("allCategories", categories?.results);
 
-const handleDelete = async (keys) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!"
-  });
+const getCategories = (categorie) => {
+  if (!categorie?.categories || !categories?.results) return [];
 
-  if (result.isConfirmed) {
-    try {
-      await deleteProduct(keys[0]); // fire delete request
+  const catNames = categorie.categories.map(catId => {
+    const category = categories.results.find(c => c.id === catId);
+    return category ? category.name : null;
+  }).filter(Boolean); // remove any nulls
 
-      // Now refetch data
-      const refreshed = await refetch();
-
-      // Check if item is really deleted
-      const stillExists = refreshed?.data?.some(item => item.id === keys[0]);
-
-      if (!stillExists) {
-        setSelectedRowKeys([]);
-        message.success(`${keys.length} product(s) deleted.`);
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your product has been deleted.",
-          icon: "success"
-        });
-      } else {
-        message.error("Delete failed. Product still exists.");
-      }
-
-    } catch (error) {
-      console.error(error);
-      message.error("Failed to delete product.");
-    }
-  }
+  console.log('Category Names:', catNames);
+  return catNames;
 };
+
+  // Transform API data to match table structure product?.categories?.join(", ") || "N/A",
+  const dataSource =
+    data?.results?.map((product) => ({
+      key: product?.id,
+      images: product?.images[0]?.image,
+      productName: product?.name,
+      productId: product?.prod_id,
+      category: getCategories(product).join(", "),
+      price: parseFloat(product?.active_price || product?.price1 || 0),
+      stock: product?.is_stock
+        ? product?.stock_quantity > 10
+          ? "In Stock"
+          : "Low Stock"
+        : "Out of Stock",
+      status:
+        product?.status === "active"
+          ? "Active"
+          : product?.status === "draft"
+          ? "Draft"
+          : product?.status === "approved"
+          ? "Active"
+          : "Pending",
+      originalData: product, // Keep original data for reference
+    })) || [];
+
+  const handleDelete = async (keys) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteProduct(keys[0]); // fire delete request
+
+        // Now refetch data
+        const refreshed = await refetch();
+
+        // Check if item is really deleted
+        const stillExists = refreshed?.data?.some(
+          (item) => item.id === keys[0]
+        );
+
+        if (!stillExists) {
+          setSelectedRowKeys([]);
+          message.success(`${keys.length} product(s) deleted.`);
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your product has been deleted.",
+            icon: "success",
+          });
+        } else {
+          message.error("Delete failed. Product still exists.");
+        }
+      } catch (error) {
+        console.error(error);
+        message.error("Failed to delete product.");
+      }
+    }
+  };
+
 
 
   const handleBulkAction = (action) => {
     if (selectedRowKeys.length === 0) {
-      message.warning('Please select at least one row.');
+      message.warning("Please select at least one row.");
       return;
     }
 
-    if (action === 'delete') {
+    if (action === "delete") {
       handleDelete(selectedRowKeys);
-    } else if (action === 'edit') {
-      message.info('Bulk edit not implemented.');
+    } else if (action === "edit") {
+      message.info("Bulk edit not implemented.");
     }
   };
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'productId',
-      key: 'productId',
-      render: text => (
+      title: "ID",
+      dataIndex: "productId",
+      key: "productId",
+      render: (text) => (
         <div>
           <a className="popmed text-[16px]">{text}</a>
         </div>
       ),
     },
-  {
-  title: 'Product Name',
-  dataIndex: 'productName',
-  key: 'productName',
-  render: (_, record) => (
-    <span className="popmed flex items-center gap-3 text-[16px]">
-      <img 
-        className='w-7 rounded-full h-7 object-cover' 
-        src={record.images || "/fallback.png"} 
-        alt={record.productName} 
-      /> 
-      {record.productName}
-    </span>
-  ),
-},
+    {
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
+      render: (_, record) => (
+        <span className="popmed flex items-center gap-3 text-[16px]">
+          <img
+            className="w-7 rounded-full h-7 object-cover"
+            src={record.images || "/fallback.png"}
+            alt={record.productName}
+          />
+          {record.productName}
+        </span>
+      ),
+    },
 
     {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
-      render: text => (
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+      render: (text) => (
         <div>
           <a className="popmed text-[16px]">{text}</a>
         </div>
       ),
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-      render: (price) => <p className='popmed text-[16px]'> $ {price.toFixed(2)}</p>,
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+      render: (price) => (
+        <p className="popmed text-[16px]"> $ {price.toFixed(2)}</p>
+      ),
     },
     {
-      title: 'Stock',
-      dataIndex: 'stock',
-      key: 'stock',
-      render: text => (
+      title: "Stock",
+      dataIndex: "stock",
+      key: "stock",
+      render: (text) => (
         <div>
           <a className="popmed text-[16px]">{text}</a>
         </div>
       ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status, record) => {
         const statusColor = {
-          Active: 'bg-green-100 text-green-600',
-          Pending: 'bg-yellow-100 text-yellow-600',
-          Draft: 'bg-red-100 text-red-600',
+          Active: "bg-green-100 text-green-600",
+          Pending: "bg-yellow-100 text-yellow-600",
+          Draft: "bg-red-100 text-red-600",
         };
 
         return (
-          <div className={`rounded px-2 py-1 text-xs font-medium w-[110px] ${statusColor[status]}`}>
+          <div
+            className={`rounded px-2 py-1 text-xs font-medium w-[110px] ${statusColor[status]}`}
+          >
             <Select
               value={status}
               size="small"
@@ -168,7 +202,9 @@ const handleDelete = async (keys) => {
               bordered={false}
               dropdownMatchSelectWidth={false}
               className="w-full"
-              suffixIcon={<RiArrowDropDownLine className="text-[16px] popmed text-gray-600" />}
+              suffixIcon={
+                <RiArrowDropDownLine className="text-[16px] popmed text-gray-600" />
+              }
             >
               <Option value="Active">Active</Option>
               <Option value="Pending">Pending</Option>
@@ -179,20 +215,23 @@ const handleDelete = async (keys) => {
       },
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
         <div className="flex items-center gap-3">
-          <IoEyeOutline 
+          <IoEyeOutline
             onClick={() => {
-              setIsModalOpen(true),
-              setSelected(record)
-            }} 
-            className="text-gray-400 cursor-pointer" 
-            size={23} 
+              setIsModalOpen(true), setSelected(record);
+            }}
+            className="text-gray-400 cursor-pointer"
+            size={23}
           />
-          <Link className='block' to='/vendor-dashboard/editproducts' state={{productData:record}}>
-          <FaEdit className="text-gray-400 cursor-pointer" size={20}/>
+          <Link
+            className="block"
+            to="/vendor-dashboard/editproducts"
+            state={{ productData: record }}
+          >
+            <FaEdit className="text-gray-400 cursor-pointer" size={20} />
           </Link>
           <MdDelete
             className="text-red-400 cursor-pointer"
@@ -249,7 +288,7 @@ const handleDelete = async (keys) => {
             `Showing ${range[0]} to ${range[1]} of ${total} entries`,
           showSizeChanger: false,
           itemRender: (current, type, originalElement) => originalElement,
-          position: ['bottomRight'],
+          position: ["bottomRight"],
         }}
         footer={() => (
           <div className="flex justify-between items-center px-2">
@@ -273,7 +312,11 @@ const handleDelete = async (keys) => {
           </div>
         )}
       />
-      <ProductsModal product={selected} setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+      <ProductsModal
+        product={selected}
+        setIsModalOpen={setIsModalOpen}
+        isModalOpen={isModalOpen}
+      />
     </div>
   );
 };

@@ -37,9 +37,7 @@ const ProductsList = () => {
               <FaPlus /> Add New Products
             </button>
           </Link>
-          <Button onClick={handleAccept} loading={isLoading}>
-            Accept Product
-          </Button>
+
         </div>
       </div>
 

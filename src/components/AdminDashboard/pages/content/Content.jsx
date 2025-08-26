@@ -18,7 +18,7 @@ const Content = () => {
       id: 1,
       title: "Summer Sale Banner",
       endDate: "2024-08-31",
-      image: "https://311796b16064.ngrok-free.app/media/uploads/common/2676eeb5-b053-4318-a16f-68f97cb898d5.png"
+      image: "http://10.10.13.16:15000/media/uploads/common/2676eeb5-b053-4318-a16f-68f97cb898d5.png"
     }
   ]);
 

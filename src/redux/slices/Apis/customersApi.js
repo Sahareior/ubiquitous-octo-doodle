@@ -4,13 +4,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const customersApi = createApi({
   reducerPath: "customersApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://311796b16064.ngrok-free.app/api/",
+    baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-       headers.set("ngrok-skip-browser-warning", "true");
+     
       return headers;
     },
   }),
@@ -76,9 +76,16 @@ export const customersApi = createApi({
 
     editCategory: build.mutation({
       query: ({id,data}) =>({
-        url: `category/${id}/`,
+        url: `categories/${id}/`,
         method: "PATCH",
         body: data
+      })
+    }),
+
+    deleteCategories: build.mutation({
+      query: (id) => ({
+        url: `categories/${id}/`,
+        method: "DELETE"
       })
     }),
 
@@ -133,6 +140,14 @@ export const customersApi = createApi({
       query: (orderId)=> `receipt/${orderId}/`
     }),
 
+    returnProduct: build.mutation({
+      query:(data) => ({
+        url: 'returns/product/',
+        method: "POST",
+        body:data
+      })
+    }),
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -148,6 +163,7 @@ export const {
   useDeleteFromCartMutation,
   usePostAddressMutation,
   useEditCategoryMutation,
+  useDeleteCategoriesMutation,
   useGetAddressQuery,
   useGetCustomerProductsQuery,
   useAddProductToCartMutation,
@@ -160,5 +176,6 @@ export const {
   useCreateOrderFromCartMutation,
   useCreateCheckoutMutation,
   useGetReceptQuery,
-  usePostCategoriesMutation
+  usePostCategoriesMutation,
+  useReturnProductMutation,
 } = customersApi;

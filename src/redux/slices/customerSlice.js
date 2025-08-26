@@ -58,7 +58,8 @@ export const customerSlice = createSlice({
 
     // ---------------- SOCKET.IO REDUCERS ----------------
     setOnlineUsers: (state, action) => {
-      state.onlineUsers = action.payload.filter(items => items.uid === customerData.user.id)
+     state.onlineUsers = action.payload;
+
     },
     addMessage: (state, action) => {
       state.messages.push(action.payload)

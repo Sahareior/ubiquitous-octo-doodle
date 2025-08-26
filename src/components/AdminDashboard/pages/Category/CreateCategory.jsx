@@ -3,6 +3,7 @@ import { Form, Input, Button, Upload, message, Card, Row, Col, Divider, Typograp
 import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { usePostCategoriesMutation } from "../../../../redux/slices/Apis/customersApi";
+import Swal from "sweetalert2";
 
 const { Title, Text } = Typography;
 
@@ -14,35 +15,51 @@ const CreateCategory = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [postCategories] = usePostCategoriesMutation();
 
-  const handleSubmit = async (values) => {
-    if (!file) {
-      message.error("Please upload an image before submitting");
-      return;
-    }
+const handleSubmit = async (values) => {
+  if (!file) {
+    Swal.fire({
+      icon: "error",
+      title: "Missing Image",
+      text: "Please upload an image before submitting!",
+      confirmButtonColor: "#d33",
+    });
+    return;
+  }
 
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("name", values.name);
-    formData.append("slug", values.slug);
-    formData.append("description", values.description || "");
-    formData.append("image", file);
+  const formData = new FormData();
+  formData.append("name", values.name);
+  formData.append("slug", values.slug);
+  formData.append("description", values.description || "");
+  formData.append("image", file);
 
-    try {
-      const res = await postCategories(formData).unwrap();
-      console.log("Response:", res);
-      message.success("Category created successfully");
-      form.resetFields();
-      setPreviewUrl(null);
-      setFile(null);
-    } catch (err) {
-      console.error(err);
-      message.error("Failed to create category");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    const res = await postCategories(formData).unwrap();
+    console.log("Response:", res);
 
+    Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: "Category created successfully 🎉",
+      confirmButtonColor: "#3085d6",
+    });
+
+    form.resetFields();
+    setPreviewUrl(null);
+    setFile(null);
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to create category. Please try again!",
+      confirmButtonColor: "#d33",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const getBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();

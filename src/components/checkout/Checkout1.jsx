@@ -11,6 +11,7 @@ import {
   useCreateOrderFromCartMutation,
   useGetAddressQuery,
 } from "../../redux/slices/Apis/customersApi";
+import Swal from "sweetalert2";
 
 const Checkout1 = () => {
   const location = useLocation();
@@ -36,11 +37,22 @@ const isLoading = false
 
 const handlePlaceOrder = async () => {
   if (!selectedAddress) {
-    alert("Please select an address before placing the order!");
+    Swal.fire({
+      title: "Address Required",
+      text: "Please select an address before placing the order!",
+      icon: "warning",
+      confirmButtonText: "OK",
+    });
     return;
   }
+
   if (!selectedMethod) {
-    alert("Please select a payment method before placing the order!");
+    Swal.fire({
+      title: "Payment Method Required",
+      text: "Please select a payment method before placing the order!",
+      icon: "warning",
+      confirmButtonText: "OK",
+    });
     return;
   }
 
@@ -64,18 +76,34 @@ const handlePlaceOrder = async () => {
     console.log("Order Response:", res[0].order_id);
 
     // 2. If order is created, create checkout
-    if ( res[0].order_id) {
-    const checkoutRes = await createCheckout({
-  order_id: res[0].order_id,   // make sure res[0].order_id is a string like "ORD20250823C28C2212"
-}).unwrap();
+    if (res[0].order_id) {
+      const checkoutRes = await createCheckout({
+        order_id: res[0].order_id, // ensure it's a string
+      }).unwrap();
 
       console.log("Checkout Response:", checkoutRes.checkout_url);
-      if(checkoutRes.checkout_url){
-         window.location.href = checkoutRes.checkout_url; 
+
+      if (checkoutRes.checkout_url) {
+        Swal.fire({
+          title: "Redirecting...",
+          text: "You are being redirected to the payment page.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+          willClose: () => {
+            window.location.href = checkoutRes.checkout_url;
+          },
+        });
       }
     }
   } catch (error) {
     console.error("Error placing order:", error);
+    Swal.fire({
+      title: "Order Failed",
+      text: "Something went wrong while placing your order. Please try again.",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
   }
 };
 

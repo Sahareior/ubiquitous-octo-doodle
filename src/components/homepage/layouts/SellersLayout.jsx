@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import SellersHero from '../sellersHomepage/SellersHero';
 import WhySell from '../sellersHomepage/WhySell';
 import VendorFeatureOverview from '../sellersHomepage/VendorFeatureOverview';
@@ -14,6 +14,10 @@ import { Outlet, useLocation } from 'react-router-dom';
 const SellersLayout = () => {
 
       const location = useLocation();
+
+        useEffect(() => {
+          window.scrollTo(0, 0);
+        }, []);
 
   // ✅ Only show homepage sections on "/"
   const isHomePage = location.pathname === '/';

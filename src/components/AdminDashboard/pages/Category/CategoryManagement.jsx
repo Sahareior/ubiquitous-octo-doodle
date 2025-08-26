@@ -1,18 +1,37 @@
 import React from "react";
 import { Table, Tag, Image, Spin, Button, Space, Popconfirm, message } from "antd";
-import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/customersApi";
+import { useDeleteCategoriesMutation, useGetCategoriesQuery } from "../../../../redux/slices/Apis/customersApi";
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import Swal from "sweetalert2";
 
 const CategoryManagement = () => {
   const { data: cateGoryData, isLoading, error } = useGetCategoriesQuery();
   const navigate = useNavigate();
+  const [deleteCategories] = useDeleteCategoriesMutation()
 
-  const handleDelete = (id) => {
-    // TODO: call delete mutation
-    console.log("Delete category with id:", id);
-    message.success(`Category ${id} deleted (mock)`);
-  };
+const handleDelete = async (id) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won’t be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await deleteCategories(id).unwrap();
+
+        Swal.fire("Deleted!", "Category has been deleted.", "success");
+      } catch (err) {
+        console.error("Delete error:", err);
+        Swal.fire("Error!", err.data?.message || "Failed to delete category.", "error");
+      }
+    }
+  });
+};
 
   const columns = [
     {
@@ -89,8 +108,8 @@ const CategoryManagement = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Category Management</h2>
-      <div>
+      {/* <h2>Category Management</h2> */}
+      <div className="flex justify-end mb-5">
         <Link to='/admin-dashboard/create-category'>
         <Button>Create Category</Button>
         </Link>

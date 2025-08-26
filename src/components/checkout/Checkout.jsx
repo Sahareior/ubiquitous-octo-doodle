@@ -3,6 +3,7 @@ import { Form, Input, Checkbox, Button, Select } from 'antd';
 import Breadcrumb from '../others/Breadcrumb';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePostAddressMutation } from '../../redux/slices/Apis/customersApi';
+import Swal from 'sweetalert2';
 
 const { Option } = Select;
 
@@ -11,9 +12,8 @@ const Checkout = () => {
   const navigate = useNavigate()
   const [postAddress] = usePostAddressMutation()
 
-  const onFinish = async (values) => {
-      const payload = {
-  
+const onFinish = async (values) => {
+  const payload = {
     full_name: values.fullname,
     phone_number: values.phone,
     email: values.email,
@@ -27,12 +27,29 @@ const Checkout = () => {
     billing_same_as_shipping: values.sameAsShipping || false,
   };
 
-  const res = await postAddress (payload)
+  try {
+    const res = await postAddress(payload);
+    console.log("Mapped Payload:", res);
 
-  console.log("Mapped Payload:", res);
-    navigate('/cart/checkout1')
-
-  };
+    // ✅ Show success notification
+    Swal.fire({
+      title: "Success!",
+      text: "Address has been saved successfully.",
+      icon: "success",
+      confirmButtonText: "OK",
+    }).then(() => {
+      navigate("/cart/checkout1");
+    });
+  } catch (error) {
+    // ❌ Show error notification
+    Swal.fire({
+      title: "Error!",
+      text: "Failed to save address. Please try again.",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+  }
+};
 
   return (
 <div className='bg-[#FAF8F2] pb-12'>

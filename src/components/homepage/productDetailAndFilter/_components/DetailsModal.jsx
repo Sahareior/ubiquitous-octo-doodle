@@ -3,6 +3,7 @@ import { Button, Modal, Rate, message, Select, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { usePostReviewsMutation } from '../../../../redux/slices/Apis/customersApi';
 import { useGetCustomerProductsQuery } from '../../../../redux/slices/Apis/customersApi';
+import Swal from 'sweetalert2';
 
 const { Option } = Select;
 
@@ -18,37 +19,62 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const [postReviews, { isLoading: isPosting }] = usePostReviewsMutation();
 
-  const handleOk = async () => {
-    if (!selectedProduct) {
-      message.error('Please select a product.');
-      return;
-    }
-    if (!review.trim()) {
-      message.error('Please write a review before submitting.');
-      return;
-    }
 
-    setIsUploading(true);
-    
-    const formData = new FormData();
-    formData.append('product', selectedProduct);
-    formData.append('rating', rating);
-    formData.append('comment', review);
-    if (file) {
-      formData.append('image', file);
-    }
+const handleOk = async () => {
+  if (!selectedProduct) {
+    Swal.fire({
+      title: "No Product Selected",
+      text: "Please select a product before submitting your review.",
+      icon: "warning",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
 
-    try {
-      await postReviews(formData).unwrap();
-      message.success('Review submitted successfully!');
+  if (!review.trim()) {
+    Swal.fire({
+      title: "Review Required",
+      text: "Please write a review before submitting.",
+      icon: "warning",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  setIsUploading(true);
+
+  const formData = new FormData();
+  formData.append("product", selectedProduct);
+  formData.append("rating", rating);
+  formData.append("comment", review);
+  if (file) {
+    formData.append("images", file);
+  }
+
+  try {
+    await postReviews(formData).unwrap();
+
+    Swal.fire({
+      title: "Success!",
+      text: "Your review has been submitted successfully.",
+      icon: "success",
+      confirmButtonText: "OK",
+    }).then(() => {
       resetForm();
-    } catch (err) {
-      console.error('Error submitting review:', err);
-      message.error(err.data?.message || 'Failed to submit review.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    });
+  } catch (err) {
+    console.error("Error submitting review:", err);
+
+    Swal.fire({
+      title: "Error",
+      text: err?.data?.message || "Failed to submit review. Please try again.",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const resetForm = () => {
     setSelectedProduct(null);

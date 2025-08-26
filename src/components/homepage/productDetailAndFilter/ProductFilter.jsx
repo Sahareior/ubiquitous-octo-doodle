@@ -13,12 +13,15 @@ import { useGetCategoriesQuery, useGetCustomerProductsQuery } from '../../../red
 const MySwal = withReactContent(Swal);
 
 const ProductFilter = () => {
-  const dispatch = useDispatch();
+   const dispatch = useDispatch();
   const location = useLocation();
-
+  const queryParams = new URLSearchParams(location.search);
+  const categoryFromUrl = queryParams.get('category'); 
+  console.log(categoryFromUrl,'category from URL');
+  
   // Filters state
   const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [availability, setAvailability] = useState(false);
@@ -30,6 +33,21 @@ const ProductFilter = () => {
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const { data: fetchedCategories } = useGetCategoriesQuery();
 
+  // Set initial category from URL parameter
+  useEffect(() => {
+    if (categoryFromUrl) {
+      // If categoryFromUrl is a number (ID), use it directly
+      // If it's a name, find the corresponding ID
+      const categoryId = isNaN(categoryFromUrl) 
+        ? Object.entries(categoryMap).find(([id, name]) => name === categoryFromUrl)?.[0]
+        : parseInt(categoryFromUrl);
+      
+      if (categoryId) {
+        setSelectedCategoryIds([categoryId]);
+      }
+    }
+  }, [categoryFromUrl, fetchedCategories]);
+
   // Category map
   const categoryMap = useMemo(() => {
     const map = {};
@@ -39,26 +57,22 @@ const ProductFilter = () => {
     return map;
   }, [fetchedCategories]);
 
-  // Unique categories from products
+  // Get category names for display
   const categories = useMemo(() => {
     if (!allProducts?.results) return [];
     const allCatIds = allProducts.results.map(p => p.categories || []).flat();
     const uniqueCatIds = [...new Set(allCatIds.filter(Boolean))];
-    return uniqueCatIds.map(id => categoryMap[id]).filter(Boolean);
+    return uniqueCatIds.map(id => ({
+      id,
+      name: categoryMap[id]
+    })).filter(cat => cat.name);
   }, [allProducts, categoryMap]);
 
-  // Unique brands
   const brands = useMemo(() => {
     if (!allProducts?.results) return [];
     const brs = allProducts.results.map(p => p.name);
     return [...new Set(brs)];
   }, [allProducts]);
-
-  const selectedCategoryIds = useMemo(() => {
-    return Object.entries(categoryMap)
-      .filter(([id, name]) => selectedCategory.includes(name))
-      .map(([id]) => Number(id));
-  }, [selectedCategory, categoryMap]);
 
   // Filtered products
   const filteredProducts = useMemo(() => {
@@ -94,7 +108,7 @@ const ProductFilter = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, selectedBrand, selectedRating, availability, priceRange, sort]);
+  }, [selectedCategoryIds, selectedBrand, selectedRating, availability, priceRange, sort]);
 
   const handleCart = (product) => {
     dispatch(addToCart(product));
@@ -115,7 +129,7 @@ const ProductFilter = () => {
 
   return (
     <div className='bg-[#FAF8F2]'>
-      <div className='flex p-6 gap-2 pb-6 pt-1'>
+      <div className='flex p-6 gap-2 px-20 pb-6 pt-1'>
         <Breadcrumb />
       </div>
 
@@ -126,7 +140,7 @@ const ProductFilter = () => {
             <div className='flex justify-between '>
               <h3 className="text-lg popbold mb-2">Filters</h3>
               <Button className='border-none popmed' onClick={() => {
-                setSelectedCategory([]);
+                setSelectedCategoryIds([]);
                 setSelectedBrand([]);
                 setSelectedRating(null);
                 setPriceRange([0, 5000]);
@@ -138,19 +152,21 @@ const ProductFilter = () => {
             <div className="my-4">
               <p className="popmed mb-2">Category</p>
               <div className="h-34 popreg text-[#666666] overflow-y-scroll space-y-1 bg-white rounded-md px-2">
-                {categories?.map((item, index) => (
-                  <label key={index} className="flex items-center space-x-2 py-1 cursor-pointer">
+                {categories?.map((item) => (
+                  <label key={item.id} className="flex items-center space-x-2 py-1 cursor-pointer">
                     <input
                       type="checkbox"
-                      value={item}
-                      checked={selectedCategory.includes(item)}
+                      value={item.id}
+                      checked={selectedCategoryIds.includes(item.id)}
                       onChange={e => {
-                        const val = e.target.value;
-                        setSelectedCategory(prev => prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]);
+                        const val = parseInt(e.target.value);
+                        setSelectedCategoryIds(prev => prev.includes(val) 
+                          ? prev.filter(i => i !== val) 
+                          : [...prev, val]);
                       }}
                       className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
                     />
-                    <span>{item}</span>
+                    <span>{item.name}</span>
                   </label>
                 ))}
               </div>
@@ -254,7 +270,8 @@ const ProductFilter = () => {
 
                   return (
                     <div key={product.id} className="bg-white rounded-2xl shadow-md relative">
-                      <Link to='details' state={{product}}>
+                      <Link to='details' state={product}>
+                      
                         <img 
                           src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"} 
                           alt={product.name} 

@@ -22,7 +22,7 @@ const OrdersTable = () => {
   const {data:orderNames} = useVendorOrderNameDetailsQuery()
   const [deleteOrdersById, {isLoading,status}] = useDeleteOrdersByIdMutation()
   const [selectedData, setSelectedData] = useState({})
-
+  const [fullOrderData, setFullOrderData] = useState({}); // New state to store full order data
 
   // Map API data to table format
   useEffect(() => {
@@ -30,35 +30,39 @@ const OrdersTable = () => {
       const mappedData = orders.results.map((order) => ({
         key: order.id,
         orderId: order.order_id,
-        customer: order.customer, // You can replace with customer name if you have it
-        seller: order.vendor, // Replace with vendor name if available
+        customer: order.customer,
+        seller: order.vendor,
         date: new Date(order.order_date).toLocaleDateString(),
         total: parseFloat(order.total_amount).toFixed(2),
         payment: order.payment_status_display || order.payment_status,
         status: order.order_status_display || order.order_status,
+        // Store the full order object as a reference
+        _fullData: order
       }));
       setDataSource(mappedData);
     }
   }, [orders]);
 
-
   const getCustomerName =(data) =>{
-
    const orderId = data.orderId
    const findCustomerName = orderNames?.results?.find(items => items.order_id === orderId)
-
    return findCustomerName?.customer_name
   }
+  
   const getVendorsName =(data) =>{
-
    const orderId = data.orderId
    const findCustomerName = orderNames?.results?.find(items => items.order_id === orderId)
-
    return findCustomerName?.vendor_name
   }
 
-  const deleteOrder =(id) =>{
-    console.log(id,'this is id')
+  const handleViewOrder = (record) => {
+    setIsModalOpen(true); 
+    setTarget(false); 
+    // Pass both the mapped data and the full order data
+    setSelectedData({
+      ...record,
+      fullOrder: record._fullData
+    });
   }
 
   const columns = [
@@ -121,9 +125,16 @@ const OrdersTable = () => {
       key: 'action',
       render: (_, record) => (
         <div className="flex items-center gap-3">
-        
-          <IoEyeOutline size={20} className="text-gray-400 cursor-pointer" onClick={() => { setIsModalOpen(true); setTarget(false); setSelectedData(record) }} />
-          <MdDelete size={20} className="text-red-400 cursor-pointer" onClick={() => handleDelete([record.key])} />
+          <IoEyeOutline 
+            size={20} 
+            className="text-gray-400 cursor-pointer" 
+            onClick={() => handleViewOrder(record)} 
+          />
+          <MdDelete 
+            size={20} 
+            className="text-red-400 cursor-pointer" 
+            onClick={() => handleDelete([record.key])} 
+          />
         </div>
       ),
     },
@@ -152,11 +163,8 @@ const OrdersTable = () => {
       confirmButtonText: "Yes, delete it!"
     }).then(async (result) => {
       if (result.isConfirmed) {
-        console.log(keys[0],'aeeee')
         const res = await deleteOrdersById(keys[0]).unwrap()
         refetch()
-        console.log(res)
-
         setSelectedRowKeys([]);
         message.success(`${keys.length} order(s) deleted.`);
         Swal.fire("Deleted!", "Your order(s) has been deleted.", "success");
@@ -190,7 +198,12 @@ const OrdersTable = () => {
           position: ['bottomRight'],
         }}
       />
-      <OrderModal tableData={selectedData} isModalOpen={isModalOpen} target={target} setIsModalOpen={setIsModalOpen} />
+      <OrderModal 
+        tableData={selectedData} 
+        isModalOpen={isModalOpen} 
+        target={target} 
+        setIsModalOpen={setIsModalOpen} 
+      />
     </div>
   );
 };

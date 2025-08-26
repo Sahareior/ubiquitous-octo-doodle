@@ -1,21 +1,72 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaRobot, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import './Floating.css';
+import socket from '../../utils/socket';
+import { useDispatch } from 'react-redux';
+import { addMessage } from '../../../redux/slices/customerSlice';
+// import socket from '../../../utils/socket'; // <-- Same socket file used in VendorMessages
+
+const MAIN_ADMIN_ID = "1"; // Target user ID
 
 const FloatingChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const dispatch = useDispatch();
   const [messages, setMessages] = useState([
     { text: "Hi there! 👋", sender: "bot" },
-    { text: "Hey!", sender: "z" },
     { text: "How can I help you today?", sender: "bot" }
   ]);
 
-  const handleSend = () => {
-    if (message.trim()) {
-      setMessages([...messages, { text: message, sender: "user" }]);
-      setMessage('');
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  useEffect(() => {
+    // Get logged-in user ID
+    const customerData = JSON.parse(localStorage.getItem("customerId"));
+    if (customerData?.user?.id) {
+      setCurrentUserId(String(customerData.user.id));
+
+      // Register user in socket
+      const currentUser = {
+        uid: String(customerData.user.id),
+        name: customerData.user.first_name,
+        email: customerData.user.email,
+        isActive: true
+      };
+      socket.emit("addUser", currentUser);
     }
+
+    // Listen for messages from admin
+    socket.on("getMessage", (data) => {
+      if (String(data.senderId) === MAIN_ADMIN_ID) {
+        setMessages((prev) => [...prev, { text: data.text, sender: "bot" }]);
+      }
+    });
+
+    return () => {
+      socket.off("getMessage");
+    };
+  }, []);
+
+ const handleSend = () => {
+    if (!message.trim() || !currentUserId) return;
+
+    const msgData = {
+      senderId: String(currentUserId),
+      receiverId: MAIN_ADMIN_ID,
+      text: message,
+      time: new Date().toLocaleTimeString()
+    };
+
+    // Add to local state immediately
+    setMessages((prev) => [...prev, { text: message, sender: "user" }]);
+    
+    // ALSO add to Redux store
+    dispatch(addMessage(msgData));
+
+    // Send to socket
+    socket.emit("sendMessage", msgData);
+
+    setMessage('');
   };
 
   return (
@@ -48,7 +99,7 @@ const FloatingChat = () => {
             placeholder="Type your message..."
             className="chat-input"
           />
-          <button onClick={handleSend} className=" send-button">
+          <button onClick={handleSend} className="send-button">
             <FaPaperPlane size={12} />
           </button>
         </div>

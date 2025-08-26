@@ -46,41 +46,43 @@ const Section = ({ title, children }) => (
 const NewVendorAddProducts = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const {data:categories} = useGetCategoriesQuery()
   const [vendorProductCreate] = useVendorProductCreateMutation()
   // 🔹 State for all form data
-  const [formData, setFormData] = useState({
-    name: "",
-    category: [],
-    short_description: "",
-    full_description: "",
-    price1: "",
-    price2: "",
-    price3: "",
-    sku: "",
-    stockQuantity: "",
-    colors: [],
-    sizes: [],
-    inStock: true,
-    homeDeliveryEnabled: false,
-    option1: "",
-    pickUpEnabled: false,
-    option2: "",
-    partnerDeliveryEnabled: false,
-    option3: "",
-    estimated_delivery_days: "",
-    seoTitle: "",
-    metaDescription: "",
-    tag: [],
-    dimensions: "",
-    assemblyRequired: "",
-    material: "",
-    warranty: "",
-    color: "",
-    careInstructions: "",
-    weight: "",
-    countryOfOrigin: "",
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  categories: [],
+  short_description: "",
+  full_description: "",
+  price1: "",
+  price2: "",
+  price3: "",
+  sku: "",
+  stock_quantity: "",
+  colors: [],
+  sizes: [],
+  in_stock: true,
+  home_delivery: false,
+  pickup: false,
+  partner_delivery: false,
+  option1: "",
+  option2: "",
+  option3: "",
+  estimated_delivery_days: "",
+  seo_title: "",
+  meta_description: "",
+  tags: [],
+  // 🔹 specs
+  dimensions: "",
+  material: "",
+  color: "",
+  weight: "",
+  assembly_required: false,
+  warranty: "",
+  care_instructions: "",
+  country_of_origin: "",
+});
+
 
   const handleImageUpload = (files) => {
     const newImages = files.map(file => ({
@@ -106,14 +108,16 @@ const NewVendorAddProducts = () => {
 
 const initialFormData = {
   name: "",
-  category: [],
+  categories: [],
   short_description: "",
   full_description: "",
   price1: "",
+  care_instructions: "",
+  assembly_required: false,
   price2: "",
   price3: "",
   sku: "",
-  stockQuantity: "",
+  stock_quantity: "",
   colors: [],
   sizes: [],
   inStock: true,
@@ -144,27 +148,66 @@ const handleSubmit = async () => {
 
   const formDataToSend = new FormData();
 
-  Object.keys(formData).forEach((key) => {
-    if (Array.isArray(formData[key])) {
-      formDataToSend.append(key, JSON.stringify(formData[key]));
-    } else if (typeof formData[key] === "boolean") {
-      formDataToSend.append(key, formData[key].toString());
+  // Extract specifications separately
+  const {
+    dimensions,
+    material,
+    warranty,
+    color,
+    assembly_required,
+    weight,
+    country_of_origin,
+    care_instructions,
+    ...restFormData
+  } = formData;
+
+  
+  const specifications = {
+    dimensions: dimensions || "",
+    material: material || "",
+    color: color || "",
+    weight: weight || "",
+    assembly_required: assembly_required === "true" || assembly_required === true, // Convert to boolean
+    warranty: warranty || "",
+    care_instructions: care_instructions || "",
+    country_of_origin: country_of_origin || "",
+  };
+
+  const specBlob = new Blob([JSON.stringify(specifications)], {
+    type: "application/json",
+  });
+  formDataToSend.append("specifications", specBlob);
+
+  // Append other fields
+  Object.keys(restFormData).forEach((key) => {
+    if (Array.isArray(restFormData[key])) {
+      restFormData[key].forEach((value) => {
+        formDataToSend.append(key, value);
+      });
+    } else if (typeof restFormData[key] === "boolean") {
+      formDataToSend.append(key, restFormData[key].toString());
     } else {
-      formDataToSend.append(key, formData[key]);
+      formDataToSend.append(key, restFormData[key]);
     }
   });
 
+
+  // Append specifications as JSON
+
+
+  // Append images
   images.forEach((image) => {
     formDataToSend.append("uploaded_images", image.file);
   });
 
   try {
     const res = await vendorProductCreate(formDataToSend);
-    console.log('this is res', res)
-    if (res?.data?.id ) {
+    console.log("this is res", res);
+
+    if (res?.data?.id) {
       Swal.fire({
-        title: "Success!",
-        text: "Product created successfully 🎉",
+        title: "Success! 🎉",
+        text: "Product created successfully!",
         icon: "success",
         confirmButtonColor: "#3085d6",
         customClass: {
@@ -184,8 +227,6 @@ const handleSubmit = async () => {
         confirmButtonColor: "#d33",
       });
     }
-
-    setLoading(false);
   } catch (error) {
     console.error("Failed to create product", error);
     Swal.fire({
@@ -194,9 +235,12 @@ const handleSubmit = async () => {
       icon: "error",
       confirmButtonColor: "#d33",
     });
+  } finally {
     setLoading(false);
   }
 };
+
+console.log(categories?.results,'thsi is categoried')
 
 
   return (
@@ -211,20 +255,23 @@ const handleSubmit = async () => {
             onChange={handleChange} 
             placeholder="Enter product name" 
           />
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Category</label>
-            <Select
-              mode="multiple"
-              placeholder="Select categories"
-              value={formData.category}
-              onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-              options={[
-                { value: 'electronics', label: 'Electronics' },
-                { value: 'clothing', label: 'Clothing' },
-                { value: 'home', label: 'Home & Kitchen' },
-              ]}
-            />
-          </div>
+<div className="flex flex-col gap-1">
+  <label className="popbold text-[14px] text-gray-700">categories</label>
+<Select
+  mode="multiple"
+  placeholder="Select categories"
+  value={formData.categories}
+  onChange={(value) =>
+    setFormData((prev) => ({ ...prev, categories: value.map(Number) }))
+  }
+  options={categories?.results?.map((cat) => ({
+    value: cat.id,
+    label: cat.name,
+  }))}
+/>
+
+</div>
+
         </div>
         <TextareaField 
           label="Short Description" 
@@ -332,8 +379,8 @@ const handleSubmit = async () => {
           />
           <InputField 
             label="Stock Quantity" 
-            name="stockQuantity" 
-            value={formData.stockQuantity} 
+            name="stock_quantity" 
+            value={formData.stock_quantity} 
             onChange={handleChange} 
             type="number" 
             placeholder="0" 

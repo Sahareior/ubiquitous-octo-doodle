@@ -6,7 +6,7 @@ import { RiArrowDropDownLine } from 'react-icons/ri';
 import { FaEdit } from 'react-icons/fa';
 import ProductsModal from './ProductsModal/ProductsModal';
 import Swal from 'sweetalert2';
-import { useDeleteProductMutation } from '../../../../redux/slices/Apis/vendorsApi';
+import { useDeleteProductMutation, useGetCategoriesQuery } from '../../../../redux/slices/Apis/vendorsApi';
 import { Link } from 'react-router-dom';
 
 const { Option } = Select;
@@ -18,8 +18,22 @@ const ProductsTable = ({ products }) => {
   const [dataSource, setDataSource] = useState([]);
   const [selected, setSelected] = useState({});
   const [deleteProduct] = useDeleteProductMutation();
+     const {data:categories} = useGetCategoriesQuery()
 
   // Map API products to table format
+
+
+  const getCategories = (categorie) => {
+  if (!categorie?.categories || !categories?.results) return [];
+
+  const catNames = categorie.categories.map(catId => {
+    const category = categories.results.find(c => c.id === catId);
+    return category ? category.name : null;
+  }).filter(Boolean); // remove any nulls
+
+  console.log('Category Names:', catNames);
+  return catNames;
+};
 // Map API products to table format
 useEffect(() => {
   if (products?.results) {
@@ -27,7 +41,7 @@ useEffect(() => {
       key: p.id,
       productId: p.prod_id,
       productName: p.name,
-      category: p.categories?.length ? p.categories.join(', ') : '—',
+      category: getCategories(p).join(", "),
       approval: p.is_approve ? 'Approved' : 'Not Approved',
       price: parseFloat(p.active_price || p.price1 || 0), // fallback to price1 if active_price missing
       stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',

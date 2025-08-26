@@ -3,13 +3,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const vendorsApi = createApi({
   reducerPath: "vendorsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://311796b16064.ngrok-free.app/api/",
+    baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
- headers.set("ngrok-skip-browser-warning", "true");
+ 
 
 
       return headers;

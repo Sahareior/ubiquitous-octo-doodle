@@ -1,82 +1,288 @@
-import React from 'react';
-import { FaCloudUploadAlt } from 'react-icons/fa';
-import Breadcrumb from '../../others/Breadcrumb';
+import React, { useState } from "react";
+import { FaCloudUploadAlt } from "react-icons/fa";
+import Breadcrumb from "../../others/Breadcrumb";
+import { useGetAllOrdersQuery } from "../../../redux/slices/Apis/dashboardApis";
+import Swal from "sweetalert2";
+import { Select } from "antd";
+import { useReturnProductMutation } from "../../../redux/slices/Apis/customersApi";
 
 const ReturnExchangeForm = () => {
+  const { data: orders } = useGetAllOrdersQuery();
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [reason, setReason] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
+  const [images, setImages] = useState([]);
+  const [returnProduct] = useReturnProductMutation();
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages([...images, ...newImages]);
+  };
+
+  const handleImageRemove = (index) => {
+    const newImages = [...images];
+    URL.revokeObjectURL(newImages[index].preview);
+    newImages.splice(index, 1);
+    setImages(newImages);
+  };
+
+const handleSubmit = async () => {
+  if (!selectedOrder || !selectedProduct) {
+    Swal.fire("Select an order & product!", "Please choose a product to return.", "warning");
+    return;
+  }
+  if (!reason.trim()) {
+    Swal.fire("Enter a reason!", "Please provide a reason for return.", "warning");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("reason", reason);
+  formData.append("additional_info", additionalInfo || "");
+
+  // Convert IDs to string for FormData, but backend must parse numbers
+  formData.append("product", selectedProduct.product.id); 
+formData.append("order_item", Number(selectedProduct.id));    
+
+  images.forEach((img) => {
+    formData.append("uploaded_images", img.file);
+  });
+
+  try {
+    const res = await returnProduct(formData); 
+    console.log("Response:", res);
+    Swal.fire("Success!", "Return request submitted.", "success");
+
+    setSelectedOrder(null);
+    setSelectedProduct(null);
+    setReason("");
+    setAdditionalInfo("");
+    setImages([]);
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error!", "Something went wrong.", "error");
+  }
+};
+
+
   return (
-<div className='bg-[#FAF8F2] min-h-screen '>
-     <div className='px-6'>
-       <Breadcrumb />
-     </div>
-      <div className=" flex items-center justify-center max-w-3xl mx-auto pb-11  px-4">
-<div className='bg-[#EAE7E1] w-full py-12 p-6'>
-        <h2 className="text-center popbold  text-xl md:text-2xl font-semibold text-gray-800 mb-6">
-          Return / Exchange Request
-        </h2>
-          <div className=" w-full rounded-md p-5">
+    <div className="bg-[#FAF8F2] min-h-screen">
+      <div className="px-6">
+        <Breadcrumb />
+      </div>
+      <div className="flex items-center justify-center max-w-3xl mx-auto pb-11 px-4">
+        <div className="bg-[#EAE7E1] w-full py-12 p-6 rounded-md">
+          <h2 className="text-center popbold text-xl md:text-2xl font-semibold text-gray-800 mb-6">
+            Return / Exchange Request
+          </h2>
 
-        {/* Product Input */}
-        <div className="mb-4 bg-white p-5 rounded-md">
-          <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
-            <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">1</span>
-            Select Product from Your Orders
-          </label>
-          <input
-            type="text"
-            placeholder="Enter an order..."
-            className="w-full px-4 py-2 border border-[#E5E7EB] rounded-md focus:outline-none "
-          />
-        </div>
+          <div className="w-full rounded-md p-5 space-y-4">
+            {/* Order Select */}
+            <div className="bg-white p-5 rounded-md">
+              <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
+                <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
+                  1
+                </span>
+                Select Order
+              </label>
+              <Select
+                showSearch
+                placeholder="Search and select order"
+                value={selectedOrder?.id}
+                onChange={(value) => {
+                  const order = orders.results.find((o) => o.id === value);
+                  setSelectedOrder(order);
+                  setSelectedProduct(null); // Reset product when order changes
+                }}
+                options={orders?.results?.map((o) => ({
+                  value: o.id,
+                  label: `Order #${o.order_id} - ${new Date(o.created_at).toLocaleDateString()}`,
+                }))}
+                className="w-full"
+              />
+            </div>
 
-        {/* Reason Input */}
-        <div className="mb-4  bg-white p-5 rounded-md">
-          <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
-            <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">2</span>
-            Reason for Return
-          </label>
-          <input
-            type="text"
-            placeholder="Enter a reason..."
-            className="w-full px-4 py-2 border rounded-md border-[#E5E7EB]"
-          />
-        </div>
+            {/* Display selected order details */}
+            {selectedOrder && (
+              <div className="bg-white p-5 rounded-md">
+                <h3 className="font-medium mb-2">Order Details:</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-gray-600">Order ID:</p>
+                    <p className="font-medium">#{selectedOrder.order_id}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Order Date:</p>
+                    <p className="font-medium">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Total Amount:</p>
+                    <p className="font-medium">${selectedOrder.total_amount}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Status:</p>
+                    <p className="font-medium capitalize">{selectedOrder.status}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        {/* Additional Details */}
-        <div className="mb-4  bg-white p-5 rounded-md">
-          <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
-            <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">3</span>
-            Additional Details (Optional)
-          </label>
-          <textarea
-            rows={5}
-            placeholder="Please describe the issue or provide additional details..."
-            className="w-full px-4 py-2 border rounded-md resize-none border-[#E5E7EB]"
-          />
-        </div>
+            {/* Product Select (depends on selected order) */}
+            {selectedOrder && (
+              <div className="bg-white p-5 rounded-md">
+                <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
+                  <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
+                    2
+                  </span>
+                  Select Product from Order
+                </label>
+<Select
+  showSearch
+  placeholder="Search and select product"
+  value={selectedProduct?.id}
+  onChange={(value) =>
+    setSelectedProduct(
+      selectedOrder.items.find((item) => item.id === Number(value)) // <-- convert to number
+    )
+  }
+  options={
+    selectedOrder?.items?.map((item) => ({
+      value: item.id,      // Make sure this is a number
+      label: item.product.name,
+    })) || []
+  }
+  className="w-full"
+/>
 
-        {/* Upload Photos */}
-        <div className="mb-6  bg-white p-5 rounded-md">
-          <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
-            <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">4</span>
-            Upload Photos (Optional)
-          </label>
-          <div className="border-2 border-dashed flex flex-col justify-center border-gray-300 rounded-md p-4 text-center py-10 text-sm text-gray-500 bg-white cursor-pointer hover:border-yellow-400 transition">
-            <FaCloudUploadAlt size={35} className='text-[] mx-auto' />
-            <p>Drag and drop images here, or click to browse</p>
-            <p className="text-xs mt-1 text-gray-400">PNG, JPG up to 7MB</p>
+              </div>
+            )}
+
+            {/* Display selected product details */}
+            {selectedProduct && (
+              <div className="bg-white p-5 rounded-md">
+                <h3 className="font-medium mb-2">Selected Product Details:</h3>
+                <div className="flex items-center gap-3">
+                  {selectedProduct.product.image && (
+                    <img 
+                      src={selectedProduct.product.image} 
+                      alt={selectedProduct.product.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium">{selectedProduct.product.name}</p>
+                    <p className="text-sm">Quantity: {selectedProduct.quantity}</p>
+                    <p className="text-sm">Price: ${selectedProduct.price}</p>
+                    {selectedProduct.size && (
+                      <p className="text-sm">Size: {selectedProduct.size}</p>
+                    )}
+                    {selectedProduct.color && (
+                      <p className="text-sm">Color: {selectedProduct.color}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Reason Input */}
+            <div className="bg-white p-5 rounded-md">
+              <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
+                <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
+                  3
+                </span>
+                Reason for Return
+              </label>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter a reason..."
+                className="w-full px-4 py-2 border border-[#E5E7EB] rounded-md focus:outline-none"
+              />
+            </div>
+
+            {/* Additional Details */}
+            <div className="bg-white p-5 rounded-md">
+              <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
+                <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
+                  4
+                </span>
+                Additional Details (Optional)
+              </label>
+              <textarea
+                rows={5}
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                placeholder="Please describe the issue or provide additional details..."
+                className="w-full px-4 py-2 border rounded-md resize-none border-[#E5E7EB]"
+              />
+            </div>
+
+            {/* Upload Photos */}
+            <div className="bg-white p-5 rounded-md">
+              <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
+                <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
+                  5
+                </span>
+                Upload Photos (Optional)
+              </label>
+              <div
+                className="border-2 border-dashed flex flex-col justify-center border-gray-300 rounded-md p-4 text-center py-10 text-sm text-gray-500 bg-white cursor-pointer hover:border-yellow-400 transition"
+                onClick={() => document.getElementById("fileInput").click()}
+              >
+                <FaCloudUploadAlt size={35} className="mx-auto mb-2" />
+                <p>Drag and drop images here, or click to browse</p>
+                <p className="text-xs mt-1 text-gray-400">PNG, JPG up to 7MB</p>
+              </div>
+              <input
+                id="fileInput"
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {images.map((img, index) => (
+                  <div key={index} className="relative w-20 h-20">
+                    <img
+                      src={img.preview}
+                      alt="preview"
+                      className="w-full h-full object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      onClick={() => handleImageRemove(index)}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={handleSubmit}
+                disabled={!selectedOrder || !selectedProduct || !reason.trim()}
+                className="w-96 bg-[#CBA135] mx-auto text-white font-semibold py-2 rounded hover:bg-yellow-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Submit Return Request
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Submit Button */}
-        <div className='flex justify-center'>
-                    <button className="w-96 bg-[#CBA135] mx-auto text-white font-semibold py-2 rounded hover:bg-yellow-500 transition">
-          Submit Return Request
-        </button>
-        </div>
       </div>
-</div>
     </div>
-</div>
   );
 };
 

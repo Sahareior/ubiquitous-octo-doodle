@@ -9,15 +9,16 @@ function App() {
 const customerId = JSON.parse(localStorage.getItem("customerId"));
 console.log(customerId, "kkk");
 
+console.log(customerId.user.id,'ee')
 
   useEffect(() => {
     if (customerId) {
       // send full userData object (static for now)
       const userData = {
-        uid: customerId?.user?.id,
-        name: customerId?.user?.first_name,         // static name
-        email: customerId?.user?.email, // static email
-        role: customerId?.user?.role,          // example role
+        uid: customerId.user.id,
+        name: customerId.user.first_name,         // static name
+        email: customerId.user.email, // static email
+        role: customerId.user.role,          // example role
         avatar: "https://via.placeholder.com/50" // static image
       };
 

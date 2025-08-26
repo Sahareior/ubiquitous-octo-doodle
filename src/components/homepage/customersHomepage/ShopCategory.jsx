@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/autoplay";
+import { useGetCategoriesQuery } from "../../../redux/slices/Apis/vendorsApi";
 
 // Skeleton loader component for better UX
 const CardSkeleton = () => (
@@ -17,16 +18,6 @@ const CardSkeleton = () => (
     </div>
   </div>
 );
-
-const categories = [
-  { id: 1, title: "Living Room", image: "https://plus.unsplash.com/premium_photo-1669324450657-1dbd23d8c6d4?q=80&w=871&auto=format&fit=crop", link: "/filter?category=living-room" },
-  { id: 2, title: "Bedroom", image: "https://plus.unsplash.com/premium_photo-1746718185719-a05ffddf579d?q=80&w=870&auto=format&fit=crop", link: "/filter?category=bedroom" },
-  { id: 3, title: "Office", image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=500&auto=format&fit=crop", link: "/filter?category=office" },
-  { id: 4, title: "Dining Room", image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop", link: "/filter?category=dining" },
-  { id: 5, title: "Kitchen", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop", link: "/filter?category=kitchen" },
-  { id: 6, title: "Outdoor", image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop", link: "/filter?category=outdoor" },
-  { id: 10, title: "Decor Accents", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop", link: "/filter?category=decor" },
-];
 
 const Card = ({ category, loading = false }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -62,9 +53,9 @@ const Card = ({ category, loading = false }) => {
       </div>
       <div className="p-4 flex flex-col items-center mt-4 pb-5 gap-4">
         <h2 className="text-lg font-semibold text-gray-800 text-center line-clamp-1">
-          {category.title}
+          {category.name}
         </h2>
-        <Link to={category.link} className="w-full flex justify-center">
+        <Link to={`/filter?category=${category.id}`} className="w-full flex justify-center">
           <button className="bg-[#CBA135] text-white border-none px-6 py-2.5 rounded-md transition-all duration-300 hover:bg-[#b38d2d] focus:ring-2 focus:ring-[#CBA135] focus:ring-opacity-50 focus:outline-none w-full max-w-[120px]">
             Explore
           </button>
@@ -79,6 +70,7 @@ const ShopCategory = () => {
   const bottomRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const { data: cate, isLoading: categoriesLoading } = useGetCategoriesQuery();
 
   // Simulate loading
   useEffect(() => {
@@ -96,7 +88,8 @@ const ShopCategory = () => {
     1280: { slidesPerView: 5, spaceBetween: 30 },
   };
 
-  // Duplicate categories for seamless infinite loop
+  // Fix: Check if cate.results exists before spreading
+  const categories = cate?.results || [];
   const duplicatedCategories = [...categories, ...categories, ...categories];
 
   return (
@@ -176,7 +169,7 @@ const ShopCategory = () => {
           >
             {duplicatedCategories.map((c, index) => (
               <SwiperSlide key={`top-${c.id}-${index}`} style={{ width: 'auto' }}>
-                <Card category={c} loading={isLoading} />
+                <Card category={c} loading={isLoading || categoriesLoading} />
               </SwiperSlide>
             ))}
           </Swiper>
@@ -228,7 +221,7 @@ const ShopCategory = () => {
           >
             {duplicatedCategories.map((c, index) => (
               <SwiperSlide key={`bottom-${c.id}-${index}`} style={{ width: 'auto' }}>
-                <Card category={c} loading={isLoading} />
+                <Card category={c} loading={isLoading || categoriesLoading} />
               </SwiperSlide>
             ))}
           </Swiper>

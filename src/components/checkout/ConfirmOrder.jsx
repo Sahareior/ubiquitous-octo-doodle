@@ -60,13 +60,7 @@ const ConfirmOrder = ({ setSelectedMathod }) => {
         </div>
 
         {/* Confirm Button */}
-        <div className='flex justify-center items-center'>
-          <Link to='/order-confirmation'>
-            <button className="px-8 mx-auto bg-[#CBA135] text-white font-semibold text-sm py-3 rounded-md hover:bg-yellow-600">
-              Confirm Order
-            </button>
-          </Link>
-        </div>
+ 
       </div>
     </div>
   );

@@ -6,7 +6,8 @@ import { MdDelete } from 'react-icons/md';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 
 import VendorModal from './VendorModal/VendorModal';
-import { useGetAllVendorsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useDeleteUsersMutation, useGetAllVendorsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import Swal from 'sweetalert2';
 
 const { Option } = Select;
 
@@ -16,6 +17,7 @@ const VendorTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState({})
   const { data: vendors } = useGetAllVendorsQuery();
+  const [deleteUsers] = useDeleteUsersMutation()
 
   console.log(vendors)
   // Transform API data for table
@@ -107,17 +109,40 @@ const VendorTable = () => {
           <MdDelete
             className="text-red-400 cursor-pointer"
             size={20}
-            onClick={() => handleDelete([record.key])}
+            onClick={() => handleDelete(record)}
           />
         </div>
       ),
     },
   ];
 
-  const handleDelete = (keys) => {
-    message.success(`${keys.length} row(s) deleted.`); 
-    // ⚡️ You’ll need to call API delete here instead of just showing message
-  };
+
+const handleDelete = async (keys) => {
+  const url = keys?.actions?.delete_url; // "/admin/vendors/17/delete"
+  const id = url.split("/")[3]; // "17"
+
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won’t be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await deleteUsers(id); // call your API
+        console.log("Extracted ID:", id, "Response:", res);
+
+        Swal.fire("Deleted!", "The user has been deleted.", "success");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        Swal.fire("Error!", "Failed to delete the user.", "error");
+      }
+    }
+  });
+};
 
   const handleBulkAction = (action) => {
     if (selectedRowKeys.length === 0) {

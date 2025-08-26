@@ -9,11 +9,14 @@ import Breadcrumb from '../../others/Breadcrumb';
 import DetailsModal from './_components/DetailsModal';
 import { Link, useLocation } from 'react-router-dom';
 import ZoomSection from './_components/ZoomSection';
+import { useGetAllProductsQuery } from '../../../redux/slices/Apis/dashboardApis';
 
 const Details = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [randomProducts, setRandomProducts] = useState([]);
   const [mainImage, setMainImage] = useState(null);
   const zoomPaneRef = useRef(null);
+  const {data:productsData} = useGetAllProductsQuery()
   
   const productSpecs = [
     { label: 'Dimensions (W×H×D)', value: '88" × 35" × 38"' },
@@ -29,11 +32,40 @@ const Details = () => {
   const location = useLocation();
   const { product } = location.state || {}; 
   const productData = location.state;
+
+  // console.log(productData.categories,'productData')
+  console.log(productsData?.results,'ss')
+
+  const filteredProducts = productsData?.results?.filter(product =>
+  product?.categories.some(cat => productData?.categories?.includes(cat))
+);
+
+// console.log("Filtered Products:", filteredProducts);
+
+// Fisher–Yates shuffle
+const shuffleArray = (array) => {
+  const shuffled = [...array]; // copy so original data is not mutated
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Example usage
+
+
+useEffect(() => {
+  if (productsData?.results) {
+    setRandomProducts(shuffleArray(productsData.results));
+  }
+}, [productsData]);
   
+console.log(randomProducts,'ramdom')
   // Set the initial main image when productData is available
   useEffect(() => {
-    if (productData?.images && productData.images.length > 0) {
-      setMainImage(productData.images[0]);
+    if (productData?.images && productData?.images?.length > 0) {
+      setMainImage(productData?.images[0]);
     }
   }, [productData]);
 
@@ -208,7 +240,7 @@ const Details = () => {
               </Link>
             </div>
           </div>
-          <Similier />
+          <Similier randomProducts={randomProducts} />
         </div>
 
         {/* Compare Similar Section */}
@@ -221,7 +253,7 @@ const Details = () => {
               </Link>
             </div>
           </div>
-          <PreviouslyBought />
+          <PreviouslyBought filteredProducts={filteredProducts} />
         </div>
       </div>
       
