@@ -1,8 +1,8 @@
 import React from 'react';
 import { Form, Input, Checkbox, Button, Select } from 'antd';
 import Breadcrumb from '../others/Breadcrumb';
-import { Link, useNavigate } from 'react-router-dom';
-import { usePostAddressMutation } from '../../redux/slices/Apis/customersApi';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useGetAddressQuery, usePostAddressMutation } from '../../redux/slices/Apis/customersApi';
 import Swal from 'sweetalert2';
 
 const { Option } = Select;
@@ -11,6 +11,8 @@ const Checkout = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate()
   const [postAddress] = usePostAddressMutation()
+    const { data: address, refetch } = useGetAddressQuery();
+  const location = useLocation()
 
 const onFinish = async (values) => {
   const payload = {
@@ -30,6 +32,7 @@ const onFinish = async (values) => {
   try {
     const res = await postAddress(payload);
     console.log("Mapped Payload:", res);
+    refetch()
 
     // ✅ Show success notification
     Swal.fire({
@@ -38,7 +41,13 @@ const onFinish = async (values) => {
       icon: "success",
       confirmButtonText: "OK",
     }).then(() => {
-      navigate("/cart/checkout1");
+navigate("/cart/checkout1", {
+  state: {
+    ...location.state
+  }
+});
+
+
     });
   } catch (error) {
     // ❌ Show error notification

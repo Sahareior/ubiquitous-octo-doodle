@@ -69,7 +69,7 @@ const Cart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [cartQuantityDecrement] = useCartQuantityDecrementMutation();
   const [cartQuantityIncrease] = useCartQuantityIncreaseMutation();
-  const { data: cartData } = useGetAppCartQuery();
+  const { data: cartData, refetch } = useGetAppCartQuery();
   const [deleteFromCart] = useDeleteFromCartMutation()
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
@@ -137,8 +137,9 @@ const Cart = () => {
 
 
   const removeItem = async (id) => {
-    const res =deleteFromCart(id)
+    const res =await deleteFromCart(id)
     console.log(res)
+    refetch()
     // setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 

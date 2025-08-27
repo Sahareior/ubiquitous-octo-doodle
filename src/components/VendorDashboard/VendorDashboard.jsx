@@ -109,7 +109,7 @@ const selectedKey = activeItem ? [activeItem.key] : [];
 </div>
        </div>
        <hr className='pb-3' />
-     <div className='flex flex-col h-screen justify-around'>
+     <div className='flex flex-col gap-40 justify-around'>
     <div className="flex-1 justify-between  h-screen overflow-auto">
     <Menu
       theme="light"

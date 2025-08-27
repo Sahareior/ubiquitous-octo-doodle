@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { Table } from 'antd';
 import TableModal from './TableModal';
-import { useGetLatestOrdersQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useGetLatestOrdersQuery, useGetOrdersByIdQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 import dayjs from 'dayjs';
 
 const DashTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
   const { data: latestOrders, isLoading } = useGetLatestOrdersQuery();
-  console.log(latestOrders, 'this is latest orders');
+
+  // ✅ Fetch order details only when selectedId is set
+  const { data: orderDetails, isFetching: isOrderLoading } = useGetOrdersByIdQuery(selectedId, {
+    skip: !selectedId,
+  });
+
+
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    setIsModalOpen(true);
+  };
 
   const columns = [
     {
@@ -51,7 +63,7 @@ const DashTable = () => {
       key: 'action',
       render: (_, record) => (
         <p
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => handleSelect(record.id)}
           className="text-sm popreg text-[#CBA135] hover:cursor-pointer"
         >
           View
@@ -60,10 +72,11 @@ const DashTable = () => {
     },
   ];
 
-  // 🔑 Transform API response to match AntD table
+  // ✅ Transform API response to match AntD table
   const data =
     latestOrders?.map((order, index) => ({
       key: index,
+      id: order?.id, // ✅ include ID
       orderId: order?.order_id,
       customer: order?.customer_name,
       date: dayjs(order?.order_date).format('YYYY-MM-DD HH:mm'),
@@ -78,7 +91,13 @@ const DashTable = () => {
         loading={isLoading}
         pagination={{ pageSize: 5 }}
       />
-      <TableModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
+      {/* ✅ Pass order details to modal */}
+      <TableModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        orderDetails={orderDetails}
+        isOrderLoading={isOrderLoading}
+      />
     </div>
   );
 };

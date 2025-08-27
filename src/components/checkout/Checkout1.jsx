@@ -57,8 +57,7 @@ const handlePlaceOrder = async () => {
   }
 
   try {
-    // Extract vendor IDs from cart
-    const vendo = [...new Set(cartData.map(item => item.product.vendor_id))]; // unique vendors
+    const vendo = [...new Set(cartData.map(item => item.product.vendor_id))];
 
     const orderData = {
       cart: cartData,
@@ -66,19 +65,18 @@ const handlePlaceOrder = async () => {
       deliveryType: location.state.deliveryType,
       deliveryFee,
       total,
-      address: selectedAddress,
+      selected_shipping_address_id: selectedAddress.id, // ✅ use ID here
       payment_method: selectedMethod,
       vendors: vendo,
     };
+    console.log(orderData,'orderData')
 
-    // 1. Create order from cart
     const res = await createOrderFromCart(orderData).unwrap();
     console.log("Order Response:", res[0].order_id);
 
-    // 2. If order is created, create checkout
     if (res[0].order_id) {
       const checkoutRes = await createCheckout({
-        order_id: res[0].order_id, // ensure it's a string
+        order_id: res[0].order_id,
       }).unwrap();
 
       console.log("Checkout Response:", checkoutRes.checkout_url);
@@ -188,7 +186,7 @@ const handlePlaceOrder = async () => {
 
               {/* Add Address Button */}
               <div className="mt-6">
-                <Link to="/checkout">
+                <Link to="/checkout" state={location.state}>
                   <button className="w-full py-3 px-4 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium transition-colors duration-300 shadow-md hover:shadow-lg">
                     Add New Address
                   </button>

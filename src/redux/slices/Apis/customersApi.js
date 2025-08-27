@@ -120,6 +120,10 @@ export const customersApi = createApi({
       }
     }),
 
+    getAddressById : build.query({
+      query: (id) => `shipping-addresses/${id}/`
+    }),
+
     createOrderFromCart: build.mutation({
       query:(data) => ({
         url: 'orders/create-from-cart/',
@@ -161,6 +165,7 @@ export const customersApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useDeleteFromCartMutation,
+  useGetAddressByIdQuery,
   usePostAddressMutation,
   useEditCategoryMutation,
   useDeleteCategoriesMutation,

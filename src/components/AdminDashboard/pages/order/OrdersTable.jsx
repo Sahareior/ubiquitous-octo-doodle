@@ -199,7 +199,7 @@ const OrdersTable = () => {
         }}
       />
       <OrderModal 
-        tableData={selectedData} 
+        orderDetails={selectedData} 
         isModalOpen={isModalOpen} 
         target={target} 
         setIsModalOpen={setIsModalOpen} 

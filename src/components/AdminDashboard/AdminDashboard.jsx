@@ -112,25 +112,33 @@ const AdminDashboard = () => {
         width={250}
         collapsedWidth="0"
       >
-               <div className='p-4 flex flex-col gap-14 justify-center items-center'>
+               <div className='p-4 flex flex-col gap-10 justify-center items-center'>
          <img className='w-[80%]' src="/image/footer.png" alt="" />
+
+<div className='flex justify-center items-center gap-3 flex-col'>
+           <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
+
+         <p className='popmed text-lg text-[#666666]'>Home Decor Masters</p>
+</div>
        </div>
-        <div className="flex flex-col h-screen justify-between">
-          <div className="flex-1 overflow-auto mt-10">
+ 
+        <div className="flex flex-col">
+          <div className="flex-1 overflow-auto ">
             <Menu
               theme="light"
               mode="inline"
               selectedKeys={[pathKey]}
               items={items}
+                    className="popreg text-lg space-y-2"
             />
           </div>
-          <Link
+          {/* <Link
             to="/login"
             className="text-red-600 mb-9 hover:text-green-400 flex justify-center items-center gap-2"
           >
             <MdLogout className="-mt-1" size={16} />
             <h3 className="popmed">Logout</h3>
-          </Link>
+          </Link> */}
         </div>
       </Layout.Sider>
 

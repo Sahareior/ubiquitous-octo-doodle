@@ -3,11 +3,11 @@ import { Button, Modal } from 'antd';
 import OrderDetails from './OrderDetails';
 import EditOrder from './EditOrder';
 
-const OrderModal = ({ isModalOpen, setIsModalOpen,target,tableData }) => {
+const OrderModal = ({ isModalOpen, setIsModalOpen,target,orderDetails }) => {
   const showModal = () => {
     setIsModalOpen(true);
   };
-
+console.log(orderDetails,'t')
   const handleOk = () => {
     setIsModalOpen(false);
   };
@@ -39,7 +39,7 @@ const OrderModal = ({ isModalOpen, setIsModalOpen,target,tableData }) => {
       >
       <div className='h-[70vh] px-4 pb-8 overflow-y-scroll'>
         {
-            !target? <OrderDetails tableData={tableData} /> : <div className='px-5 py-8'><EditOrder tableData={tableData} /></div>
+            !target? <OrderDetails tableData={orderDetails} /> : <div className='px-5 py-8'><EditOrder tableData={orderDetails} /></div>
         }
           {/* <OrderDetails /> */}
           {/* <EditOrder /> */}

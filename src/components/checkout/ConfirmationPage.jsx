@@ -25,6 +25,8 @@ const ConfirmationPage = () => {
     skip: !orderId,
   });
 
+  console.log('this is order id', orderId)
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
   };

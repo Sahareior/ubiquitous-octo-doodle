@@ -133,6 +133,10 @@ getLatestOrders: build.query({
   query: ()=> 'admin/latest-orders/'
 }),
 
+getOrdersById: build.query({
+  query:(id) => `orders/${id}/`
+}),
+
 getTopSells: build.query({
   query: () => 'top/sell/products/'
 }),
@@ -170,7 +174,7 @@ deleteUsers: build.mutation({
 export const { useGetPokemonByNameQuery,useAdminOverViewQuery,useGetTopSellsQuery, useAdminVendorPerfomenceQuery, useGetFurnitureSellsQuery,useGetLatestOrdersQuery,
   
   useGetAllProductsQuery,useVendorAcceptProductMutation,useAcceptSellerMutation,useAcceptProductsMutation,
-  useGetAllVendorsQuery,
+  useGetAllVendorsQuery,useGetOrdersByIdQuery,
   useGetAllUsersQuery,
   useGetAllCustomersQuery,useViewVendorsQuery,useGetLowStacksQuery,useGetCategorySellsQuery,
    useDeleteCustomersMutation, useGetAllBannersQuery, useUpdateBannerMutation,useDeleteOrdersByIdMutation,useDeleteUsersMutation,

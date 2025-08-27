@@ -5,13 +5,14 @@ import { useDispatch } from 'react-redux';
 import { addToCart, addToWishList } from '../../../redux/slices/customerSlice';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { useAddProductToCartMutation, useGetCustomerProductsQuery } from '../../../redux/slices/Apis/customersApi';
+import { useAddProductToCartMutation, useGetAppCartQuery, useGetCustomerProductsQuery } from '../../../redux/slices/Apis/customersApi';
 
 const MySwal = withReactContent(Swal);
 
 const FeaturedProducts = () => {
   const [addProductToCart] = useAddProductToCartMutation();
   const dispatch = useDispatch();
+  const { data: cartData , refetch} = useGetAppCartQuery();
   const { data: allProducts, isLoading, isError } = useGetCustomerProductsQuery();
 
   // 🔹 Pagination state
@@ -30,6 +31,7 @@ const FeaturedProducts = () => {
 
     const res = await addProductToCart(payload);
     console.log(res);
+    refetch()
 
     dispatch(addToCart(payload));
 

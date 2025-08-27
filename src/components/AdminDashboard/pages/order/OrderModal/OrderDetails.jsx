@@ -1,6 +1,6 @@
 import { Avatar, Button, Popover } from "antd";
 import React, { useState, useMemo } from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaHome, FaCity } from "react-icons/fa";
 
 const OrderDetails = ({ tableData }) => {
   const [open, setOpen] = useState(false);
@@ -16,6 +16,9 @@ const OrderDetails = ({ tableData }) => {
   
   // Vendor data
   const vendor = order?.vendor;
+  
+  // Shipping address
+  const shippingAddress = order?.selected_shipping_address;
   
   // Calculate order totals
   const subtotal = useMemo(() => {
@@ -33,35 +36,6 @@ const OrderDetails = ({ tableData }) => {
 
   return (
     <div className="p-2 rounded-md space-y-6 text-sm text-gray-700">
-      {/* Action Buttons */}
-      {/* <div className="flex justify-end items-center gap-4">
-        <p className="flex items-center bg-[#CBA135] text-sm gap-1 rounded-md text-white px-3 py-1 cursor-pointer">
-          <FaEdit /> Edit
-        </p>
-        <Popover
-          content={
-            <div className="space-y-2 py-3 px-4 flex flex-col gap-4 items-center text-center">
-              <p className="text-gray-700">Do you want to delete this order?</p>
-              <Button className="bg-[#CBA135] text-white hover:bg-yellow-600">
-                Delete
-              </Button>
-            </div>
-          }
-          title={
-            <h3 className="text-red-500 text-center font-semibold">
-              Are you sure!!
-            </h3>
-          }
-          trigger="click"
-          open={open}
-          onOpenChange={handleOpenChange}
-        >
-          <p className="flex items-center bg-red-400 hover:bg-red-500 transition text-sm gap-1 rounded-md text-white px-3 py-1 cursor-pointer">
-            <FaTrash /> Delete
-          </p>
-        </Popover>
-      </div> */}
-
       {/* Order Summary */}
       <div className="bg-white p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-black mb-4">
@@ -119,7 +93,7 @@ const OrderDetails = ({ tableData }) => {
           <div>
             <p className="text-gray-500 mb-1">Payment Method</p>
             <p className="font-medium capitalize">
-              {order?.payment_method || "Not Provided"}
+              {order?.payment_method === 'mobile' ? 'Mobile Banking' : order?.payment_method || "Not Provided"}
             </p>
           </div>
           <div>
@@ -244,6 +218,86 @@ const OrderDetails = ({ tableData }) => {
             </div>
           )}
         </div>
+
+        {/* Shipping Address Section */}
+        {shippingAddress && (
+          <>
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="text-md font-semibold text-black mb-3 flex items-center gap-2">
+                <FaMapMarkerAlt className="text-red-500" /> Shipping Address
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2">
+                    <span className="text-gray-500 w-24 flex-shrink-0">Full Name:</span>
+                    <span className="font-medium">{shippingAddress.full_name}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <FaPhone className="text-gray-500" size={12} />
+                    <span className="text-gray-500 w-24 flex-shrink-0">Phone:</span>
+                    <span className="font-medium">{shippingAddress.phone_number}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <FaEnvelope className="text-gray-500" size={12} />
+                    <span className="text-gray-500 w-24 flex-shrink-0">Email:</span>
+                    <span className="font-medium">{shippingAddress.email}</span>
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2">
+                    <FaHome className="text-gray-500" size={12} />
+                    <span className="text-gray-500 w-24 flex-shrink-0">Address:</span>
+                    <span className="font-medium">{shippingAddress.street_address}</span>
+                  </p>
+                  {shippingAddress.landmark && (
+                    <p className="flex items-center gap-2">
+                      <FaMapMarkerAlt className="text-gray-500" size={12} />
+                      <span className="text-gray-500 w-24 flex-shrink-0">Landmark:</span>
+                      <span className="font-medium">{shippingAddress.landmark}</span>
+                    </p>
+                  )}
+                  <p className="flex items-center gap-2">
+                    <FaCity className="text-gray-500" size={12} />
+                    <span className="text-gray-500 w-24 flex-shrink-0">City:</span>
+                    <span className="font-medium">{shippingAddress.city}</span>
+                  </p>
+                  {shippingAddress.zip_code && (
+                    <p className="flex items-center gap-2">
+                      <span className="text-gray-500 w-24 flex-shrink-0">ZIP Code:</span>
+                      <span className="font-medium">{shippingAddress.zip_code}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Additional Address Details */}
+              {(shippingAddress.apartment_name || 
+                shippingAddress.floor_number || 
+                shippingAddress.flat_number) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h5 className="text-sm font-medium mb-2 text-gray-700">Additional Details:</h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {shippingAddress.apartment_name && (
+                      <p>
+                        <span className="text-gray-500">Apartment:</span> {shippingAddress.apartment_name}
+                      </p>
+                    )}
+                    {shippingAddress.floor_number && (
+                      <p>
+                        <span className="text-gray-500">Floor:</span> {shippingAddress.floor_number}
+                      </p>
+                    )}
+                    {shippingAddress.flat_number && (
+                      <p>
+                        <span className="text-gray-500">Flat:</span> {shippingAddress.flat_number}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Notes */}

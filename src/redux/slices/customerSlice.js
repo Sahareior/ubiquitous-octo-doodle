@@ -1,6 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit'
-import socket from '../../components/utils/socket'
-
 
 const initialState = {
   value: 0,
@@ -10,11 +8,11 @@ const initialState = {
   cart: [],
   activeChat: '',
   wishlist: [],
-  onlineUsers: [],   // 👈 new for socket.io
-  messages: []       // 👈 chat/messages
+  onlineUsers: [],   // Will be updated via WebSocket messages
+  messages: []       // Will be updated via WebSocket messages
 }
 
-    const customerData = JSON.parse(localStorage.getItem("customerId"));
+const customerData = JSON.parse(localStorage.getItem("customerId"));
 
 export const customerSlice = createSlice({
   name: 'customer',
@@ -30,15 +28,15 @@ export const customerSlice = createSlice({
       state.value += action.payload
     },
 
-    addToRoute: (state,action) =>{
+    addToRoute: (state, action) => {
       state.route.push(action.payload)
     },
     
-    selectedLocation : (state,action) =>{
+    selectedLocation: (state, action) => {
       state.location = action.payload
     },
 
-    addCustomerId: (state,action) => {
+    addCustomerId: (state, action) => {
       state.customerid = action.payload
     },
 
@@ -56,49 +54,63 @@ export const customerSlice = createSlice({
       }
     },
 
-    // ---------------- SOCKET.IO REDUCERS ----------------
+    // WebSocket related reducers
     setOnlineUsers: (state, action) => {
-     state.onlineUsers = action.payload;
-
+      // Filter out the current user from online users list
+      if (customerData && customerData.user) {
+        state.onlineUsers = action.payload.filter(item => item.uid !== customerData.user.id);
+      } else {
+        state.onlineUsers = action.payload;
+      }
     },
+    
     addMessage: (state, action) => {
       state.messages.push(action.payload)
     },
+    
     setActiveChat: (state, action) => {
-  state.activeChat = action.payload  // which user we are chatting with
-}
+      state.activeChat = action.payload  // which user we are chatting with
+    },
+    
+    // Add a new reducer to handle user status updates
+    updateUserStatus: (state, action) => {
+      const { userId, isOnline } = action.payload;
+      const userIndex = state.onlineUsers.findIndex(user => user.uid === userId);
+      
+      if (isOnline && userIndex === -1) {
+        // Add user to online list
+        state.onlineUsers.push({ uid: userId, isOnline: true });
+      } else if (!isOnline && userIndex !== -1) {
+        // Remove user from online list
+        state.onlineUsers.splice(userIndex, 1);
+      }
+    },
+    
+    // Clear all messages (optional)
+    clearMessages: (state) => {
+      state.messages = [];
+    }
   },
 })
 
 // Extract actions
 export const { 
-  increment, decrement, incrementByAmount, 
-  addToRoute, selectedLocation, addCustomerId, 
-  addToCart, addToWishList, setActiveChat,
-  setOnlineUsers, addMessage 
+  increment, 
+  decrement, 
+  incrementByAmount, 
+  addToRoute, 
+  selectedLocation, 
+  addCustomerId, 
+  addToCart, 
+  addToWishList, 
+  setActiveChat,
+  setOnlineUsers, 
+  addMessage,
+  updateUserStatus,
+  clearMessages
 } = customerSlice.actions
 
 export default customerSlice.reducer
 
-// ---------------- SOCKET.IO THUNKS ----------------
-export const initSocket = (currentUser) => (dispatch) => {
-  if (!currentUser) return;
-
-  // 1. Add user when connected
-  socket.emit("addUser", currentUser);
-
-  // 2. Listen for online users
-  socket.on("getUsers", (users) => {
-    dispatch(setOnlineUsers(users));
-  });
-
-  // 3. Listen for incoming messages
-  socket.on("getMessage", (data) => {
-    dispatch(addMessage(data));
-  });
-};
-
-// Send a message to another user
-export const sendMessage = (message) => () => {
-  socket.emit("sendMessage", message);
-};
+// Note: All WebSocket communication is now handled by the useWebSocket hook
+// in your components, which will dispatch these actions when messages are received
