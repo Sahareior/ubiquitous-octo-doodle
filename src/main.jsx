@@ -67,6 +67,7 @@ import EditAdminProducts from './components/AdminDashboard/pages/products/EditAd
 import CategoryManagement from './components/AdminDashboard/pages/Category/CategoryManagement.jsx';
 import EditCategory from './components/AdminDashboard/pages/Category/Page/EditCategory.jsx';
 import CreateCategory from './components/AdminDashboard/pages/Category/CreateCategory.jsx';
+import Payouts from './components/AdminDashboard/pages/payouts/Payouts.jsx';
 
 const router = createBrowserRouter([
   {
@@ -180,6 +181,10 @@ const router = createBrowserRouter([
       {
         path: 'editAdminProducts',
         element: <EditAdminProducts />
+      },
+      {
+        path:'payouts',
+        element: <Payouts />
       },
       {
         path: 'messages',

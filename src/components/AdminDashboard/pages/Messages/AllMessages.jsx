@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useWebSocket from "../../../../Websocket/useWebSocket";
 import { Input, Select, Avatar, Button } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
+import LeftPannel from "./LeftPannel";
 
 const { Option } = Select;
 
@@ -69,7 +70,7 @@ const AllMessages = () => {
       {/* Main Chat Area */}
       <div className="flex h-[90vh] bg-white rounded-md border overflow-hidden">
         {/* Left Panel - Conversations */}
-        <div className="w-[30%] border-r p-4 space-y-4">
+        {/* <div className="w-[30%] border-r p-4 space-y-4">
           <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-1">
             {conversations.map((conversation) => (
               <div
@@ -110,7 +111,8 @@ const AllMessages = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
+        <LeftPannel />
 
         {/* Right Panel - Chat Detail */}
         <div className="w-[70%] flex flex-col justify-between p-5">

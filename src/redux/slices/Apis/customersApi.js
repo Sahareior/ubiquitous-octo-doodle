@@ -4,16 +4,19 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const customersApi = createApi({
   reducerPath: "customersApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.10.13.16:15000/api/",
+    baseUrl: "https://e2fbc0803c8d.ngrok-free.app/api/",
+
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-     
+       const token = localStorage.getItem("access_token");
+       if (token) {
+         headers.set("Authorization", `Bearer ${token}`);
+       }
+ headers.set("ngrok-skip-browser-warning", "true");
+
       return headers;
-    },
-  }),
+     },
+   }),
+
   endpoints: (build) => ({
     getPokemonByName: build.query({
       query: (name) => `pokemon/${name}`,
@@ -46,7 +49,9 @@ export const customersApi = createApi({
       })
     }),
 
-
+    getMessagesById: build.query({
+      query:(id) => `messages/${id}`
+    }),
 
     getReviews: build.query({
       query: () => "product-reviews/",
@@ -152,6 +157,10 @@ export const customersApi = createApi({
       })
     }),
 
+    getUserById: build.query({
+      query: (id) => `users/${id}/`
+    }),
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -164,6 +173,10 @@ export const customersApi = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useLazyGetUserByIdQuery,
+  useLazyGetMessagesByIdQuery,
+  useGetUserByIdQuery,
+  useGetMessagesByIdQuery,
   useDeleteFromCartMutation,
   useGetAddressByIdQuery,
   usePostAddressMutation,

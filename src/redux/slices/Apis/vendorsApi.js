@@ -3,18 +3,18 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const vendorsApi = createApi({
   reducerPath: "vendorsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.10.13.16:15000/api/",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("access_token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
- 
+    baseUrl: "https://e2fbc0803c8d.ngrok-free.app/api/",
 
+    prepareHeaders: (headers) => {
+       const token = localStorage.getItem("access_token");
+       if (token) {
+         headers.set("Authorization", `Bearer ${token}`);
+       }
+ headers.set("ngrok-skip-browser-warning", "true");
 
       return headers;
-    },
-  }),
+     },
+   }),
   endpoints: (build) => ({
     getPokemonByName: build.query({
       query: (name) => `pokemon/${name}`,

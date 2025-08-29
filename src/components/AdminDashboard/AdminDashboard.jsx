@@ -11,7 +11,7 @@ import {
 import { Layout, Menu, theme, Input, Badge, Avatar } from 'antd';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { GoGraph } from 'react-icons/go';
-import { FaCartShopping } from 'react-icons/fa6';
+import { FaCartShopping, FaMoneyBill } from 'react-icons/fa6';
 import { FaBox, FaCaretSquareRight, FaEdit, FaFantasyFlightGames } from 'react-icons/fa';
 import { IoIosPeople } from 'react-icons/io';
 import { IoPricetagSharp } from 'react-icons/io5';
@@ -67,6 +67,11 @@ const items = [
     key: 'analytics',
     icon: <GrAnalytics size={16}/>,
     label: <Link to="analytics">Analytics</Link>,
+  },
+  {
+    key: 'payouts',
+    icon: <FaMoneyBill size={16}/>,
+    label: <Link to="payouts">Payouts</Link>,
   },
   {
     key: 'content',
