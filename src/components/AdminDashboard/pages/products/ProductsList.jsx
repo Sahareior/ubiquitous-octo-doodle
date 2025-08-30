@@ -4,6 +4,7 @@ import { Button, Select } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import { useGetAllProductsQuery, useVendorAcceptProductMutation } from "../../../../redux/slices/Apis/dashboardApis";
+import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
 // import { useGetAllAdminProductsQuery } from "../../../../redux/slices/Apis/customersApi";
 // import { useVendorAcceptProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 
@@ -11,18 +12,12 @@ const { Option } = Select;
 
 const ProductsList = () => {
   const { data: products } = useGetAllProductsQuery();
+   const {data:categories} = useGetCategoriesQuery()
   
   const [acceptProduct, { isLoading }] = useVendorAcceptProductMutation();
 
 
-  const handleAccept = async () => {
-    try {
-      const res = await acceptProduct(12).unwrap(); // 12 = product ID
-      console.log("Product accepted:", res);
-    } catch (err) {
-      console.error("Error accepting product:", err);
-    }
-  };
+
 
   console.log("products", products);
 
@@ -60,9 +55,14 @@ const ProductsList = () => {
             size="large"
             defaultValue="Categories"
           >
-            <Option value="owner">Owner</Option>
+            {
+              categories?.results.map(items =>(
+                <Option value="owner">{items.name}</Option>
+              ))
+            }
+            {/* <Option value="owner">Owner</Option>
             <Option value="manager">Manager</Option>
-            <Option value="designer">Designer</Option>
+            <Option value="designer">Designer</Option> */}
           </Select>
         </div>
 

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, A11y, Keyboard, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -19,7 +19,7 @@ const CardSkeleton = () => (
   </div>
 );
 
-const Card = ({ category, loading = false }) => {
+const Card = React.memo(({ category, loading = false }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -39,6 +39,7 @@ const Card = ({ category, loading = false }) => {
         <img
           src={category.image}
           alt={category.title}
+          loading="lazy"
           className={`w-full h-[192px] object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
@@ -63,7 +64,9 @@ const Card = ({ category, loading = false }) => {
       </div>
     </div>
   );
-};
+});
+
+Card.displayName = 'CategoryCard';
 
 const ShopCategory = () => {
   const topRef = useRef(null);
@@ -88,9 +91,15 @@ const ShopCategory = () => {
     1280: { slidesPerView: 5, spaceBetween: 30 },
   };
 
-  // Fix: Check if cate.results exists before spreading
+  // Optimized: Reduce duplication and use useMemo
   const categories = cate?.results || [];
-  const duplicatedCategories = [...categories, ...categories, ...categories];
+  const duplicatedCategories = useMemo(() => {
+    // Only duplicate enough to create seamless loop (2-3x instead of 3x)
+    return [...categories, ...categories.slice(0, Math.min(categories.length, 10))];
+  }, [categories]);
+
+  // Slower, more performant autoplay speed
+  const autoplaySpeed = 12000;
 
   return (
     <section aria-labelledby="shop-by-category-heading" className="px-6 md:px-10 py-12 bg-gray-50">
@@ -143,7 +152,7 @@ const ShopCategory = () => {
               onlyInViewport: true,
             }}
             loop={true}
-            speed={8000}
+            speed={autoplaySpeed}
             spaceBetween={20}
             breakpoints={breakpoints}
             autoplay={{
@@ -195,7 +204,7 @@ const ShopCategory = () => {
               enabled: false,
             }}
             loop={true}
-            speed={8000}
+            speed={autoplaySpeed}
             spaceBetween={20}
             breakpoints={breakpoints}
             autoplay={{
@@ -250,4 +259,4 @@ const ShopCategory = () => {
   );
 };
 
-export default ShopCategory;
+export default React.memo(ShopCategory);

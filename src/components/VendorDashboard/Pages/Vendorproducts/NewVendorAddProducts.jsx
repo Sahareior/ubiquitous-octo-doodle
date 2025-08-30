@@ -4,6 +4,7 @@ import { Upload, X } from "lucide-react";
 import { useGetCategoriesQuery, useGetTagsQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import Swal from "sweetalert2";
 import ProductSpecificationForm from "./shared/ProductSpecificationForm";
+import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -48,6 +49,7 @@ const NewVendorAddProducts = () => {
   const [loading, setLoading] = useState(false);
   const {data:categories} = useGetCategoriesQuery()
   const [vendorProductCreate] = useVendorProductCreateMutation()
+  const { sendNotification } = useNotificationSocket();
   // 🔹 State for all form data
 const [formData, setFormData] = useState({
   name: "",
@@ -173,10 +175,8 @@ const handleSubmit = async () => {
     country_of_origin: country_of_origin || "",
   };
 
-  const specBlob = new Blob([JSON.stringify(specifications)], {
-    type: "application/json",
-  });
-  formDataToSend.append("specifications", specBlob);
+ 
+  formDataToSend.append("specifications", JSON.stringify(specifications));
 
   // Append other fields
   Object.keys(restFormData).forEach((key) => {
@@ -240,11 +240,18 @@ const handleSubmit = async () => {
   }
 };
 
-console.log(categories?.results,'thsi is categoried')
+
+
+// const notyfi =()=>{
+//    sendNotification();
+// }
 
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg space-y-8">
+      {/* <Button onClick={()=> notyfi()}>
+        Notify
+      </Button> */}
       {/* 🔹 Basic Info */}
       <Section title="Basic Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

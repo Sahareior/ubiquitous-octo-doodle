@@ -68,6 +68,7 @@ import CategoryManagement from './components/AdminDashboard/pages/Category/Categ
 import EditCategory from './components/AdminDashboard/pages/Category/Page/EditCategory.jsx';
 import CreateCategory from './components/AdminDashboard/pages/Category/CreateCategory.jsx';
 import Payouts from './components/AdminDashboard/pages/payouts/Payouts.jsx';
+import ReturnReq from './components/AdminDashboard/pages/return_req/ReturnReq.jsx';
 
 const router = createBrowserRouter([
   {
@@ -121,97 +122,34 @@ const router = createBrowserRouter([
       { path: "congratulations", element: <Congratulations /> },
     ],
   },
-  {
-    path:'admin-dashboard',
-    element: <AdminDashboard />,
-    children: [
-      {
-        path: 'admin-overview',
-        element: <DashHome />
-      },
-      {
-        path: 'admin-dashboard/admin-overview/seller-req',
-        element: <ApproveSellers />
-      },
-      // http://localhost:5173/admin-dashboard/admin-overview/seller-req /order-confirmation
-      {
-        path: 'admin-orders',
-        element: <Orders />
-      },
-      {
-        path: 'analytics',
-        element: <Analytics />
-      },
-      {
-        path: 'customers',
-        element: <CustomerList />
-      },
-      {
-        path: 'category',
-        element: <CategoryManagement />
-      },
-      {
-        path: 'vendors',
-        element: <VendorList />
-      },
-      {
-        path: 'create-category',
-        element: <CreateCategory />
-      },
-      {
-        path: 'edit-category/:id',
-        element: <EditCategory />
-      },
-      {
-        path: 'sellers-apply',
-        element: <SellerApplications />
-      },
-      {
-        path: 'productslist',
-        element: <ProductsList />
-      },
-      {
-        path: 'admin-overview/addproducts',
-        element: <AddnewProducts />
-      },
-      {
-        path: 'productslist/admin-overview/addproducts',
-        element: <AddnewProducts />
-      },
-      {
-        path: 'editAdminProducts',
-        element: <EditAdminProducts />
-      },
-      {
-        path:'payouts',
-        element: <Payouts />
-      },
-      {
-        path: 'messages',
-        element: <AllMessages />
-      },
-      {
-        path: 'content',
-        element: <Content />,
-      },
-        {
-            path: 'edit-banner',
-            element: <EditContent />
-          },
-      {
-        path: 'admin-profile',
-        element: <AdminProfile />
-      },
-       {
-        path: 'terms',
-        element: <TermsConditions />
-      },
-       {
-        path: 'privacy',
-        element: <PrivacyPolicySettings />
-      }
-    ]
-  },
+{
+  path: 'admin-dashboard',
+  element: <AdminDashboard />,
+  children: [
+    { path: 'admin-overview', element: <DashHome /> },
+    { path: 'seller-req', element: <ApproveSellers /> }, 
+    { path: 'admin-orders', element: <Orders /> },
+    { path: 'return', element: <ReturnReq /> },
+    { path: 'analytics', element: <Analytics /> },
+    { path: 'customers', element: <CustomerList /> },
+    { path: 'category', element: <CategoryManagement /> },
+    { path: 'vendors', element: <VendorList /> },
+    { path: 'create-category', element: <CreateCategory /> },
+    { path: 'edit-category/:id', element: <EditCategory /> },
+    { path: 'sellers-apply', element: <SellerApplications /> },
+    { path: 'productslist', element: <ProductsList /> },
+    { path: 'add-product', element: <AddnewProducts /> }, // ✅ fixed
+    { path: 'editAdminProducts', element: <EditAdminProducts /> },
+    { path: 'payouts', element: <Payouts /> },
+    { path: 'messages', element: <AllMessages /> },
+    { path: 'content', element: <Content /> },
+    { path: 'edit-banner', element: <EditContent /> },
+    { path: 'admin-profile', element: <AdminProfile /> },
+    { path: 'terms', element: <TermsConditions /> },
+    { path: 'privacy', element: <PrivacyPolicySettings /> },
+  ]
+},
+
 {
   path: "vendor-dashboard",
   element: <VendorDashboard />,

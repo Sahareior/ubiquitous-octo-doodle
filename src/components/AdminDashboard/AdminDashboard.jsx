@@ -19,6 +19,10 @@ import { LuMessageSquareText } from 'react-icons/lu';
 import { GrAnalytics } from 'react-icons/gr';
 import { MdLogout } from 'react-icons/md';
 import { TbCategoryPlus } from "react-icons/tb";
+import useNotificationSocket from '../../Websocket/useNotificationSocket';
+import { isLoading } from './../../../node_modules/sweetalert2/src/utils/dom/getters';
+import { useGetAllNotificationQuery } from '../../redux/slices/Apis/dashboardApis';
+import Notification from './pages/Notifications/Notification';
 
 const { Header, Content, Sider } = Layout;
 
@@ -47,6 +51,11 @@ const items = [
     key: 'category',
     icon: <TbCategoryPlus  size={16}/>,
     label: <Link to="category">Categorys</Link>,
+  },
+  {
+    key: 'return',
+    icon: <TbCategoryPlus  size={16}/>,
+    label: <Link to="return">Return Product</Link>,
   },
   {
     key: 'sellers-apply',
@@ -99,6 +108,10 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathKey = location.pathname.split('/')[2] || 'admin-overview';
+  const {data:notificationData, isLoading} = useGetAllNotificationQuery()
+    const { notifications, connected } = useNotificationSocket();
+
+  console.log(notificationData, ' this is all')
 
   const {
     token: { colorBgContainer },
@@ -152,10 +165,13 @@ const AdminDashboard = () => {
           <div className="flex justify-between">
             <h5 className="text-[20px] font-semibold">Content</h5>
             <div className="flex items-center gap-3">
-              <BellOutlined style={{ fontSize: 16, cursor: 'pointer' }} />
+    
+ <div className='flex justify-center items-center gap-2'>
+     <Notification />
               <Link to="/admin-dashboard/admin-profile">
                 <Avatar className="w-[30px] h-[30px]" src="https://i.pravatar.cc/40" />
               </Link>
+ </div>
             </div>
           </div>
         </Layout.Header>

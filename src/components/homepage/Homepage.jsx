@@ -1,27 +1,22 @@
-// Homepage.jsx
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlice';
 import { Outlet } from 'react-router-dom';
 import CustomerLayout from './layouts/CustomerLayout';
 import GuestLayout from './layouts/GuestLayout';
 import SellersLayout from './layouts/SellersLayout';
-import { useDispatch, useSelector } from 'react-redux';
-import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlice';
-import { useEffect } from 'react';
 
 const Homepage = () => {
-  // const user = 'customer'; // hardcoded for now
   const dispatch = useDispatch();
+  const user = useSelector(state => state?.customer?.location);
 
-  // const user = useSelector(state => state?.customer?.location)
-  const user ='customer'
-
-console.log('this isdatasa', user)
-
- useEffect(() => {
-    const token = localStorage.getItem('token');
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const role = localStorage.getItem('user_role');
     const customerId = localStorage.getItem('customerId');
 
-    if (token && customerId) {
-      dispatch(selectedLocation('customer'));
+    if (token && role && customerId) {
+      dispatch(selectedLocation(role));
       dispatch(addCustomerId(customerId));
     }
   }, [dispatch]);

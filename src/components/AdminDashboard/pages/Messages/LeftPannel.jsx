@@ -1,77 +1,51 @@
-import React, { useEffect, useState } from "react";
-import { useLazyGetMessagesByIdQuery, useLazyGetUserByIdQuery } from "../../../../redux/slices/Apis/customersApi";
+import React, { useState } from "react";
+import { Avatar } from "antd"; // if you are using antd Avatar
+import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
-const LeftPannel = () => {
-  const [conversations, setConversations] = useState([]);
-  const [getMessagesById] = useLazyGetMessagesByIdQuery();
-  const [getUserById] = useLazyGetUserByIdQuery();
+const LeftPannel = ({ setSelectedConversation, selectedConversation }) => {
+  const { data = [] } = useGetAllConversationsidQuery(); // default [] if no data
+  const user = JSON.parse(localStorage.getItem('customerId'))
+console.log(user.user.id,'this is user')
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      const ids = Array.from({ length: 20 }, (_, i) => i + 2); // [2..21]
-      const results = [];
-
-      for (let id of ids) {
-        try {
-          // fetch messages
-          const res = await getMessagesById(id).unwrap(); 
-          if (res?.count > 0) {
-            // fetch user info (for example, using id as userId)
-            const userRes = await getUserById(id).unwrap(); 
-
-            results.push({
-              id,
-              user: userRes,                // store user info
-              conversations: res.results,   // store messages
-            });
-          }
-        } catch (error) {
-          console.error(`Error fetching messages or user for id ${id}`, error);
-        }
-      }
-
-      setConversations(results);
-    };
-
-    fetchMessages();
-  }, [getMessagesById, getUserById]);
-
-  const handleClick = (id) => {
-    console.log("Clicked conversation id:", id);
-  };
 
   return (
     <div className="p-4 space-y-3">
-      {conversations.length === 0 && (
-        <p className="text-gray-500">No conversations found</p>
-      )}
-{conversations.map((c) => (
-  <div
-    key={c.id}
-    onClick={() => handleClick(c.id)}
-    className="cursor-pointer rounded-xl border border-gray-300 shadow-md p-4 hover:bg-gray-100 transition flex items-center space-x-3"
-  >
-    {c.user.profile_image && (
-      <img 
-        src={c.user.profile_image} 
-        alt={c.user.first_name} 
-        className="w-10 h-10 rounded-full object-cover"
-      />
-    )}
-    <div>
-      <h3 className="font-semibold text-lg">
-        {c.user.first_name} {c.user.last_name} ({c.user.email})
-      </h3>
-      <p className={`text-sm ${c.user.is_online ? 'text-green-500' : 'text-red-500'}`}>
-        {c.user.is_online ? 'Online' : 'Offline'}
-      </p>
-      <p className="text-sm text-gray-600">
-        {c.conversations.length} messages
-      </p>
-    </div>
-  </div>
-))}
+      <div className="border-r p-4 space-y-4">
+        <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-1">
+          {data.map((conversation) => (
+            <div
+              key={conversation.id}
+              className={`p-3 rounded hover:bg-gray-100 cursor-pointer border-b border-slate-100 ${
+                selectedConversation === conversation.id ? "bg-blue-50" : ""
+              }`}
+              onClick={() => setSelectedConversation(conversation.id)} // 🔹 send id to parent
+            >
+              <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex gap-3">
+                  <Avatar
+                    src={
+                      conversation.user_image ||
+                      "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    }
+                  />
+                  <div className="flex flex-col">
+                    <span className="popbold text-gray-800">
+                      {conversation.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {conversation.email}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
 
+          {data.length === 0 && (
+            <p className="text-center text-gray-500 text-sm">No conversations</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -14,11 +14,20 @@ const CustomersNavbar = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleLogout =() => {
-        localStorage.setItem('token', " ");
-localStorage.setItem('customerId', " ");
-// navigate('/login')
-  }
+const handleLogout = () => {
+  // Clear localStorage completely
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("customerId");
+
+  // Reset redux state (optional but good practice)
+  // dispatch(selectedLocation(null));
+  // dispatch(addCustomerId(null));
+
+  // Redirect to login
+  navigate("/login");
+};
 
   const categories = [
     'Living Room',

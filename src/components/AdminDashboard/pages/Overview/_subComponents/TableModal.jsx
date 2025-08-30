@@ -43,10 +43,8 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
           <hr />
           
           <div className="space-x-2 flex justify-end">
-            <p className='flex items-center bg-[#CBA135] text-white gap-2 text-sm px-2 rounded-md py-1'>
-              <FaEdit /> Edit
-            </p>
-            <p className='flex items-center gap-2 bg-[#F87171] px-2 text-sm rounded-md text-white'>
+
+            <p className='flex items-center gap-2 p-2 bg-[#F87171] px-2 text-sm rounded-md text-white'>
               <FaTrash /> Delete
             </p>
           </div>
@@ -79,7 +77,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Order Status:</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
+                <span className={`px-2 py-1 w-24 rounded-full text-xs ${
                   orderDetails.order_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   orderDetails.order_status === 'completed' ? 'bg-green-100 text-green-800' :
                   'bg-blue-100 text-blue-800'
@@ -95,7 +93,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Payment Status:</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
+                <span className={`px-2 py-1 w-24 rounded-full text-xs ${
                   orderDetails.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   orderDetails.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
                   'bg-red-100 text-red-800'

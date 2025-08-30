@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
-import { 
-  useGetCategoriesQuery, 
-  useGetTagsQuery,
-  useVendorEditProductMutation, 
-   
-} from "../../../../redux/slices/Apis/vendorsApi";
+
 import { useLocation } from "react-router-dom";
+import { useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
+
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -54,7 +52,7 @@ const EditAdminProducts = () => {
   const productData = location.state?.productData?.originalData;
   const [vendorEditProduct] = useVendorEditProductMutation()
 
-  console.log(location.state,'adadad')
+  // console.log(productData,'adadad')
 
 
 
@@ -86,39 +84,50 @@ const EditAdminProducts = () => {
   });
 
   // Initialize form data when productData is available
-  useEffect(() => {
-    if (productData) {
-      setFormData({
-        name: productData.name || "",
-        category: productData.categories || [],
-        shortDescription: productData.short_description || "",
-        fullDescription: productData.full_description || "",
-        price1: productData.price1 || "",
-        price2: productData.price2 || "",
-        price3: productData.price3 || "",
-        sku: productData.sku || "",
-        stockQuantity: productData.stock_quantity || "",
-        colors: [],
-        sizes: [],
-        inStock: productData.is_stock || false,
-        homeDeliveryEnabled: productData.home_delivery || false,
-        option1: productData.option1 || "",
-        pickUpEnabled: productData.pickup || false,
-        option2: productData.option2 || "",
-        partnerDeliveryEnabled: productData.partner_delivery || false,
-        option3: productData.option3 || "",
-        deliveryTime: productData.estimated_delivery_days || "",
-        seoTitle: productData.seo?.title || "",
-        metaDescription: productData.seo?.meta_description || "",
-        tag: productData.tags || [],
-        images: productData.images?.map(img => ({
-          id: img.id,
-          url: img.image,
-          createdAt: img.created_at
-        })) || []
-      });
-    }
-  }, [productData]);
+useEffect(() => {
+  if (productData) {
+    setFormData({
+      name: productData.name || "",
+      category: productData.categories || [],
+      shortDescription: productData.short_description || "",
+      fullDescription: productData.full_description || "",
+      price1: productData.price1 || "",
+      price2: productData.price2 || "",
+      price3: productData.price3 || "",
+      sku: productData.sku || "",
+      stockQuantity: productData.stock_quantity || "",
+      colors: [],
+      sizes: [],
+      inStock: productData.is_stock || false,
+      homeDeliveryEnabled: productData.home_delivery || false,
+      option1: productData.option1 || "",
+      pickUpEnabled: productData.pickup || false,
+      option2: productData.option2 || "",
+      partnerDeliveryEnabled: productData.partner_delivery || false,
+      option3: productData.option3 || "",
+      deliveryTime: productData.estimated_delivery_days || "",
+      seoTitle: productData.seo?.title || "",
+      metaDescription: productData.seo?.meta_description || "",
+      tag: productData.tags || [],
+      images: productData.images?.map(img => ({
+        id: img.id,
+        url: img.image,
+        createdAt: img.created_at
+      })) || [],
+
+      // ✅ specifications
+      dimensions: productData.specifications?.dimensions || "",
+      material: productData.specifications?.material || "",
+      color: productData.specifications?.color || "",
+      weight: productData.specifications?.weight || "",
+      assembly_required: productData.specifications?.assembly_required ?? false,
+      warranty: productData.specifications?.warranty || "",
+      care_instructions: productData.specifications?.care_instructions || "",
+      country_of_origin: productData.specifications?.country_of_origin || "",
+    });
+  }
+}, [productData]);
+
 
   const handleImageUpload = (files) => {
     const uploadedImages = files.map(file => ({
@@ -493,6 +502,7 @@ const EditAdminProducts = () => {
           />
         </div>
 
+<ProductSpecificationFormEdit setFormData={setFormData} formData={formData} />
         <div className="flex justify-end gap-4 mt-6">
           <Button className="bg-white border px-8 py-5 border-gray-400">Save as Draft</Button>
           <Button 

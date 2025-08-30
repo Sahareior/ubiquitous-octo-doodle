@@ -1,66 +1,104 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useWebSocket from "../../../../Websocket/useWebSocket";
 import { Input, Select, Avatar, Button } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import LeftPannel from "./LeftPannel";
+import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
 
 const { Option } = Select;
 
 const AllMessages = () => {
-  // Get user ID from localStorage
-  const userData = JSON.parse(localStorage.getItem('customerId') || '{"user": {"id": 1}}');
-  const userId = userData.user.id;
-
-  const { messages, sendMessage, connected } = useWebSocket(userId);
+  const customerData = localStorage.getItem("customerId");
+  const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
+  const { messages, sendMessage, connected } = useWebSocket(customerId);
+  const [getMessagesById] = useLazyGetMessagesByIdQuery();
+  
   const [newMessage, setNewMessage] = useState("");
-  const [selectedConversation, setSelectedConversation] = useState(12); // Default conversation ID
+  const [previousMessages, setPreviousMessages] = useState([]);
+  const messagesEndRef = useRef(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversationInfo, setConversationInfo] = useState({
+    name: "Select a conversation",
+    email: "",
+    subject: "",
+    time: ""
+  });
 
-  console.log(messages, 'messages from websocket');
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversation) return;
+      try {
+        const userRes = await getMessagesById(selectedConversation).unwrap();
+        setPreviousMessages(userRes.results || []);
+        
+        // Set conversation info if available in response
+        if (userRes.conversationInfo) {
+          setConversationInfo(userRes.conversationInfo);
+        }
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+      }
+    };
+    fetchMessages();
+  }, [selectedConversation, getMessagesById]);
 
-  // Sample conversation list
-  const conversations = [
-    {
-      id: 12,
-      name: 'Fariha Tasnim',
-      subject: 'Payment issue - Urgent',
-      time: '2:30 PM',
-      email: 'fariha.tasnim@gmail.com',
-      preview: "I'm confused. My order #12345 payment isn't showing as complete...",
-      status: 'Replied',
-    },
-    // Add more conversations if needed
-  ];
+  // Filter and merge API + WebSocket messages
+  const allConversationMessages = selectedConversation
+    ? [
+        ...previousMessages.map(msg => ({
+          id: msg.id || msg._id,
+          sender: msg.sender,
+          receiver: msg.receiver,
+          message: msg.message,
+          timestamp: msg.timestamp
+        })),
+        ...messages
+          .filter(msg => 
+            msg.data && 
+            (msg.data.sender === selectedConversation || 
+             msg.data.receiver === selectedConversation)
+          )
+          .map(msg => ({
+            id: msg.id || Date.now(), // temporary ID for WebSocket messages
+            sender: msg.data.sender,
+            receiver: msg.data.receiver,
+            message: msg.data.message,
+            timestamp: msg.data.timestamp
+          }))
+      ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    : [];
 
-  // Filter messages for the selected conversation
-  const conversationMessages = messages.filter(msg =>
-    msg.data && 
-    (msg.data.sender === selectedConversation || msg.data.receiver === selectedConversation)
-  );
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [allConversationMessages]);
 
   const handleSend = () => {
-    if (newMessage.trim()) {
-      sendMessage(selectedConversation, newMessage);
-      setNewMessage("");
+    if (!newMessage.trim() || !connected || !selectedConversation) return;
+    sendMessage(selectedConversation, newMessage);
+    setNewMessage("");
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
   // Format time for display
   const formatTime = (timestamp) => {
-    if (!timestamp) return '';
+    if (!timestamp) return "";
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
     <div>
-      {/* Search and Filter */}
       <div className='bg-white p-6 mt-2'> 
         <div className="flex items-center gap-2">
-          <input 
-            className='w-[30%] border border-gray-300 rounded-md px-4 py-1 focus:outline-none' 
-            placeholder="Search messages..." 
-          />
-          <Select defaultValue="Role" className="w-[120px] ">
+          <Input className='w-[30%]' placeholder="Search messages..." />
+          <Select defaultValue="Role" className="w-[120px]">
             <Option value="Customer">Customer</Option>
             <Option value="Seller">Seller</Option>
           </Select>
@@ -68,130 +106,102 @@ const AllMessages = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex h-[90vh] bg-white rounded-md border overflow-hidden">
+      <div className="flex h-[80vh] bg-white rounded-md border overflow-hidden">
         {/* Left Panel - Conversations */}
-        {/* <div className="w-[30%] border-r p-4 space-y-4">
-          <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-1">
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`p-3 rounded hover:bg-gray-100 cursor-pointer border-b border-slate-100 ${
-                  selectedConversation === conversation.id ? 'bg-blue-50' : ''
-                }`}
-                onClick={() => setSelectedConversation(conversation.id)}
-              >
-                <div className='flex items-center justify-between w-full gap-2'>
-                  <div className='flex gap-3'>
-                    <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
-                    <div className="flex items-center justify-between">
-                      <span className="popbold text-gray-800">{conversation.name}</span>
-                    </div>
-                  </div>
-                  <div className='flex gap-2 items-center'>
-                    <span
-                      className={`mt-1 inline-block text-xs popreg px-2 py-0.5 rounded-full ${
-                        conversation.status === 'Unread'
-                          ? 'bg-red-100 text-red-600'
-                          : conversation.status === 'Read'
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-green-100 text-green-600'
-                      }`}
-                    >
-                      {conversation.status}
-                    </span>
-                    <span className="text-xs popreg text-gray-500">{conversation.time}</span>
-                  </div>
-                </div>
-                <div className='md:pl-11'>
-                  <div className="text-[14px] popmed text-gray-700">{conversation.subject}</div>
-                  <div className="text-xs popreg mt-1 text-gray-500">
-                    {conversation.preview?.slice(0, 45) || ''}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-        <LeftPannel />
+        <div className="w-[30%] border-r border-gray-300">
+          <LeftPannel 
+            setSelectedConversation={setSelectedConversation} 
+            setConversationInfo={setConversationInfo}
+          />
+        </div>
 
         {/* Right Panel - Chat Detail */}
-        <div className="w-[70%] flex flex-col justify-between p-5">
-          {/* Header */}
-          <div className="flex flex-col mb-3">
-            <div className="flex items-center gap-3">
-              <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
-              <div>
-                <div className="text-[16px] popbold">Fariha Tasnim</div>
-                <div className="text-xs popreg text-gray-500">fariha.tasnim@gmail.com</div>
-              </div>
-            </div>
-            <div className="text-[20px] mt-5 popbold">Payment issue – Urgent</div>
-            <p className='popreg text-xs text-[#666666]'>Today at 2:30 PM</p>
-            <div className='h-[0.7px] w-full bg-slate-300 mt-6 px-0' />
-          </div>
-          
-          {/* Conversation Messages */}
-          <div className="flex flex-col gap-4 overflow-y-auto max-h-[80vh] px-2">
-            {conversationMessages.map((msg, index) => {
-              const isMe = msg.data.sender === userId;
-              return (
-                <div key={index} className={`flex gap-3 ${isMe ? "ml-32" : "pl-14"}`}>
-                  {!isMe && (
-                    <Avatar
-                      size={40}
-                      src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg"
-                    />
-                  )}
-                  <div className="max-w-[85%]">
-                    <div 
-                      className={`px-4 py-3 rounded-lg text-sm shadow-md ${
-                        isMe 
-                          ? "bg-[#CBA135] text-white border-l-4 border-yellow-300" 
-                          : "bg-[#ECECEC] text-[#0F0F0F]"
-                      }`}
-                    >
-                      {msg.data.message}
-                    </div>
-                    <p className="text-xs text-right text-gray-500 mt-1">
-                      {formatTime(msg.data.timestamp)}
-                    </p>
+        <div className="w-[70%] flex flex-col bg-[#FAFAFA]">
+          {selectedConversation ? (
+            <>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b px-5 py-3 bg-white shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
+                  <div>
+                    <div className="text-[16px] font-semibold">{conversationInfo.name}</div>
+                    <div className="text-xs text-gray-500">{conversationInfo.email || "N/A"}</div>
                   </div>
-                  {isMe && (
-                    <Avatar
-                      size={40}
-                      src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg"
-                    />
-                  )}
                 </div>
-              )
-            })}
-          </div>
+                <span className="text-xs text-gray-400">{conversationInfo.time}</span>
+              </div>
 
-          {/* Reply Box */}
-          <div className="mt-5">
-            <textarea
-              className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none"
-              rows={3}
-              placeholder="Type your reply..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            <Button
-              type="primary"
-              icon={<SendOutlined />}
-              className="mt-2 bg-yellow-500 hover:bg-yellow-600 border-none"
-              onClick={handleSend}
-              disabled={!connected}
-            >
-              {connected ? "Send Reply" : "Connecting..."}
-            </Button>
-          </div>
+              {/* Subject */}
+              <div className="px-5 py-3 border-b">
+                <div className="text-[18px] font-bold">{conversationInfo.subject}</div>
+                <p className="text-xs text-[#666666] mt-1">Conversation started at {conversationInfo.time}</p>
+              </div>
+
+              {/* Conversation */}
+              <div className="flex-1 flex flex-col gap-4 overflow-y-auto px-5 py-4 bg-[#F7F7F7]">
+                {allConversationMessages.map(msg => {
+                  const isMe = msg.sender === customerId;
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
+                    >
+                      {!isMe && (
+                        <Avatar size={35} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
+                      )}
+                      <div className={`max-w-[70%] ${isMe ? "text-right" : "text-left"}`}>
+                        <div
+                          className={`px-4 py-2 rounded-2xl shadow-sm relative ${
+                            isMe
+                              ? "bg-[#CBA135] text-white rounded-br-none"
+                              : "bg-white text-[#0F0F0F] rounded-bl-none"
+                          }`}
+                        >
+                          {msg.message}
+                        </div>
+                        <div className={`text-[11px] mt-1 ${isMe ? "text-right text-gray-400" : "text-left text-gray-400"}`}>
+                          {formatTime(msg.timestamp)}
+                          {isMe && (
+                            <span className="ml-2 text-blue-400">✓✓</span> // seen indicator
+                          )}
+                        </div>
+                      </div>
+                      {isMe && (
+                        <Avatar size={35} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
+                      )}
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Reply Box */}
+              <div className="border-t bg-white px-4 py-3 flex gap-2">
+                <textarea
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none resize-none"
+                  rows={2}
+                  placeholder="Type your reply..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={!connected}
+                />
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={handleSend}
+                  className="bg-yellow-500 hover:bg-yellow-600 border-none"
+                  disabled={!newMessage.trim() || !connected || !selectedConversation}
+                >
+                  Send
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-lg">
+              Select a conversation to view messages
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -4,15 +4,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const dashboardApis = createApi({
   reducerPath: "dashboardApis",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://e2fbc0803c8d.ngrok-free.app/api/",
-
+    baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set("ngrok-skip-browser-warning", "true");
-
+     
       return headers;
     },
   }),
@@ -46,6 +44,15 @@ export const dashboardApis = createApi({
         method: "DELETE",
       }),
     }),
+
+    deleteUser: build.mutation({
+      query:(id) =>({
+        url: `users/${id}/`,
+        method:"DELETE"
+      })
+    }),
+
+
 
     getAllOrders: build.query({
       query: () => "orders/",
@@ -171,6 +178,28 @@ export const dashboardApis = createApi({
       }
     }),
 
+    getRequestReturns: build.query({
+      query: ()=> '/returns/product/'
+    }),
+
+    getAllNotification: build.query({
+      query: () => 'notification/list/'
+    }),
+
+    // Chats.....................
+
+    getAllConversationsid: build.query({
+      query:() => 'chats/'
+    }),
+
+    returnApprove: build.mutation({
+      query: ({id,data}) => ({
+        url: `returns/product/${id}/approve/`,
+        method:"POST",
+        body:data
+      })
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -181,6 +210,10 @@ export const dashboardApis = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useReturnApproveMutation,
+  useGetAllNotificationQuery,
+  useGetRequestReturnsQuery,
+  useGetAllConversationsidQuery,
   usePayoutApproveMutation,
   useAdminOverViewQuery,
   useGetTopSellsQuery,

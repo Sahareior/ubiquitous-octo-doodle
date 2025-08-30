@@ -34,9 +34,11 @@ const handleLogin = async (e) => {
   try {
     const res = await customerLogin(loginData).unwrap();
     console.log(res);
-
+   localStorage.setItem("access_token", res.access_token);
+    localStorage.setItem("refresh_token", res.refresh_token);
+    localStorage.setItem("user_role", res.user.role);
     // Save to localStorage
-    localStorage.setItem("access_token", res.access_token);
+    // localStorage.setItem("access_token", res.access_token);
     localStorage.setItem("customerId", JSON.stringify(res));
 
     const token = localStorage.getItem("access_token");

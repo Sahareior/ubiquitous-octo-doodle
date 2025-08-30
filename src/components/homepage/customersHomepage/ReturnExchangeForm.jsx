@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import Breadcrumb from "../../others/Breadcrumb";
-import { useGetAllOrdersQuery } from "../../../redux/slices/Apis/dashboardApis";
 import Swal from "sweetalert2";
 import { Select } from "antd";
-import { useReturnProductMutation } from "../../../redux/slices/Apis/customersApi";
+import { useGetDeleveredOrdersQuery, useReturnProductMutation } from "../../../redux/slices/Apis/customersApi";
 
 const ReturnExchangeForm = () => {
-  const { data: orders } = useGetAllOrdersQuery();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reason, setReason] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [images, setImages] = useState([]);
   const [returnProduct] = useReturnProductMutation();
+  const { data: getDeleveryedProduct, isLoading } = useGetDeleveredOrdersQuery();
 
   // Handle image upload
   const handleImageUpload = (e) => {
@@ -32,44 +31,52 @@ const ReturnExchangeForm = () => {
     setImages(newImages);
   };
 
-const handleSubmit = async () => {
-  if (!selectedOrder || !selectedProduct) {
-    Swal.fire("Select an order & product!", "Please choose a product to return.", "warning");
-    return;
+  const handleSubmit = async () => {
+    if (!selectedOrder || !selectedProduct) {
+      Swal.fire("Select an order & product!", "Please choose a product to return.", "warning");
+      return;
+    }
+    if (!reason.trim()) {
+      Swal.fire("Enter a reason!", "Please provide a reason for return.", "warning");
+      return;
+    }
+
+    // Create FormData object
+    const formData = new FormData();
+    
+    // Use the correct order_item ID from the delivered product
+    formData.append("order_item", selectedProduct.id);
+    formData.append("description", additionalInfo || reason);
+    images.forEach((img) => {
+      formData.append("uploaded_images", img.file);
+    });
+
+    try {
+      const res = await returnProduct(formData); 
+      console.log("Response:", res);
+      
+      if (res.error) {
+        Swal.fire("Error!", res.error.data?.message || "Something went wrong.", "error");
+        return;
+      }
+      
+      Swal.fire("Success!", "Return request submitted.", "success");
+
+      // Reset form
+      setSelectedOrder(null);
+      setSelectedProduct(null);
+      setReason("");
+      setAdditionalInfo("");
+      setImages([]);
+    } catch (error) {
+      console.error("Submission error:", error);
+      Swal.fire("Error!", "Something went wrong.", "error");
+    }
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
-  if (!reason.trim()) {
-    Swal.fire("Enter a reason!", "Please provide a reason for return.", "warning");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("reason", reason);
-  formData.append("additional_info", additionalInfo || "");
-
-  // Convert IDs to string for FormData, but backend must parse numbers
-  formData.append("product", selectedProduct.product.id); 
-formData.append("order_item", Number(selectedProduct.id));    
-
-  images.forEach((img) => {
-    formData.append("uploaded_images", img.file);
-  });
-
-  try {
-    const res = await returnProduct(formData); 
-    console.log("Response:", res);
-    Swal.fire("Success!", "Return request submitted.", "success");
-
-    setSelectedOrder(null);
-    setSelectedProduct(null);
-    setReason("");
-    setAdditionalInfo("");
-    setImages([]);
-  } catch (error) {
-    console.error(error);
-    Swal.fire("Error!", "Something went wrong.", "error");
-  }
-};
-
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen">
@@ -96,13 +103,13 @@ formData.append("order_item", Number(selectedProduct.id));
                 placeholder="Search and select order"
                 value={selectedOrder?.id}
                 onChange={(value) => {
-                  const order = orders.results.find((o) => o.id === value);
+                  const order = getDeleveryedProduct.results.find((o) => o.id === value);
                   setSelectedOrder(order);
                   setSelectedProduct(null); // Reset product when order changes
                 }}
-                options={orders?.results?.map((o) => ({
+                options={getDeleveryedProduct?.results?.map((o) => ({
                   value: o.id,
-                  label: `Order #${o.order_id} - ${new Date(o.created_at).toLocaleDateString()}`,
+                  label: `Order Item #${o.id} - ${o.product.name}`,
                 }))}
                 className="w-full"
               />
@@ -114,20 +121,20 @@ formData.append("order_item", Number(selectedProduct.id));
                 <h3 className="font-medium mb-2">Order Details:</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <p className="text-gray-600">Order ID:</p>
-                    <p className="font-medium">#{selectedOrder.order_id}</p>
+                    <p className="text-gray-600">Order Item ID:</p>
+                    <p className="font-medium">#{selectedOrder.id}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Order Date:</p>
-                    <p className="font-medium">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                    <p className="text-gray-600">Product:</p>
+                    <p className="font-medium">{selectedOrder.product.name}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Total Amount:</p>
-                    <p className="font-medium">${selectedOrder.total_amount}</p>
+                    <p className="text-gray-600">Quantity:</p>
+                    <p className="font-medium">{selectedOrder.quantity}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Status:</p>
-                    <p className="font-medium capitalize">{selectedOrder.status}</p>
+                    <p className="text-gray-600">Price:</p>
+                    <p className="font-medium">${selectedOrder.price}</p>
                   </div>
                 </div>
               </div>
@@ -142,24 +149,23 @@ formData.append("order_item", Number(selectedProduct.id));
                   </span>
                   Select Product from Order
                 </label>
-<Select
-  showSearch
-  placeholder="Search and select product"
-  value={selectedProduct?.id}
-  onChange={(value) =>
-    setSelectedProduct(
-      selectedOrder.items.find((item) => item.id === Number(value)) // <-- convert to number
-    )
-  }
-  options={
-    selectedOrder?.items?.map((item) => ({
-      value: item.id,      // Make sure this is a number
-      label: item.product.name,
-    })) || []
-  }
-  className="w-full"
-/>
-
+                <Select
+                  showSearch
+                  placeholder="Search and select product"
+                  value={selectedProduct?.id}
+                  onChange={(value) => {
+                    // Since we're using delivered products, each "order" is actually an order item with a product
+                    const product = getDeleveryedProduct.results.find((item) => item.id === Number(value));
+                    setSelectedProduct(product);
+                  }}
+                  options={
+                    getDeleveryedProduct?.results?.map((item) => ({
+                      value: item.id,
+                      label: item.product.name,
+                    })) || []
+                  }
+                  className="w-full"
+                />
               </div>
             )}
 
@@ -168,9 +174,9 @@ formData.append("order_item", Number(selectedProduct.id));
               <div className="bg-white p-5 rounded-md">
                 <h3 className="font-medium mb-2">Selected Product Details:</h3>
                 <div className="flex items-center gap-3">
-                  {selectedProduct.product.image && (
+                  {selectedProduct.product.images && selectedProduct.product.images.length > 0 && (
                     <img 
-                      src={selectedProduct.product.image} 
+                      src={selectedProduct.product.images[0].image} 
                       alt={selectedProduct.product.name}
                       className="w-16 h-16 object-cover rounded"
                     />
@@ -179,12 +185,8 @@ formData.append("order_item", Number(selectedProduct.id));
                     <p className="font-medium">{selectedProduct.product.name}</p>
                     <p className="text-sm">Quantity: {selectedProduct.quantity}</p>
                     <p className="text-sm">Price: ${selectedProduct.price}</p>
-                    {selectedProduct.size && (
-                      <p className="text-sm">Size: {selectedProduct.size}</p>
-                    )}
-                    {selectedProduct.color && (
-                      <p className="text-sm">Color: {selectedProduct.color}</p>
-                    )}
+                    <p className="text-sm">SKU: {selectedProduct.product.sku}</p>
+                    <p className="text-sm">Vendor: {selectedProduct.product.vendor_details.first_name}</p>
                   </div>
                 </div>
               </div>
@@ -207,21 +209,25 @@ formData.append("order_item", Number(selectedProduct.id));
               />
             </div>
 
-            {/* Additional Details */}
+            {/* Additional Details - Renamed to Description */}
             <div className="bg-white p-5 rounded-md">
               <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
                 <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
                   4
                 </span>
-                Additional Details (Optional)
+                Description (Required)
               </label>
               <textarea
                 rows={5}
                 value={additionalInfo}
                 onChange={(e) => setAdditionalInfo(e.target.value)}
-                placeholder="Please describe the issue or provide additional details..."
+                placeholder="Please describe the issue in detail..."
                 className="w-full px-4 py-2 border rounded-md resize-none border-[#E5E7EB]"
+                required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                This field is required. Please provide a detailed description of why you're returning this product.
+              </p>
             </div>
 
             {/* Upload Photos */}
@@ -273,7 +279,7 @@ formData.append("order_item", Number(selectedProduct.id));
             <div className="flex justify-center">
               <button
                 onClick={handleSubmit}
-                disabled={!selectedOrder || !selectedProduct || !reason.trim()}
+                disabled={!selectedOrder || !selectedProduct || !reason.trim() || !additionalInfo.trim()}
                 className="w-96 bg-[#CBA135] mx-auto text-white font-semibold py-2 rounded hover:bg-yellow-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Submit Return Request

@@ -31,34 +31,37 @@ const ProductsTable = ({ products }) => {
     return category ? category.name : null;
   }).filter(Boolean); // remove any nulls
 
-  console.log('Category Names:', catNames);
   return catNames;
 };
 // Map API products to table format
 useEffect(() => {
-  if (products?.results) {
-    const mappedData = products.results.map((p) => ({
-      key: p.id,
-      productId: p.prod_id,
-      productName: p.name,
-      category: getCategories(p).join(", "),
-      approval: p.is_approve ? 'Approved' : 'Not Approved',
-      price: parseFloat(p.active_price || p.price1 || 0), // fallback to price1 if active_price missing
-      stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
-      status:
-        p.status === 'approved'
-          ? 'Active'
-          : p.status === 'active'
-          ? 'Active'
-          : p.status === 'draft'
-          ? 'Draft'
-          : 'Pending',
-      // 👇 keep full product here
-      fullData: p,
-    }));
-    setDataSource(mappedData);
-  }
-}, [products]);
+  if (!products) return;
+
+  // If products is an object with results, use results; otherwise, assume it's an array
+  const productArray = products.results ? products.results : products;
+
+  const mappedData = productArray.map((p) => ({
+    key: p.id,
+    productId: p.prod_id,
+    productName: p.name,
+    category: getCategories(p).join(", "),
+    approval: p.is_approve ? 'Approved' : 'Not Approved',
+    price: parseFloat(p.active_price || p.price1 || 0),
+    stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
+    status:
+      p.status === 'approved'
+        ? 'Active'
+        : p.status === 'active'
+        ? 'Active'
+        : p.status === 'draft'
+        ? 'Draft'
+        : 'Pending',
+    fullData: p,
+  }));
+
+  setDataSource(mappedData);
+}, [products, categories]);
+
 
 
   // 🔥 Reusable Delete with Swal2

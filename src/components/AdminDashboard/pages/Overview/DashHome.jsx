@@ -13,9 +13,11 @@ import { FaCheck, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAdminOverViewQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import AdminSellsOverview from "./_subComponents/AdminSellsOverview";
+import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 
 const DashHome = () => {
   const {data} = useAdminOverViewQuery()
+
 
   const cards = [
     {
@@ -113,7 +115,7 @@ const DashHome = () => {
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div className="space-y-3">
- <Link to='/vendor-dashboard/addproducts'  className="block">
+ <Link to='/admin-dashboard/add-product'  className="block">
                 <button className="bg-[#CBA135] text-white py-3 w-full sm:w-72 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition">
           <FaPlus /> Add New Product
         </button>

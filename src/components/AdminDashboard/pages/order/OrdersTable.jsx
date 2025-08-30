@@ -10,8 +10,8 @@ import { useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQu
 
 const { Option } = Select;
 
-const OrdersTable = () => {
-  const { data: orders, refetch } = useGetAllOrdersQuery();
+const OrdersTable = ({orders}) => {
+  const { data, refetch } = useGetAllOrdersQuery();
   const [pageSize, setPageSize] = useState(10);
   const {data:vendors} =useGetAllVendorsQuery()
   const {data:customers} =useGetAllCustomersQuery()
@@ -25,23 +25,25 @@ const OrdersTable = () => {
   const [fullOrderData, setFullOrderData] = useState({}); // New state to store full order data
 
   // Map API data to table format
-  useEffect(() => {
-    if (orders?.results) {
-      const mappedData = orders.results.map((order) => ({
-        key: order.id,
-        orderId: order.order_id,
-        customer: order.customer,
-        seller: order.vendor,
-        date: new Date(order.order_date).toLocaleDateString(),
-        total: parseFloat(order.total_amount).toFixed(2),
-        payment: order.payment_status_display || order.payment_status,
-        status: order.order_status_display || order.order_status,
-        // Store the full order object as a reference
-        _fullData: order
-      }));
-      setDataSource(mappedData);
-    }
-  }, [orders]);
+useEffect(() => {
+  if (orders?.length) {
+    const mappedData = orders.map((order) => ({
+      key: order.id,
+      orderId: order.order_id,
+      customer: order.customer,
+      seller: order.vendor,
+      date: new Date(order.order_date).toLocaleDateString(),
+      total: parseFloat(order.total_amount).toFixed(2),
+      payment: order.payment_status_display || order.payment_status,
+      status: order.order_status_display || order.order_status,
+      _fullData: order
+    }));
+    setDataSource(mappedData);
+  } else {
+    setDataSource([]); // clear table if no data
+  }
+}, [orders]);
+
 
   const getCustomerName =(data) =>{
    const orderId = data.orderId

@@ -1,45 +1,35 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Button, Input, Divider } from "antd";
+import { Modal, Form, Button, Input, Divider, Select } from "antd";
 
-const ProfileModal = ({ activeSection, isModalOpen, setIsModalOpen, userInfo,refetch }) => {
+const ProfileModal = ({ activeSection, isModalOpen, setIsModalOpen, profileData, updateProfileData }) => {
   const [form] = Form.useForm();
-console.log(userInfo?._id)
+
   useEffect(() => {
-    if (userInfo && activeSection) {
+    if (profileData && activeSection) {
       if (activeSection === "personal") {
         form.setFieldsValue({
-          fullName: userInfo.name,
-          dob: userInfo.dob,
-          gender: userInfo.gender,
-          nid: userInfo.nationalId
-        });
-      } else if (activeSection === "contact") {
-        form.setFieldsValue({
-          phone: userInfo.phone,
-          email: userInfo.email
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          date_of_birth: profileData.date_of_birth,
+          gender: profileData.gender,
+          national_id: profileData.national_id
         });
       } else if (activeSection === "address") {
         form.setFieldsValue({
-          street: userInfo.street,
-          area: userInfo.area,
-          city: userInfo.city
+          address: profileData.address
         });
       } else if (activeSection === "emergency") {
         form.setFieldsValue({
-          emgName: userInfo.emgName,
-          relationship: userInfo.relationship,
-          emgPhone: userInfo.emgPhone
+          emergency_contact: profileData.emergency_contact
         });
       }
     }
-  }, [userInfo, activeSection, form]);
+  }, [profileData, activeSection, form]);
 
   const getTitle = () => {
     switch (activeSection) {
       case "personal":
         return "Edit Personal Information";
-      case "contact":
-        return "Edit Contact Info";
       case "address":
         return "Edit Address";
       case "emergency":
@@ -50,16 +40,13 @@ console.log(userInfo?._id)
   };
 
   const handleSave = async () => {
-    const values = form.getFieldsValue();
-
-   const res = await fetch(`http://localhost:5000/profile/${userInfo._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ section: activeSection, data: values })
-    });
-console.log(res)
-refetch()
-    setIsModalOpen(false);
+    try {
+      const values = await form.validateFields();
+      await updateProfileData(values);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
   };
 
   return (
@@ -75,29 +62,24 @@ refetch()
         {activeSection === "personal" && (
           <>
             <Divider orientation="left">Basic Info</Divider>
-            <Form.Item label="Full Name" name="fullName">
-              <Input placeholder="Enter full name" />
+            <Form.Item label="First Name" name="first_name">
+              <Input placeholder="Enter first name" />
             </Form.Item>
-            <Form.Item label="Date of Birth" name="dob">
+            <Form.Item label="Last Name" name="last_name">
+              <Input placeholder="Enter last name" />
+            </Form.Item>
+            <Form.Item label="Date of Birth" name="date_of_birth">
               <Input type="date" />
             </Form.Item>
             <Form.Item label="Gender" name="gender">
-              <Input placeholder="Gender" />
+              <Select placeholder="Select gender">
+                <Select.Option value="male">Male</Select.Option>
+                <Select.Option value="female">Female</Select.Option>
+                <Select.Option value="other">Other</Select.Option>
+              </Select>
             </Form.Item>
-            <Form.Item label="National ID" name="nid">
-              <Input placeholder="Enter NID" />
-            </Form.Item>
-          </>
-        )}
-
-        {activeSection === "contact" && (
-          <>
-            <Divider orientation="left">Contact Info</Divider>
-            <Form.Item label="Phone Number" name="phone">
-              <Input placeholder="Enter phone number" />
-            </Form.Item>
-            <Form.Item label="Email" name="email">
-              <Input placeholder="Enter email" />
+            <Form.Item label="National ID" name="national_id">
+              <Input placeholder="Enter National ID" />
             </Form.Item>
           </>
         )}
@@ -105,14 +87,8 @@ refetch()
         {activeSection === "address" && (
           <>
             <Divider orientation="left">Address</Divider>
-            <Form.Item label="Street" name="street">
-              <Input placeholder="Enter street" />
-            </Form.Item>
-            <Form.Item label="Area" name="area">
-              <Input placeholder="Enter area" />
-            </Form.Item>
-            <Form.Item label="City" name="city">
-              <Input placeholder="Enter city" />
+            <Form.Item label="Address" name="address">
+              <Input.TextArea placeholder="Enter your full address" rows={4} />
             </Form.Item>
           </>
         )}
@@ -120,14 +96,8 @@ refetch()
         {activeSection === "emergency" && (
           <>
             <Divider orientation="left">Emergency Contact</Divider>
-            <Form.Item label="Contact Name" name="emgName">
-              <Input placeholder="Name" />
-            </Form.Item>
-            <Form.Item label="Relationship" name="relationship">
-              <Input placeholder="Relationship" />
-            </Form.Item>
-            <Form.Item label="Phone Number" name="emgPhone">
-              <Input placeholder="Phone Number" />
+            <Form.Item label="Emergency Contact Number" name="emergency_contact">
+              <Input placeholder="Enter emergency contact number" />
             </Form.Item>
           </>
         )}

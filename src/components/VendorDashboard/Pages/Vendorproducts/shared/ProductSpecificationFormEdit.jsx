@@ -14,7 +14,7 @@ const InputField = ({ label, name, placeholder, type = "text", value, onChange }
   </div>
 );
 
-const ProductSpecificationForm = ({formData,setFormData}) => {
+const ProductSpecificationFormEdit = ({formData,setFormData}) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,4 +91,4 @@ const ProductSpecificationForm = ({formData,setFormData}) => {
   );
 };
 
-export default ProductSpecificationForm;
+export default ProductSpecificationFormEdit;

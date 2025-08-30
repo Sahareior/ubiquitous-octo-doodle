@@ -19,6 +19,8 @@ import { LuMessageSquareText } from 'react-icons/lu';
 import { GrAnalytics } from 'react-icons/gr';
 import VendorOverViewModal from '../AdminDashboard/pages/Overview/_subComponents/VendorOverView';
 import { MdLogout } from 'react-icons/md';
+import useNotificationSocket from '../../Websocket/useNotificationSocket';
+import Notification from '../AdminDashboard/pages/Notifications/Notification';
 
 const { Header, Content, Sider } = Layout;
 
@@ -77,7 +79,7 @@ const currentKey = location.pathname.split('/')[1];
 const currentPath = location.pathname.split('/')[2]; // vendor-dashboard/**vendor-products**
 const activeItem = items.find(item => item.path === currentPath);
 const selectedKey = activeItem ? [activeItem.key] : [];
-
+ const { notifications, connected } = useNotificationSocket();
 
 
 
@@ -136,9 +138,7 @@ const selectedKey = activeItem ? [activeItem.key] : [];
         <h5 className='text-[20px] font-semibold'>Content</h5>
         <div className='flex justify-center items-center gap-3'>
 
-         
-            <FaBell className='mt-1' size={19} onClick={()=> setIsModalOpen(true)} style={{  cursor: 'pointer', Color:'black' }} />
-        
+        <Notification />
          <Link to='/vendor-dashboard/vendor-profile'>
           <Avatar className='w-[34px] h-[34px]' src="https://i.pravatar.cc/40" />
          </Link>

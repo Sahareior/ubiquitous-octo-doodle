@@ -4,18 +4,16 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const customersApi = createApi({
   reducerPath: "customersApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://e2fbc0803c8d.ngrok-free.app/api/",
-
+    baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
-       const token = localStorage.getItem("access_token");
-       if (token) {
-         headers.set("Authorization", `Bearer ${token}`);
-       }
- headers.set("ngrok-skip-browser-warning", "true");
-
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+     
       return headers;
-     },
-   }),
+    },
+  }),
 
   endpoints: (build) => ({
     getPokemonByName: build.query({
@@ -36,6 +34,14 @@ export const customersApi = createApi({
         method: "POST",
         body: data,
       }),
+    }),
+
+        createSingleOrder: build.mutation({
+      query: (data) => ({
+        url: 'orders/create-single/',
+        method: "POST",
+        body:data
+      })
     }),
 
     getAppCart: build.query({
@@ -161,6 +167,22 @@ export const customersApi = createApi({
       query: (id) => `users/${id}/`
     }),
 
+    getDeleveredOrders: build.query({
+      query: () => '/deliverd/item/'
+    }),
+
+    getProfile: build.query({
+      query: () => 'profile/'
+    }),
+
+    customerProfileUpdate: build.mutation({
+      query: (data)=> ({
+        url: '/profile/update/',
+        method: "PATCH",
+        body:data
+      })
+    }),
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -173,6 +195,9 @@ export const customersApi = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useGetDeleveredOrdersQuery,
+  useGetProfileQuery,
+useCustomerProfileUpdateMutation,
   useLazyGetUserByIdQuery,
   useLazyGetMessagesByIdQuery,
   useGetUserByIdQuery,
@@ -194,6 +219,7 @@ export const {
   useCreateOrderFromCartMutation,
   useCreateCheckoutMutation,
   useGetReceptQuery,
+  useCreateSingleOrderMutation,
   usePostCategoriesMutation,
   useReturnProductMutation,
 } = customersApi;
