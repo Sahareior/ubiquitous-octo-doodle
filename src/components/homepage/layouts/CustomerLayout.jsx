@@ -10,6 +10,7 @@ import Customers from '../_components/Customers';
 import Footer from '../_components/Footer';
 import CustomersNavbar from '../customersHomepage/CustomersNavbar';
 import FloatingChat from '../../others/FolatingChat/FloatingChat';
+import Banner from '../customersHomepage/Banner';
 
 const CustomerLayout = () => {
   const location = useLocation();
@@ -28,6 +29,7 @@ const CustomerLayout = () => {
           <ShopCategory />
           <FeaturedProducts />
           <WhyUs />
+          <Banner />
           <StayUpdated />
           <Customers />
           <div className='bg-[#E6E3DD] space-y-4 py-16'>

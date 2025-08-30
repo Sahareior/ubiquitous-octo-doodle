@@ -5,17 +5,18 @@ import { MdDelete } from 'react-icons/md';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import CustomerModal from './CustomerModal/CustomerModal';
 import Swal from 'sweetalert2';
-import { useDeleteCustomersMutation, useGetAllCustomersQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useDeleteCustomersMutation, useDeleteUsersMutation, useGetAllCustomersQuery } from '../../../../redux/slices/Apis/dashboardApis';
 import { handleDelete } from '../../../utils/deleteHandler';
 
 const { Option } = Select;
 
 const CustomerTable = () => {
-  const { data: customerList } = useGetAllCustomersQuery();
+  const { data: customerList,refetch } = useGetAllCustomersQuery();
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteCustomers] = useDeleteCustomersMutation()
+  const [deleteUsers] = useDeleteUsersMutation()
 
   console.log(customerList,'this is customer list')
 
@@ -105,7 +106,7 @@ const CustomerTable = () => {
           <MdDelete
             className="text-red-400 cursor-pointer"
             size={20}
-            onClick={() => onDelete([record.key], record.actions?.delete_url)}
+            onClick={() => handleDelete([record.key])}
           />
         </div>
       ),
@@ -127,11 +128,35 @@ const CustomerTable = () => {
 
   // http://10.10.13.16:15000/api/admin/customers/4/delete  /admin/customers/2/delete
 
-  const onDelete = () => {
-    handleDelete([123], () => {
-      console.log("Deleted successfully, refresh data here");
-    });
-  };
+const handleDelete = async (keys) => {
+  console.log(keys[0],'users keys')
+  // const url = keys?.actions?.delete_url; // "/admin/vendors/17/delete"
+  // const id = url.split("/")[3]; // "17"
+
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won’t be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await deleteUsers(keys[0]); // call your API
+        console.log("Extracted ID:", keys[0], "Response:", res);
+        refetch()
+
+        Swal.fire("Deleted!", "The user has been deleted.", "success");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        Swal.fire("Error!", "Failed to delete the user.", "error");
+      }
+    }
+  });
+};
+  
 
 
   return (

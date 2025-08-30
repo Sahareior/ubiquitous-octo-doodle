@@ -112,6 +112,7 @@ const AllMessages = () => {
           <LeftPannel 
             setSelectedConversation={setSelectedConversation} 
             setConversationInfo={setConversationInfo}
+            connected={connected}
           />
         </div>
 
@@ -176,7 +177,7 @@ const AllMessages = () => {
               </div>
 
               {/* Reply Box */}
-              <div className="border-t bg-white px-4 py-3 flex gap-2">
+              <div className="border-t bg-white px-4 py-3 flex justify-center items-center gap-2">
                 <textarea
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none resize-none"
                   rows={2}

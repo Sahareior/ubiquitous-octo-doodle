@@ -12,6 +12,7 @@ import {
 } from "../../../../redux/slices/Apis/vendorsApi";
 import { FaEdit } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import VProductsModal from "./VProductsModal/VProductsModal";
 
 const { Option } = Select;
 
@@ -23,48 +24,52 @@ const VProductsTable = () => {
   const [selected, setSelected] = useState({});
   const [deleteProduct, { isLoading: deleteLoading }] =
     useDeleteProductMutation();
+    
 
     const {data:categories} = useGetCategoriesQuery()
 
   console.log("allProducts", data?.results);
   console.log("allCategories", categories?.results);
 
-const getCategories = (categorie) => {
-  if (!categorie?.categories || !categories?.results) return [];
+const getCategories = (product) => {
+  if (!product?.categories || !categories?.results) return [];
 
-  const catNames = categorie.categories.map(catId => {
-    const category = categories.results.find(c => c.id === catId);
-    return category ? category.name : null;
-  }).filter(Boolean); // remove any nulls
-
-  console.log('Category Names:', catNames);
-  return catNames;
+  return product.categories
+    .map((catId) => {
+      const category = categories.results.find((c) => c.id === catId);
+      return category ? category.name : null;
+    })
+    .filter(Boolean); // remove nulls
 };
+
 
   // Transform API data to match table structure product?.categories?.join(", ") || "N/A",
   const dataSource =
     data?.results?.map((product) => ({
       key: product?.id,
-      images: product?.images[0]?.image,
-      productName: product?.name,
-      productId: product?.prod_id,
-      category: getCategories(product).join(", "),
-      price: parseFloat(product?.active_price || product?.price1 || 0),
+      images: product?.images?.length > 0 ? product.images[0].image : null,
+      productName: product?.name || "N/A",
+      productId: product?.prod_id || "N/A",
+      category: getCategories(product).length > 0 ? getCategories(product).join(", ") : "N/A",
+      price: parseFloat(product?.price1 || 0), // show price1, fallback 0
       stock: product?.is_stock
         ? product?.stock_quantity > 10
           ? "In Stock"
-          : "Low Stock"
+          : product?.stock_quantity > 0
+          ? "Low Stock"
+          : "Out of Stock"
         : "Out of Stock",
       status:
-        product?.status === "active"
-          ? "Active"
+        product?.status === "approved"
+          ? "Approved"
           : product?.status === "draft"
           ? "Draft"
-          : product?.status === "approved"
+          : product?.status === "active"
           ? "Active"
           : "Pending",
-      originalData: product, // Keep original data for reference
+      originalData: product,
     })) || [];
+
 
   const handleDelete = async (keys) => {
     const result = await Swal.fire({
@@ -122,126 +127,79 @@ const getCategories = (categorie) => {
     }
   };
 
-  const columns = [
+const columns = [
+  {
+    title: "ID",
+    dataIndex: "productId",
+    key: "productId",
+    render: (text) => <span className="popmed text-[16px]">{text}</span>,
+  },
+  {
+    title: "Product Name",
+    dataIndex: "productName",
+    key: "productName",
+    render: (_, record) => (
+      <span className="popmed flex items-center gap-3 text-[16px]">
+        <img
+          className="w-7 h-7 rounded-full object-cover"
+          src={record.images || "/fallback.png"}
+          // alt={record.productName}
+        />
+        {record.productName}
+      </span>
+    ),
+  },
     {
-      title: "ID",
-      dataIndex: "productId",
-      key: "productId",
-      render: (text) => (
-        <div>
-          <a className="popmed text-[16px]">{text}</a>
-        </div>
-      ),
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      render: (text) => <span className="text-sm">{text}</span>,
     },
-    {
-      title: "Product Name",
-      dataIndex: "productName",
-      key: "productName",
-      render: (_, record) => (
-        <span className="popmed flex items-center gap-3 text-[16px]">
-          <img
-            className="w-7 rounded-full h-7 object-cover"
-            src={record.images || "/fallback.png"}
-            alt={record.productName}
-          />
-          {record.productName}
-        </span>
-      ),
-    },
+  {
+    title: "Price",
+    dataIndex: "price",
+    key: "price",
+    render: (price) => <span>$ {price.toFixed(2)}</span>,
+  },
+  {
+    title: "Stock",
+    dataIndex: "stock",
+    key: "stock",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+  },
+  {
+    title: "Action",
+    key: "action",
+    render: (_, record) => (
+      <div className="flex items-center gap-3">
+        <IoEyeOutline
+          onClick={() => {
+            setIsModalOpen(true);
+            setSelected(record);
+          }}
+          className="text-gray-400 cursor-pointer"
+          size={23}
+        />
+        <Link
+          to="/vendor-dashboard/editproducts"
+          state={{ productData: record.originalData }}
+        >
+          <FaEdit className="text-gray-400 cursor-pointer" size={20} />
+        </Link>
+        <MdDelete
+          className="text-red-400 cursor-pointer"
+          size={20}
+          onClick={() => handleDelete([record.key])}
+        />
+      </div>
+    ),
+  },
+];
 
-    {
-      title: "Category",
-      dataIndex: "category",
-      key: "category",
-      render: (text) => (
-        <div>
-          <a className="popmed text-[16px]">{text}</a>
-        </div>
-      ),
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => (
-        <p className="popmed text-[16px]"> $ {price.toFixed(2)}</p>
-      ),
-    },
-    {
-      title: "Stock",
-      dataIndex: "stock",
-      key: "stock",
-      render: (text) => (
-        <div>
-          <a className="popmed text-[16px]">{text}</a>
-        </div>
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => {
-        const statusColor = {
-          Active: "bg-green-100 text-green-600",
-          Pending: "bg-yellow-100 text-yellow-600",
-          Draft: "bg-red-100 text-red-600",
-        };
-
-        return (
-          <div
-            className={`rounded px-2 py-1 text-xs font-medium w-[110px] ${statusColor[status]}`}
-          >
-            <Select
-              value={status}
-              size="small"
-              onChange={(value) => {
-                // In a real app, you would call an API to update the status
-                message.success(`Status changed to ${value}`);
-              }}
-              bordered={false}
-              dropdownMatchSelectWidth={false}
-              className="w-full"
-              suffixIcon={
-                <RiArrowDropDownLine className="text-[16px] popmed text-gray-600" />
-              }
-            >
-              <Option value="Active">Active</Option>
-              <Option value="Pending">Pending</Option>
-              <Option value="Draft">Draft</Option>
-            </Select>
-          </div>
-        );
-      },
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <div className="flex items-center gap-3">
-          <IoEyeOutline
-            onClick={() => {
-              setIsModalOpen(true), setSelected(record);
-            }}
-            className="text-gray-400 cursor-pointer"
-            size={23}
-          />
-          <Link
-            className="block"
-            to="/vendor-dashboard/editproducts"
-            state={{ productData: record }}
-          >
-            <FaEdit className="text-gray-400 cursor-pointer" size={20} />
-          </Link>
-          <MdDelete
-            className="text-red-400 cursor-pointer"
-            size={20}
-            onClick={() => handleDelete([record.key])}
-          />
-        </div>
-      ),
-    },
-  ];
 
   if (isLoading) return <p>Loading products...</p>;
   if (error) return <p>Error loading products</p>;
@@ -312,7 +270,7 @@ const getCategories = (categorie) => {
           </div>
         )}
       />
-      <ProductsModal
+      <VProductsModal
         product={selected}
         setIsModalOpen={setIsModalOpen}
         isModalOpen={isModalOpen}

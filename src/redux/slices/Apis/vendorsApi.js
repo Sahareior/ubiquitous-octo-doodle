@@ -124,6 +124,10 @@ export const vendorsApi = createApi({
       query: () => "tags/",
     }),
 
+    venDorNotifications: build.query({
+      query: ()=> 'order-notifications/'
+    }),
+
     postPayouts: build.mutation({
       query: (data) => ({
         url:'payouts/',
@@ -147,6 +151,7 @@ export const vendorsApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useVendorEditProductMutation,
+  useVenDorNotificationsQuery,
   useVendorProductCreateMutation,
   usePostPayoutsMutation,
   useDeleteProductMutation,

@@ -1,15 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table } from 'antd';
 import TableModal from '../../../AdminDashboard/pages/Overview/_subComponents/TableModal';
+import { useVenDorNotificationsQuery } from '../../../../redux/slices/Apis/vendorsApi';
+import dayjs from 'dayjs';
 
 const VendorTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: recent, isLoading } = useVenDorNotificationsQuery();
+
+  // Map API data to table format
+  const tableData = useMemo(() => {
+    if (!recent?.results) return [];
+
+    return recent.results.map((item) => ({
+      key: item.id,
+      requestDate: dayjs(item.event_time).format('YYYY-MM-DD HH:mm'),
+      amount: `$${item.meta_data?.total_amount || '0.00'}`,
+      status: item.meta_data?.order_status || 'Pending',
+      paymentMethod: item.meta_data?.type === 'order' ? 'Online Payment' : 'N/A',
+      transactionId: item.meta_data?.order_id || '-',
+      fullName: item.full_name,
+      message: item.message,
+      seen: item.seen,
+    }));
+  }, [recent]);
 
   const columns = [
     {
       title: 'Request Date',
       dataIndex: 'requestDate',
       key: 'requestDate',
+    },
+    {
+      title: 'Customer',
+      dataIndex: 'fullName',
+      key: 'fullName',
+    },
+    {
+      title: 'Message',
+      dataIndex: 'message',
+      key: 'message',
+      ellipsis: true,
     },
     {
       title: 'Amount',
@@ -46,36 +77,14 @@ const VendorTable = () => {
     },
   ];
 
-  const data = [
-    {
-      key: '1',
-      requestDate: '2025-07-20',
-      amount: '$500',
-      status: 'Delivered',
-      paymentMethod: 'Bank Transfer',
-      transactionId: 'TXN-00123ABC',
-    },
-    {
-      key: '2',
-      requestDate: '2025-07-21',
-      amount: '$320',
-      status: 'Pending',
-      paymentMethod: 'PayPal',
-      transactionId: 'TXN-00456XYZ',
-    },
-    {
-      key: '3',
-      requestDate: '2025-07-22',
-      amount: '$150',
-      status: 'Cancelled',
-      paymentMethod: 'Skrill',
-      transactionId: 'TXN-00789LMN',
-    },
-  ];
-
   return (
     <div>
-      <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} />
+      <Table
+        columns={columns}
+        dataSource={tableData}
+        loading={isLoading}
+        pagination={{ pageSize: 5 }}
+      />
       <TableModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
     </div>
   );

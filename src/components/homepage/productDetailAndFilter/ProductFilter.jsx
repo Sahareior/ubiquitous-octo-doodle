@@ -214,21 +214,23 @@ const ProductFilter = () => {
             {/* Rating */}
             <div className="my-4">
               <p className="popmed mb-2">Customer Rating</p>
-              <div className="space-y-2">
-                {[5, 4, 3].map(stars => (
-                  <div key={stars}>
-                    <Radio
-                      checked={selectedRating === stars}
-                      onChange={() => setSelectedRating(stars)}
-                    >
-                      <div className='flex gap-3'>
-                        <Rate className='text-sm' disabled defaultValue={stars} />
-                        <p className='text-[#666666] popreg'>{stars} stars</p>
-                      </div>
-                    </Radio>
-                  </div>
-                ))}
-              </div>
+<div className="space-y-2">
+  {[5, 4, 3].map(stars => (
+    <div
+      key={stars}
+      onClick={() =>
+        setSelectedRating(selectedRating === stars ? null : stars)
+      }
+      className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
+        selectedRating === stars ? 'bg-yellow-100' : ''
+      }`}
+    >
+      <Rate className="text-sm" disabled defaultValue={stars} />
+      <p className="text-[#666666] popreg">{stars} stars</p>
+    </div>
+  ))}
+</div>
+
             </div>
 
             {/* Availability */}

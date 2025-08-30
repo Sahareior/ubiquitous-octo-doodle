@@ -1,5 +1,6 @@
+
 // NotificationBell.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Badge,
   List,
@@ -57,9 +58,16 @@ const stringToColor = (string) => {
 
 export default function Notification({ onMarkSeen, onClear }) {
   const { token } = useToken();
-  const { data, isLoading } = useGetAllNotificationQuery();
+  const { data, isLoading,refetch } = useGetAllNotificationQuery();
   const { notifications } = useNotificationSocket();
   const [open, setOpen] = useState(false);
+
+  useEffect(()=> {
+  refetch()
+  }, [notifications])
+
+  const newNotifications = localStorage.removeItem('notifications')
+  console.log(newNotifications,'ads')
 
   // fallback to [] if API hasn't loaded yet
   const items = data || [];

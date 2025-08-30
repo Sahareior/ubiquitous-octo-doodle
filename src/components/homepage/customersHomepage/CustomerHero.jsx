@@ -1,5 +1,6 @@
 import { Button } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const images = [
   'https://plus.unsplash.com/premium_photo-1678752717095-08cd0bd1d7e7?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -11,6 +12,11 @@ const CustomerHero = () => {
   const [current, setCurrent] = useState(0);
 
   // Auto-slide every 4 seconds
+
+  const userInfo = JSON.parse(localStorage.getItem('customerId'))
+
+  console.log(userInfo.user.first_name)
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
@@ -37,12 +43,16 @@ const CustomerHero = () => {
           Discover premium furniture that transforms your space into a warm, elegant home.
         </h4>
         <div className="flex justify-center md:justify-start gap-4">
-          <Button className="bg-[#CBA135] py-5 text-white border-none popbold hover:bg-pink-500">
+        <Link to='/filter'>
+          <Button  className="bg-[#CBA135] py-5 text-white border-none popbold hover:bg-pink-500">
             Shop New Arrivals
           </Button>
+        </Link>
+         <Link to='/wishlist'>
           <Button className="bg-white py-5 popbold border-[#CBA135] px-8 text-[#CBA135] hover:bg-[#CBA135]/10">
             View Wishlist
           </Button>
+         </Link>
         </div>
       </div>
 
@@ -70,7 +80,7 @@ const CustomerHero = () => {
       </div>
     </div>
     <div className='px-20 py-16 bg-[#FAF8F2]'>
-        <h3 className='text-[36px] popbold font-bold'>Welcome back, Kabita</h3>
+        <h3 className='text-[36px] popbold font-bold'>Welcome back, {userInfo.user.first_name}</h3>
         <p className='text-[16px] popreg mt-2'>Here are some items you might love</p>
     </div>
 </div>

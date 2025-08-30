@@ -183,6 +183,25 @@ export const customersApi = createApi({
       })
     }),
 
+    savetoWishList : build.mutation({
+      query: (data) => ({
+        url:'wishlist/',
+        method:'POST',
+        body: data
+      })
+    }),
+
+    getAllWishList: build.query({
+      query: ()=> 'wishlist/'
+    }),
+
+    deleteWishList: build.mutation({
+      query: (id)=> ({
+        url: `wishlist/${id}/`,
+        method: "DELETE"
+      })
+    }),
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -196,6 +215,9 @@ export const customersApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useGetDeleveredOrdersQuery,
+  useDeleteWishListMutation,
+  useGetAllWishListQuery,
+  useSavetoWishListMutation,
   useGetProfileQuery,
 useCustomerProfileUpdateMutation,
   useLazyGetUserByIdQuery,

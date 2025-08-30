@@ -19,13 +19,14 @@ import {
   FaTimesCircle,
   FaRegClock 
 } from 'react-icons/fa';
-import { useAcceptSellerMutation, useGetAllSellerApplicationQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useAcceptSellerMutation, useGetAllSellerApplicationQuery, useGetAllVendorsQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 
 const { Step } = Steps;
 
 const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
   const { data: applicants, isLoading, refetch } = useGetAllSellerApplicationQuery();
   const [acceptSeller] = useAcceptSellerMutation();
+    const { data: vendors, refetch:vendorRefetch } = useGetAllVendorsQuery();
   const [activeTab, setActiveTab] = useState('info');
 
   const handleAccept = () => {
@@ -53,6 +54,7 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
       .then(() => {
         message.success("Seller approved successfully!");
         refetch();
+        vendorRefetch()
         setIsModalOpen(false);
       })
       .catch((err) => {

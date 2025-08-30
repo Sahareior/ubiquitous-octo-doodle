@@ -5,6 +5,7 @@ import { Upload, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
+import Swal from "sweetalert2";
 
 
 // ✅ Reusable Input
@@ -49,8 +50,10 @@ const EditAdminProducts = () => {
   const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
-  const productData = location.state?.productData?.originalData;
+  const productData = location.state?.productData;
   const [vendorEditProduct] = useVendorEditProductMutation()
+
+  console.log(productData,'this is productData')
 
   // console.log(productData,'adadad')
 
@@ -159,57 +162,67 @@ useEffect(() => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (formData.images.length === 0 && newImages.length === 0) {
-      message.error("Please upload at least one product image");
-      return;
-    }
+const handleSubmit = async () => {
+  if (formData.images.length === 0 && newImages.length === 0) {
+    message.error("Please upload at least one product image");
+    return;
+  }
 
-    setLoading(true);
-    
-    // Create FormData object
-    const formDataToSend = new FormData();
-    
-    // Add product ID for update
-    formDataToSend.append('id', productData.id);
-    
-    // Append all form fields
-    Object.keys(formData).forEach(key => {
-      if (key === 'images') return; // Skip images as they're handled separately
-      
-      if (Array.isArray(formData[key])) {
-        // Stringify array fields
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (typeof formData[key] === 'boolean') {
-        // Convert boolean to string
-        formDataToSend.append(key, formData[key].toString());
-      } else {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
-    
-    // Append new image files
-    newImages.forEach(image => {
-      formDataToSend.append('uploaded_images', image.file);
-    });
-    
-    // Append existing image IDs to keep
-    const existingImageIds = formData.images.map(img => img.id);
-    formDataToSend.append('existing_images', JSON.stringify(existingImageIds));
-    
-    try {
-      // Use update mutation instead of create
-    const res = await vendorEditProduct({id:productData.id, formDataToSend})
-      
-  
-      
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to update product", error);
-      message.error("Failed to update product");
-      setLoading(false);
+  setLoading(true);
+
+  // Create FormData object
+  const formDataToSend = new FormData();
+
+  // Add product ID for update
+  formDataToSend.append("id", productData.id);
+
+  // Append all form fields
+  Object.keys(formData).forEach((key) => {
+    if (key === "images") return; // Skip images as they're handled separately
+
+    if (Array.isArray(formData[key])) {
+      formDataToSend.append(key, JSON.stringify(formData[key]));
+    } else if (typeof formData[key] === "boolean") {
+      formDataToSend.append(key, formData[key].toString());
+    } else {
+      formDataToSend.append(key, formData[key]);
     }
-  };
+  });
+
+  // Append new image files
+  newImages.forEach((image) => {
+    formDataToSend.append("uploaded_images", image.file);
+  });
+
+  // Append existing image IDs to keep
+  const existingImageIds = formData.images.map((img) => img.id);
+  formDataToSend.append("existing_images", JSON.stringify(existingImageIds));
+
+  try {
+    const res = await vendorEditProduct({ id: productData.id, formDataToSend });
+
+    setLoading(false);
+
+    // ✅ Success Swal
+    Swal.fire({
+      icon: "success",
+      title: "Product Updated",
+      text: "Your product has been successfully updated!",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  } catch (error) {
+    console.error("Failed to update product", error);
+    setLoading(false);
+
+    // ❌ Error Swal
+    Swal.fire({
+      icon: "error",
+      title: "Update Failed",
+      text: "Something went wrong while updating the product.",
+    });
+  }
+};
 
   // Combine existing and new images for display
   const allImages = [

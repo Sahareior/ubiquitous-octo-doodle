@@ -148,22 +148,7 @@ const handleDelete = async (keys) => {
       key: 'category',
       render: (text) => <span className="text-sm">{text}</span>,
     },
-    {
-      title: 'Approval',
-      dataIndex: 'approval',
-      key: 'approval',
-      render: (text) => (
-        <span
-          className={`px-2 py-1 text-xs rounded ${
-            text === 'Approved'
-              ? 'bg-green-100 text-green-600'
-              : 'bg-red-100 text-red-600'
-          }`}
-        >
-          {text}
-        </span>
-      ),
-    },
+
     {
       title: 'Price',
       dataIndex: 'price',
@@ -176,40 +161,46 @@ const handleDelete = async (keys) => {
       key: 'stock',
       render: (text) => <span className="text-sm">{text}</span>,
     },
-    {
+        {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status, record) => {
-        const statusColor = {
-          Active: 'bg-green-100 text-green-600',
-          Pending: 'bg-yellow-100 text-yellow-600',
-          Draft: 'bg-red-100 text-red-600',
-        };
-
-        return (
-          <Select
-            value={status}
-            size="small"
-            onChange={(value) => {
-              const newData = dataSource.map((item) =>
-                item.key === record.key ? { ...item, status: value } : item
-              );
-              setDataSource(newData);
-              message.success(`Status updated to ${value}`);
-            }}
-            bordered={false}
-            dropdownMatchSelectWidth={false}
-            className={`w-[110px] px-2 py-1 text-xs font-medium rounded ${statusColor[status]}`}
-            suffixIcon={<RiArrowDropDownLine className="text-[16px] text-gray-600" />}
-          >
-            <Option value="Active">Active</Option>
-            <Option value="Pending">Pending</Option>
-            <Option value="Draft">Draft</Option>
-          </Select>
-        );
-      },
+      render: (text) => <span className="text-sm">{text}</span>,
     },
+    // {
+    //   title: 'Status',
+    //   dataIndex: 'status',
+    //   key: 'status',
+    //   render: (status, record) => {
+    //     const statusColor = {
+    //       Active: 'bg-green-100 text-green-600',
+    //       Pending: 'bg-yellow-100 text-yellow-600',
+    //       Draft: 'bg-red-100 text-red-600',
+    //     };
+
+    //     return (
+    //       <Select
+    //         value={status}
+    //         size="small"
+    //         onChange={(value) => {
+    //           const newData = dataSource.map((item) =>
+    //             item.key === record.key ? { ...item, status: value } : item
+    //           );
+    //           setDataSource(newData);
+    //           message.success(`Status updated to ${value}`);
+    //         }}
+    //         bordered={false}
+    //         dropdownMatchSelectWidth={false}
+    //         className={`w-[110px] px-2 py-1 text-xs font-medium rounded ${statusColor[status]}`}
+    //         suffixIcon={<RiArrowDropDownLine className="text-[16px] text-gray-600" />}
+    //       >
+    //         <Option value="Active">Active</Option>
+    //         <Option value="Pending">Pending</Option>
+    //         <Option value="Draft">Draft</Option>
+    //       </Select>
+    //     );
+    //   },
+    // },
     {
       title: 'Actions',
       key: 'action',

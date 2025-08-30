@@ -3,6 +3,7 @@ import { useFormik } from 'formik';
 import { FaCloudUploadAlt, FaTrashAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { useBannerUploadMutation, useDeleteBannerMutation, useGetAllBannersQuery } from '../../../../redux/slices/Apis/dashboardApis';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const Content = () => {
   const fileInputRef = useRef(null);
@@ -56,18 +57,46 @@ onSubmit: async (values) => {
 
   console.log("📌 Sending FormData:", [...formData]);
 
-  // 🚀 send as multipart/form-data
-  const res = await bannerUpload(formData);
+  try {
+    // 🚀 send as multipart/form-data
+    const res = await bannerUpload(formData);
 
-  console.log(res);
+    console.log(res);
 
-  if (values.showBanner) {
-    setActiveBanners([...activeBanners, {
-      id: Date.now(),
-      title: values.bannerTitle,
-      endDate: values.endDate,
-      image: previewUrl
-    }]);
+    if (res) {
+      Swal.fire({
+        icon: "success",
+        title: "Banner Uploaded!",
+        text: "Your banner has been uploaded successfully.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      if (values.showBanner) {
+        setActiveBanners([
+          ...activeBanners,
+          {
+            id: Date.now(),
+            title: values.bannerTitle,
+            endDate: values.endDate,
+            image: previewUrl,
+          },
+        ]);
+      }
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: res.message || "Something went wrong!",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: "error",
+      title: "Server Error",
+      text: "Could not upload banner. Please try again later.",
+    });
   }
 }
 
