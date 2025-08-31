@@ -163,36 +163,19 @@ item,
     ));
   }, [totalPages, currentPage]);
 
-  // Search submit handler
-  const handleSearch = () => {
-    navigate(`/filter?search=${searchText}`);
-    setCurrentPage(1);
-  };
 
   if (isLoading) return <p className="p-20 text-center">Loading products...</p>;
   if (isError) return <p className="p-20 text-center text-red-500">Failed to load products</p>;
 
   return (
-    <div className="p-20 bg-[#FAF8F2] space-y-6">
+    <div className="md:p-20 p-3 bg-[#FAF8F2] space-y-6">
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-[30px] popbold font-extrabold">Featured Products</h2>
           <p className="text-[18px] text-gray-600">Explore our curated furniture categories</p>
         </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            className="border px-3 py-2 rounded-md focus:outline-none"
-          />
-          <button onClick={handleSearch} className="bg-[#CBA135] text-white px-3 py-2 rounded-md">
-            Search
-          </button>
-        </div>
+
       </div>
 
       {/* Product Grid */}

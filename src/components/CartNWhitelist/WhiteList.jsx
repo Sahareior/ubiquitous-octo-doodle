@@ -70,7 +70,7 @@ const WhiteList = () => {
   if (isError) return <p className="p-10 text-center text-red-500">Failed to load wishlist</p>;
 
   return (
-    <div className="mx-40 min-h-screen pb-9">
+    <div className="md:mx-40 p-3 min-h-screen pb-9">
       <Breadcrumb />
 
       <div className="py-4">

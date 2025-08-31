@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin } from 'antd';
-import { FaRegHeart } from "react-icons/fa6";
+import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin, Drawer } from 'antd';
+import { FaRegHeart, FaFilter } from "react-icons/fa6";
 import Breadcrumb from '../../others/Breadcrumb';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { RiArrowDropDownLine } from "react-icons/ri";
@@ -13,11 +13,11 @@ import { useGetCategoriesQuery, useGetCustomerProductsQuery } from '../../../red
 const MySwal = withReactContent(Swal);
 
 const ProductFilter = () => {
-   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const categoryFromUrl = queryParams.get('category'); 
-  console.log(categoryFromUrl,'category from URL');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
   // Filters state
   const [priceRange, setPriceRange] = useState([0, 5000]);
@@ -127,202 +127,274 @@ const ProductFilter = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Filter sidebar component
+  const FilterSidebar = () => (
+    <div className="bg-white p-4 h-full">
+      <div className='flex justify-between '>
+        <h3 className="text-lg popbold mb-2">Filters</h3>
+        <Button className='border-none popmed' onClick={() => {
+          setSelectedCategoryIds([]);
+          setSelectedBrand([]);
+          setSelectedRating(null);
+          setPriceRange([0, 5000]);
+          setAvailability(false);
+        }}>Clear All</Button>
+      </div>
+
+      {/* Category */}
+      <div className="my-4">
+        <p className="popmed mb-2">Category</p>
+        <div className="max-h-34 popreg text-[#666666] overflow-y-auto space-y-1 bg-white rounded-md px-2">
+          {categories?.map((item) => (
+            <label key={item.id} className="flex items-center space-x-2 py-1 cursor-pointer">
+              <input
+                type="checkbox"
+                value={item.id}
+                checked={selectedCategoryIds.includes(item.id)}
+                onChange={e => {
+                  const val = parseInt(e.target.value);
+                  setSelectedCategoryIds(prev => prev.includes(val) 
+                    ? prev.filter(i => i !== val) 
+                    : [...prev, val]);
+                }}
+                className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
+              />
+              <span>{item.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Price */}
+      <div className="my-4">
+        <p className="popmed mb-2">Price Range</p>
+        <Slider
+          range
+          min={0}
+          max={5000}
+          step={100}
+          value={priceRange}
+          onChange={setPriceRange}
+        />
+        <div className="flex justify-between popreg text-sm">
+          <span>${priceRange[0]}</span>
+          <span>${priceRange[1]}</span>
+        </div>
+      </div>
+
+      {/* Brand */}
+      <div className="my-4">
+        <p className="font-medium popmed mb-2">Brand</p>
+        <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
+          {brands?.map((item) => (
+            <label key={item} className="flex items-center space-x-2 py-1 cursor-pointer popreg">
+              <input
+                type="checkbox"
+                value={item}
+                checked={selectedBrand.includes(item)}
+                onChange={e => {
+                  const val = e.target.value;
+                  setSelectedBrand(prev => prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]);
+                }}
+                className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
+              />
+              <span>{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Rating */}
+      <div className="my-4">
+        <p className="popmed mb-2">Customer Rating</p>
+        <div className="space-y-2">
+          {[5, 4, 3].map(stars => (
+            <div
+              key={stars}
+              onClick={() =>
+                setSelectedRating(selectedRating === stars ? null : stars)
+              }
+              className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
+                selectedRating === stars ? 'bg-yellow-100' : ''
+              }`}
+            >
+              <Rate className="text-sm" disabled defaultValue={stars} />
+              <p className="text-[#666666] popreg">{stars} stars</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div className="my-7">
+        <p className="popmed mb-2">Availability</p>
+        <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
+          In Stock Only
+        </Checkbox>
+      </div>
+    </div>
+  );
+
   return (
-    <div className='bg-[#FAF8F2]'>
-      <div className='flex p-6 gap-2 px-20 pb-6 pt-1'>
+    <div className='bg-[#FAF8F2] min-h-screen'>
+      <div className='flex p-4 md:p-6 gap-2 md:px-6 lg:px-20 pb-6 pt-1'>
         <Breadcrumb />
       </div>
 
       {location.pathname === "/filter" && (
-        <div className="flex gap-6 pb-12 px-20">
-          {/* Filters */}
-          <div className="w-72 bg-white p-4">
-            <div className='flex justify-between '>
-              <h3 className="text-lg popbold mb-2">Filters</h3>
-              <Button className='border-none popmed' onClick={() => {
-                setSelectedCategoryIds([]);
-                setSelectedBrand([]);
-                setSelectedRating(null);
-                setPriceRange([0, 5000]);
-                setAvailability(false);
-              }}>Clear All</Button>
-            </div>
-
-            {/* Category */}
-            <div className="my-4">
-              <p className="popmed mb-2">Category</p>
-              <div className="h-34 popreg text-[#666666] overflow-y-scroll space-y-1 bg-white rounded-md px-2">
-                {categories?.map((item) => (
-                  <label key={item.id} className="flex items-center space-x-2 py-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      value={item.id}
-                      checked={selectedCategoryIds.includes(item.id)}
-                      onChange={e => {
-                        const val = parseInt(e.target.value);
-                        setSelectedCategoryIds(prev => prev.includes(val) 
-                          ? prev.filter(i => i !== val) 
-                          : [...prev, val]);
-                      }}
-                      className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
-                    />
-                    <span>{item.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Price */}
-            <div className="my-4">
-              <p className="popmed mb-2">Price Range</p>
-              <Slider
-                range
-                min={0}
-                max={5000}
-                step={100}
-                value={priceRange}
-                onChange={setPriceRange}
-              />
-              <div className="flex justify-between popreg text-sm">
-                <span>${priceRange[0]}</span>
-                <span>${priceRange[1]}</span>
-              </div>
-            </div>
-
-            {/* Brand */}
-            <div className="my-4">
-              <p className="font-medium popmed mb-2">Brand</p>
-              <div className="h-40 text-[#666666] overflow-y-scroll bg-white rounded-md px-2">
-                {brands?.map((item) => (
-                  <label key={item} className="flex items-center space-x-2 py-1 cursor-pointer popreg">
-                    <input
-                      type="checkbox"
-                      value={item}
-                      checked={selectedBrand.includes(item)}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setSelectedBrand(prev => prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]);
-                      }}
-                      className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
-                    />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Rating */}
-            <div className="my-4">
-              <p className="popmed mb-2">Customer Rating</p>
-<div className="space-y-2">
-  {[5, 4, 3].map(stars => (
-    <div
-      key={stars}
-      onClick={() =>
-        setSelectedRating(selectedRating === stars ? null : stars)
-      }
-      className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
-        selectedRating === stars ? 'bg-yellow-100' : ''
-      }`}
-    >
-      <Rate className="text-sm" disabled defaultValue={stars} />
-      <p className="text-[#666666] popreg">{stars} stars</p>
-    </div>
-  ))}
-</div>
-
-            </div>
-
-            {/* Availability */}
-            <div className="my-7">
-              <p className="popmed mb-2">Availability</p>
-              <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
-                In Stock Only
-              </Checkbox>
-            </div>
+        <div className="pb-12 md:px-6 lg:px-20">
+          {/* Mobile filter button */}
+          <div className="px-4 md:hidden mb-4">
+            <Button 
+              icon={<FaFilter />} 
+              onClick={() => setMobileFiltersOpen(true)}
+              className="w-full flex items-center justify-center gap-2"
+              size="large"
+            >
+              Filters {filteredProducts.length > 0 && `(${filteredProducts.length} results)`}
+            </Button>
           </div>
 
-          {/* Products */}
-          <div className="flex-1 px-6">
-            <div className="flex justify-between items-center mb-1">
-              <div>
-                <h2 className="text-2xl popbold">Search Results</h2>
-                <p className="text-gray-500 popreg">{filteredProducts.length} products found</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-[#666666] popreg">Sort by:</span>
-                <div className='relative'>
-                  <Select className='w-36 popreg relative' value={sort} onChange={setSort} options={[{ value: 'Newest' }, { value: 'Price: Low to High' }, { value: 'Price: High to Low' }]} />
-                  <RiArrowDropDownLine size={20} className='absolute top-2 right-2' />
-                </div>
-              </div>
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Desktop Filters */}
+            <div className="hidden md:block md:w-72 lg:w-80 flex-shrink-0">
+              <FilterSidebar />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoading ? (
-                <Spin size="large" />
-              ) : paginatedProducts.length === 0 ? (
-                <div className="col-span-3 text-center py-10">
-                  <p>No products found matching your criteria</p>
-                </div>
-              ) : (
-                paginatedProducts.map(product => {
-                  const price = product.active_price || parseFloat(product.price1) || 0;
-                  const rating = product.average_rating || 0;
+            {/* Mobile Filters Drawer */}
+            <Drawer
+              title="Filters"
+              placement="left"
+              onClose={() => setMobileFiltersOpen(false)}
+              open={mobileFiltersOpen}
+              className='pb-11'
+              width={300}
+              bodyStyle={{ padding: 0, paddingBottom: '20px' }}
+            >
+              <FilterSidebar />
+            </Drawer>
 
-                  return (
-                    <div key={product.id} className="bg-white rounded-2xl shadow-md relative">
-                      <Link to='details' state={product}>
-                      
-                        <img 
-                          src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"} 
-                          alt={product.name} 
-                          className="w-full rounded-t-2xl h-64 object-cover mb-4" 
-                        />
-                      </Link>
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          dispatch(addToWishList(product));
-                          MySwal.fire({
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Item added to Wishlist!',
-                            showConfirmButton: false,
-                            timer: 1800,
-                            toast: true,
-                          });
-                        }}
-                        className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
-                      >
-                        <FaRegHeart size={15} />
-                      </div>
-                      <div className="px-4 space-y-2 p-5">
-                        <h3 className="popmed text-lg">{product.name}</h3>
-                        <div className="flex gap-2">
-                          <Rate disabled defaultValue={rating} className="text-yellow-500 text-sm mb-1" />
+            {/* Products */}
+            <div className="flex-1 px-4 md:px-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                <div>
+                  <h2 className="text-xl md:text-2xl popbold">Search Results</h2>
+                  <p className="text-gray-500 popreg">{filteredProducts.length} products found</p>
+                </div>
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <span className="text-sm text-[#666666] popreg whitespace-nowrap">Sort by:</span>
+                  <div className='relative flex-1 md:flex-initial'>
+                    <Select 
+                      className='w-full md:w-36 popreg relative' 
+                      value={sort} 
+                      onChange={setSort} 
+                      options={[
+                        { value: 'Newest' }, 
+                        { value: 'Price: Low to High' }, 
+                        { value: 'Price: High to Low' }
+                      ]} 
+                    />
+                    <RiArrowDropDownLine size={20} className='absolute top-2 right-2 pointer-events-none' />
+                  </div>
+                </div>
+              </div>
+
+              <div id='product-list' className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {isLoading ? (
+                  <div className="col-span-3 flex justify-center py-10">
+                    <Spin size="large" />
+                  </div>
+                ) : paginatedProducts.length === 0 ? (
+                  <div className="col-span-3 text-center py-10">
+                    <p className="text-gray-500">No products found matching your criteria</p>
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => {
+                        setSelectedCategoryIds([]);
+                        setSelectedBrand([]);
+                        setSelectedRating(null);
+                        setPriceRange([0, 5000]);
+                        setAvailability(false);
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                ) : (
+                  paginatedProducts.map(product => {
+                    const price = product.active_price || parseFloat(product.price1) || 0;
+                    const rating = product.average_rating || 0;
+
+                    return (
+                      <div key={product.id} className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]">
+                        <Link to='details' state={product}>
+                          <img 
+                            src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"} 
+                            alt={product.name} 
+                            className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover" 
+                          />
+                        </Link>
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch(addToWishList(product));
+                            MySwal.fire({
+                              position: 'top-end',
+                              icon: 'success',
+                              title: 'Item added to Wishlist!',
+                              showConfirmButton: false,
+                              timer: 1800,
+                              toast: true,
+                            });
+                          }}
+                          className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
+                        >
+                          <FaRegHeart size={15} />
                         </div>
-                        <div className="flex justify-between items-center gap-10">
-                          <p className="text-[20px] popbold mb-3">${price}</p>
-                          <Button onClick={() => handleCart(product)} className="bg-yellow-600 rounded-xl popreg max-w-[10rem] text-white py-2 px-4 hover:bg-yellow-700">
-                            Add to Cart
-                          </Button>
+                        <div className="p-4 space-y-2">
+                          <h3 className="popmed text-base md:text-lg line-clamp-1">{product.name}</h3>
+                          <div className="flex gap-2">
+                            <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
+                          </div>
+                          <div className="flex justify-between items-center gap-2">
+                            <p className="text-lg md:text-[20px] popbold">${price}</p>
+                            <Button 
+                              onClick={() => handleCart(product)} 
+                              className="bg-yellow-600 rounded-xl popreg text-white py-1 md:py-2 px-2 md:px-4 hover:bg-yellow-700 text-xs md:text-sm"
+                            >
+                              Add to Cart
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Pagination */}
+              {filteredProducts.length > 0 && (
+                <div className="mt-6 flex gap-9 justify-center">
+                <Pagination
+  current={currentPage}
+  total={filteredProducts.length}
+  pageSize={pageSize}
+  onChange={(page) => {
+    setCurrentPage(page);
+
+    const productList = document.querySelector("#product-list");
+    if (productList) {
+      productList.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }}
+  responsive
+  showSizeChanger={false}
+/>
+
+                </div>
               )}
-            </div>
-
-            {/* Pagination */}
-            <div className="mt-6 flex justify-center">
-              <Pagination
-                current={currentPage}
-                total={filteredProducts.length}
-                pageSize={pageSize}
-                onChange={(page) => setCurrentPage(page)}
-              />
             </div>
           </div>
         </div>

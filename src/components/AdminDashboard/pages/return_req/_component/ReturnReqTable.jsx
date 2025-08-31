@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Table, Select, Button, Modal, Image, Tag } from 'antd';
 import { IoEyeOutline, IoCloseOutline } from 'react-icons/io5';
 import { RiArrowDropDownLine } from 'react-icons/ri';
-import { useGetRequestReturnsQuery, useReturnApproveMutation } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useGetRequestReturnsQuery, useReturnApproveMutation, useReturnDeleteMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
+import { MdDelete } from 'react-icons/md';
 
 const { Option } = Select;
 
@@ -12,9 +13,10 @@ const ReturnReqTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const { data: returnReq, isLoading,refetch } = useGetRequestReturnsQuery();
+console.log(returnReq,'aaaaaaaaaaaaa')
 
-
-    const [returnApprove] = useReturnApproveMutation()
+  const [returnApprove] = useReturnApproveMutation()
+  const [returnDelete] = useReturnDeleteMutation()
   
 const handleApprove = async (data) => {
   const payload = {
@@ -134,17 +136,47 @@ const handleApprove = async (data) => {
       title: 'Actions',
       key: 'action',
       render: (_, record) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-3">
           <Button 
             type="text" 
-            icon={<IoEyeOutline className="text-blue-500" size={18} />}
+            icon={<IoEyeOutline className="text-blue-500" size={20} />}
             onClick={() => showModal(record)}
             className="flex items-center justify-center"
           />
+                    <MdDelete
+                      className="text-red-400 cursor-pointer"
+                      size={20}
+                      onClick={() => handleDelete(record)}
+                    />
         </div>
       ),
     },
   ];
+
+const handleDelete = (data) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This action cannot be undone!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await returnDelete(data.id).unwrap();
+        console.log("this is deleted res", res);
+        refetch();
+
+        Swal.fire("Deleted!", "The item has been deleted.", "success");
+      } catch (error) {
+        console.error("Delete failed:", error);
+        Swal.fire("Error!", "Something went wrong while deleting.", "error");
+      }
+    }
+  });
+};
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">

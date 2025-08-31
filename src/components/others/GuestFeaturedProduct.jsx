@@ -58,7 +58,7 @@ const GuestFeaturedProduct = () => {
   };
 
   return (
-    <div className="p-20 bg-[#FAF8F2] space-y-6">
+    <div className="md:p-20 p-3 mt-8 bg-[#FAF8F2] space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

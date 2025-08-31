@@ -202,6 +202,14 @@ export const customersApi = createApi({
       })
     }),
 
+    forgetPassRequest: build.mutation({
+      query: (data) => ({
+        url: 'forgot-password/request/',
+        method: "POST",
+        body:data
+      })
+    }),
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -214,6 +222,7 @@ export const customersApi = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useForgetPassRequestMutation,
   useGetDeleveredOrdersQuery,
   useDeleteWishListMutation,
   useGetAllWishListQuery,

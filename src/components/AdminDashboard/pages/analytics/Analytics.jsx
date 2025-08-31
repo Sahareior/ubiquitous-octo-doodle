@@ -12,15 +12,17 @@ import {
   MdInventory,
   MdReplay,
 } from "react-icons/md";
-import { useAdminOverViewQuery, useAdminVendorPerfomenceQuery, useGetCategorySellsQuery, useGetTopSellsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useAdminOverViewQuery, useAdminVendorPerfomenceQuery, useGetAllCustomersQuery, useGetAllVendorsQuery, useGetCategorySellsQuery, useGetTopSellsQuery, useTopProductsSellQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const Analytics = () => {
   const {data} = useAdminOverViewQuery()
   const {data:category} = useGetCategorySellsQuery()
   const {data:topSells} = useGetTopSellsQuery()
   const {data:vendorPerfomence} = useAdminVendorPerfomenceQuery()
-
-  console.log(vendorPerfomence?.results, 'vPerfomence')
+  const {data:topProductsSells} = useTopProductsSellQuery()
+  const { data: customerList,refetch } = useGetAllCustomersQuery();
+  const { data: vendors } = useGetAllVendorsQuery();
+  console.log(customerList,vendors)
 
   // Format currency function
   const formatCurrency = (amount) => {
@@ -35,21 +37,14 @@ const Analytics = () => {
   const dashboardStats = [
     {
       title: "Total Customers",
-      value: "12,847",
+      value: `${customerList?.count}`,
     },
     {
       title: "Total Sellers",
-      value: "2,341",
+      value: `${vendors?.count}`,
     },
   ];
 
-  const topProducts = [
-    { name: 'Sofa', percentage: 72 },
-    { name: 'Bed', percentage: 62 },
-    { name: 'Table', percentage: 77 },
-    { name: 'Chair', percentage: 98 },
-    { name: 'Cabinet', percentage: 69 },
-  ];
 
   console.log(data, 'xxx')
   const cards = [
@@ -222,26 +217,32 @@ const Analytics = () => {
       </div>
 
       {/* Top Products Section */}
-      <div className="bg-white p-6 rounded-xl mt-6 shadow-md">
-        <h2 className="text-[20px] popbold mb-4">Top Product over the last month</h2>
-        <hr />
-        <div className="space-y-4 mt-4">
-          {topProducts.map((product, index) => (
-            <div key={index}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-gray-700">{product.name}</span>
-                <span className="font-semibold">{product.percentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 h-2 rounded">
-                <div
-                  className="h-2 rounded bg-gradient-to-r from-yellow-400 to-yellow-600"
-                  style={{ width: `${product.percentage}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+{/* Top Products Section */}
+<div className="bg-white p-6 rounded-xl mt-6 shadow-md">
+  <h2 className="text-[20px] popbold mb-4">Top Products over the last month</h2>
+  <hr />
+  <div className="space-y-4 mt-4">
+    {topProductsSells?.products?.length > 0 ? (
+      topProductsSells.products.map((product, index) => (
+        <div key={product.id}>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-gray-700">{product.name}</span>
+            <span className="font-semibold">{product.percentage}%</span>
+          </div>
+          <div className="w-full bg-gray-200 h-2 rounded">
+            <div
+              className="h-2 rounded bg-gradient-to-r from-yellow-400 to-yellow-600"
+              style={{ width: `${product.percentage}%` }}
+            ></div>
+          </div>
         </div>
-      </div>
+      ))
+    ) : (
+      <p className="text-gray-500 text-sm">No product sales data available</p>
+    )}
+  </div>
+</div>
+
     </div>
   );
 };

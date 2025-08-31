@@ -2,11 +2,15 @@ import { Button, Input } from 'antd';
 import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlice';
 import { useCustomerLoginMutation } from '../../redux/slices/apiSlice';
 import Swal from 'sweetalert2';
 
+// ✅ Firebase
+
+import { signInWithPopup, onAuthStateChanged, signOut, GoogleAuthProvider } from "firebase/auth";
+import { auth, googleProvider } from '../../firebase/auth';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -15,134 +19,191 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate()
 
-const data = useSelector(state => state.customer.location)
+  // ✅ Google Sign-In
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
 
-    // if (email === 'customer@gmail.com') {
-    //   dispatch(selectedLocation('customer'));
-    //   navigate('/')
-    // } else if (email === 'sells@gmail.com') {
-    //   dispatch(selectedLocation('seller'));
-    //   navigate('/')
-    // } else {
-    //   console.log('Unknown user');
-    // }
+      // Save in localStorage
+      localStorage.setItem("customerId", JSON.stringify(user));
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  const loginData = { email, password };
+      // Redux store
+      dispatch(addCustomerId(user.uid));
+      dispatch(selectedLocation("customer"));
 
-  try {
-    const res = await customerLogin(loginData).unwrap();
-    console.log(res);
-   localStorage.setItem("access_token", res.access_token);
-    localStorage.setItem("refresh_token", res.refresh_token);
-    localStorage.setItem("user_role", res.user.role);
-    // Save to localStorage
-    // localStorage.setItem("access_token", res.access_token);
-    localStorage.setItem("customerId", JSON.stringify(res));
+      Swal.fire({
+        icon: "success",
+        title: "Google Login Successful",
+        text: `Welcome, ${user.displayName || "Customer"}!`,
+        confirmButtonColor: "#CBA135",
+      });
 
-    const token = localStorage.getItem("access_token");
+      navigate("/");
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Google Login Failed",
+        text: error.message,
+      });
+    }
+  };
 
-    if (token) {
-      // Show success alert
-      await Swal.fire({
+  // ✅ Auth Watcher (keeps login state on refresh)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        localStorage.setItem("customerId", JSON.stringify(user));
+        dispatch(addCustomerId(user.uid));
+        dispatch(selectedLocation("customer"));
+      } else {
+        localStorage.removeItem("customerId");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
+
+  // ✅ Your existing email/password login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const loginData = { email, password };
+
+    try {
+      const res = await customerLogin(loginData).unwrap();
+      localStorage.setItem("access_token", res.access_token);
+      localStorage.setItem("refresh_token", res.refresh_token);
+      localStorage.setItem("user_role", res.user.role);
+      localStorage.setItem("customerId", JSON.stringify(res));
+
+      Swal.fire({
         icon: "success",
         title: "Login Successful",
         text: `Welcome back, ${res?.user?.first_name || "Customer"}!`,
         confirmButtonColor: "#CBA135",
       });
 
-      // Redux actions & navigation
       dispatch(selectedLocation(res?.user?.role));
       dispatch(addCustomerId(res?.user?.id));
       navigate("/");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: error?.data?.message || "Invalid email or password.",
+        confirmButtonColor: "#CBA135",
+      });
     }
-  } catch (error) {
-    console.error("Login failed:", error);
-
-    // Show error alert
-    Swal.fire({
-      icon: "error",
-      title: "Login Failed",
-      text: error?.data?.message || "Invalid email or password.",
-      confirmButtonColor: "#CBA135",
-    });
-  }
-};
-
-
-  console.log(data)
+  };
 
   return (
-    <div className="relative w-full h-screen">
-      <img className="w-full h-full object-cover absolute inset-0" src="/image/auth2.png" alt="" />
-      <img className="top-12 shadow-md object-contain right-16 absolute z-10" src="/image/footer.png" alt="" />
+<div className="relative w-full min-h-screen">
+  {/* Background image */}
+  <img
+    className="w-full h-full object-cover absolute inset-0"
+    src="/image/auth2.png"
+    alt=""
+  />
 
-<div
-  className="absolute top-1/2 left-1/2 z-20 transform -translate-x-1/2 -translate-y-1/2 p-2 py-12 rounded-xl w-[90%] max-w-xl text-white space-y-5"
-  style={{
-    background: 'linear-gradient(109.52deg, rgba(205, 205, 205, 0.37) 0%, rgba(25, 22, 15, 0.37) 100%)',
- 
-    borderImage: 'linear-gradient(109.49deg, rgba(59, 44, 19, 0.6) 0%, rgba(166, 135, 31, 0.6) 100%)',
-  
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(40px)',
-  }}
->
+  {/* Footer decoration */}
+  <img
+    className="top-6 md:top-12 right-6 md:right-16 absolute z-10 w-20 md:w-auto object-contain"
+    src="/image/footer.png"
+    alt=""
+  />
 
-        <h2 className="text-[34px] font-semibold text-center">Welcome Back</h2>
-        <p className="text-sm text-center">
-          Don’t have an account?{" "}
-          <Link to='/signup' className="text-[#CBA135] cursor-pointer font-medium">Sign Up</Link>
-        </p>
+  {/* Login Card */}
+  <div
+    className="absolute top-1/2 left-1/2 z-20 transform -translate-x-1/2 -translate-y-1/2 
+      w-[95%] sm:w-[90%] max-w-xl p-4 sm:p-8 md:p-12 rounded-xl text-white space-y-5"
+    style={{
+      background:
+        "linear-gradient(109.52deg, rgba(205, 205, 205, 0.37) 0%, rgba(25, 22, 15, 0.37) 100%)",
+      backdropFilter: "blur(10px)",
+    }}
+  >
+    {/* Heading */}
+    <h2 className="text-2xl sm:text-3xl md:text-[34px] font-semibold text-center">
+      Welcome Back
+    </h2>
 
-        <form onSubmit={handleLogin} className='space-y-7 px-11'>
-          {/* Email Input */}
-          <div>
-            <label className="text-sm block py-1">Email</label>
-            <Input
-              className='h-[48px] rounded-[16px] bg-white text-black'
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+    <p className="text-xs sm:text-sm text-center">
+      Don’t have an account?{" "}
+      <Link
+        to="/signup"
+        className="text-[#CBA135] cursor-pointer font-medium"
+      >
+        Sign Up
+      </Link>
+    </p>
 
-          {/* Password Input */}
-          <div>
-            <label className="text-sm block pb-2">Password</label>
-            <div className="relative">
-              <Input
-                className='h-[48px] rounded-[16px] bg-white'
-                placeholder="Enter your password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <MdOutlineRemoveRedEye size={19} className="absolute top-4 right-4 text-gray-500 cursor-pointer" />
-            </div>
-          </div>
-
-          {/* Login Button */}
-          <button htmlType="submit" className="w-full bg-[#CBA135] text-white popbold hover:bg-yellow-600 font-medium py-4 rounded-md" type="primary">
-            Login
-          </button>
-
-          <Link to='/forget' className='block text-right'>Forget Password?</Link>
-          
-          <p className='text-center'>
-            ____________________OR__________________
-          </p>
-
-          {/* Social Buttons */}
-          <div className="flex justify-center gap-4 pt-6">
-            <img className="bg-white p-2 w-12 h-10 rounded-[12px] object-contain" src="/image/auth/g.png" alt="Google" />
-            <img className="bg-white p-2 w-12 h-10 rounded-[12px] object-contain" src="/image/auth/f.png" alt="Facebook" />
-            <img className="bg-white p-2 w-12 h-10 rounded-[12px] object-contain" src="/image/auth/a.png" alt="Apple" />
-          </div>
-        </form>
+    {/* Form */}
+    <form
+      onSubmit={handleLogin}
+      className="space-y-6 px-2 sm:px-6 md:px-11"
+    >
+      {/* Email */}
+      <div>
+        <label className="text-xs sm:text-sm block py-1">Email</label>
+        <Input
+          className="h-[44px] sm:h-[48px] rounded-[12px] bg-white text-black text-sm sm:text-base"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </div>
-    </div>
+
+      {/* Password */}
+      <div>
+        <label className="text-xs sm:text-sm block pb-2">Password</label>
+        <div className="relative">
+          <Input
+            className="h-[44px] sm:h-[48px] rounded-[12px] bg-white text-sm sm:text-base"
+            placeholder="Enter your password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <MdOutlineRemoveRedEye
+            size={18}
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 cursor-pointer"
+          />
+        </div>
+      </div>
+
+      {/* Login Button */}
+      <button className="w-full bg-[#CBA135] text-white hover:bg-yellow-600 font-medium py-3 sm:py-4 rounded-md text-sm sm:text-base">
+        Login
+      </button>
+
+      {/* Forget Password */}
+      <Link
+        to="/forget"
+        className="block text-right text-xs sm:text-sm mt-1"
+      >
+        Forget Password?
+      </Link>
+
+      {/* Divider */}
+      <p className="text-center text-xs sm:text-sm">
+        ____________________ OR __________________
+      </p>
+
+      {/* Google Button */}
+      <div className="flex justify-center gap-4 pt-4 sm:pt-6">
+        <button type="button" onClick={handleGoogleLogin}>
+          <img
+            className="bg-white p-2 w-10 h-10 sm:w-12 sm:h-12 rounded-[12px] object-contain"
+            src="/image/auth/g.png"
+            alt="Google"
+          />
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
   );
 };
 

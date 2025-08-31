@@ -111,6 +111,3 @@ export const {
 } = customerSlice.actions
 
 export default customerSlice.reducer
-
-// Note: All WebSocket communication is now handled by the useWebSocket hook
-// in your components, which will dispatch these actions when messages are received

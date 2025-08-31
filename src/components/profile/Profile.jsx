@@ -108,7 +108,7 @@ const handlePhotoChange = async (e) => {
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-8 px-4">
-      <div className="mx-40">
+      <div className="md:mx-40">
         <Breadcrumb />
 
         {/* Header */}

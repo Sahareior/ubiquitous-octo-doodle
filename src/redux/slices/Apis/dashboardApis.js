@@ -200,6 +200,17 @@ export const dashboardApis = createApi({
       })
     }),
 
+    returnDelete: build.mutation({
+      query: (id) => ({
+        url: `returns/product/${id}/`,
+        method: "DELETE"
+      })
+    }),
+
+    topProductsSell: build.query({
+      query:() => 'admin/top/sell/products/'
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -210,6 +221,8 @@ export const dashboardApis = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useTopProductsSellQuery,
+  useReturnDeleteMutation,
   useReturnApproveMutation,
   useGetAllNotificationQuery,
   useGetRequestReturnsQuery,

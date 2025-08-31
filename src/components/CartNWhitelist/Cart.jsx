@@ -163,7 +163,7 @@ const Cart = () => {
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-10">
       <div className="m"></div>
-      <div className="mx-auto px-40">
+      <div className="mx-auto md:px-40">
         <Breadcrumb />
         <h2 className="text-3xl font-bold mb-6">My Cart</h2>
 
@@ -181,7 +181,9 @@ const Cart = () => {
               />
             ))}
 
-            <div className="bg-white rounded-2xl mt-6 p-6 shadow-sm">
+{
+  cartData.length>0 && (
+                <div className="bg-white rounded-2xl mt-6 p-6 shadow-sm">
               <h4 className="text-base font-medium text-gray-800 mb-2">
                 Delivery Instructions{" "}
                 <span className="text-sm text-gray-500">(optional)</span>
@@ -194,6 +196,8 @@ const Cart = () => {
                 placeholder="Add any specific delivery notes here..."
               />
             </div>
+  )
+}
           </div>
 
           {/* Order Summary */}

@@ -27,7 +27,7 @@ const ProductsList = () => {
       <div className="flex justify-between items-center pt-4">
         <p className="text-[34px] popbold">Products List</p>
         <div className="flex gap-4">
-          <Link to="admin-overview/addproducts">
+          <Link to="/admin-dashboard/add-product">
             <button className="bg-[#CBA135] popmed flex justify-end py-3 px-5 rounded-md text-end items-center gap-3 text-white">
               <FaPlus /> Add New Products
             </button>

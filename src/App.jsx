@@ -21,7 +21,7 @@ function App() {
   // }, [customerId, dispatch]);
 
   return (
-    <div>
+    <div className='overflow-hidden'>
       <Outlet />
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, Button, Select } from 'antd';
 import { FaRobot, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import useWebSocket from "../../../Websocket/useWebSocket";
-// import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
 import './Floating.css';
 import { useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
 
@@ -14,7 +13,7 @@ const FloatingChat = () => {
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   const { messages, sendMessage, connected } = useWebSocket(customerId);
   const [newMessage, setNewMessage] = useState("");
-  const [selectedConversation, setSelectedConversation] = useState(1);
+  const [selectedConversation] = useState(1);
   const [previousMessages, setPreviousMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
@@ -81,9 +80,9 @@ const FloatingChat = () => {
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="floating-chat-button w-56" onClick={() => setIsOpen(!isOpen)}>
+      <div className="floating-chat-button md:w-56 flex justify-center items-center gap-3" onClick={() => setIsOpen(!isOpen)}>
         <FaRobot className="floating-chat-button-icon" size={20} />
-        <span className='text-[#CBA135]'>Chat Assistant</span>
+        <span className='text-[#CBA135] hidden md:block'>Chat Assistant</span>
       </div>
 
       {/* Chat Window */}

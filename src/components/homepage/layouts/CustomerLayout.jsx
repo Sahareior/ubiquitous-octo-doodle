@@ -38,7 +38,7 @@ const CustomerLayout = () => {
              At WIROKO, we believe your home should reflect your taste, warmth, and comfort. That’s why we created a platform where trusted furniture makers meet quality-conscious shoppers. With timeless designs and a commitment to excellence, we help you furnish your space beautifully — with ease and elegance.
             </p>
           </div>
-<div className='fixed bottom-28 right-6 animate-float z-50'>
+<div className='fixed bottom-28 md:right-6 right-0 animate-float z-50'>
   <FloatingChat />
 </div>
 

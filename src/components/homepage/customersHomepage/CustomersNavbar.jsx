@@ -1,5 +1,5 @@
-import { Avatar } from 'antd';
-import { IoMdArrowDropdown } from 'react-icons/io';
+import { Avatar, Drawer } from 'antd';
+import { IoMdArrowDropdown, IoMdMenu, IoMdClose } from 'react-icons/io';
 import { FaCartShopping, FaRegHeart } from 'react-icons/fa6';
 import { Link, useNavigate } from 'react-router-dom';
 import { RxExit } from 'react-icons/rx';
@@ -13,14 +13,16 @@ const CustomersNavbar = () => {
   const [searchText, setSearchText] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
   const navigate = useNavigate();
   const { data: allCategories } = useGetCategoriesQuery();
-  const { data: allProducts,isLoading } = useGetCustomerProductsQuery();
+  const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'));
-  const isAdmin = userInfo?.user?.email === 'admin@gmail.com';
+    const isAdmin = userInfo?.user?.email === 'admin@gmail.com' || userInfo.user.role === 'admin'|| userInfo.user.role === 'Admin';
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -49,12 +51,14 @@ const CustomersNavbar = () => {
   const handleSearch = () => {
     navigate(`/filter?${searchText ? `search=${searchText}` : ''}`);
     setShowSearchResults(false);
+    setMobileMenuOpen(false);
   };
 
   const handleProductSelect = (product) => {
     navigate("/details", { state: product });
     setSearchText('');
     setShowSearchResults(false);
+    setMobileMenuOpen(false);
   };
 
   const clearSearch = () => {
@@ -77,18 +81,28 @@ const CustomersNavbar = () => {
   }, []);
 
   return (
-    <div className="w-full px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
-      {/* Left Section */}
-      <div className="flex justify-between w-2/6 items-center gap-6">
-        <Link to="/">
-          <img
-            src="/image/logo.png"
-            alt="Logo"
-            className="h-[32px] w-auto object-contain"
-          />
-        </Link>
+    <>
+      <div className="w-full px-4 md:px-8 lg:px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
+        {/* Logo and Mobile Menu Button */}
+        <div className="flex items-center gap-4">
+          <button 
+            className="lg:hidden text-gray-700"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <IoMdMenu size={24} />
+          </button>
+          
+          <Link to="/" className="flex-shrink-0">
+            <img
+              src="/image/logo.png"
+              alt="Logo"
+              className="h-8 md:h-[32px] w-auto object-contain"
+            />
+          </Link>
+        </div>
 
-        <div ref={dropdownRef} className="relative inline-block">
+        {/* Desktop Category Dropdown */}
+        <div className="hidden lg:block" ref={dropdownRef}>
           <div
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center gap-1 cursor-pointer hover:text-[#CBA135] transition"
@@ -113,78 +127,83 @@ const CustomersNavbar = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Right Section */}
-      <div className="flex items-center justify-between w-3/6 gap-24">
-        <div ref={searchRef} className="relative w-full">
-          <div className="relative">
-            <input
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              onFocus={() => searchText && setShowSearchResults(true)}
-              placeholder="Search products..."
-              className="w-full border border-[#E5E7EB] px-4 py-2 pr-10 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#E5E7EB] rounded-xl"
-            />
-            {searchText && (
-              <FiX
-                className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
-                size={18}
-                onClick={clearSearch}
+        {/* Search Bar - Hidden on mobile when menu is open */}
+        <div className={`${mobileMenuOpen ? 'hidden' : 'flex'} md:flex hidden md:block items-center flex-1 max-w-lg mx-4 md:mx-8`}>
+          <div ref={searchRef} className="relative w-full"> 
+            <div className="relative">
+              <input
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onFocus={() => {
+                  searchText && setShowSearchResults(true);
+                  setIsSearchFocused(true);
+                }}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                placeholder="Search products..."
+                className="w-full border border-[#E5E7EB] px-4 py-2 pr-10 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#E5E7EB] rounded-xl"
               />
-            )}
-            <FiSearch
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
-              size={18}
-              onClick={handleSearch}
-            />
-          </div>
+              {searchText && (
+                <FiX
+                  className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
+                  size={18}
+                  onClick={clearSearch}
+                />
+              )}
+              <FiSearch
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
+                size={18}
+                onClick={handleSearch}
+              />
+            </div>
 
-          {/* Search Results Dropdown */}
-          {showSearchResults && filteredProducts.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-80 overflow-y-auto">
-              {filteredProducts.map((product) => (
-                <div 
-                  key={product.id}
-                  className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  onClick={() => handleProductSelect(product)}
-                >
-                  <img 
-                    src={product.images[0]?.image || '/image/placeholder-product.png'} 
-                    alt={product.name}
-                    className="w-10 h-10 object-cover rounded mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm truncate">{product.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{product.short_description}</div>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-sm font-semibold text-[#CBA135]">
-                        ${product.price1}
-                      </span>
-                      <span className="text-xs text-gray-500">{product.vendor_details.first_name}</span>
+            {/* Search Results Dropdown */}
+            {showSearchResults && filteredProducts.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-80 overflow-y-auto">
+                {filteredProducts.map((product) => (
+                  <div 
+                    key={product.id}
+                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleProductSelect(product)}
+                  >
+                    <img 
+                      src={product.images[0]?.image || '/image/placeholder-product.png'} 
+                      alt={product.name}
+                      className="w-10 h-10 object-cover rounded mr-3"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-sm truncate">{product.name}</div>
+                      <div className="text-xs text-gray-500 truncate">{product.short_description}</div>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm font-semibold text-[#CBA135]">
+                          ${product.price1}
+                        </span>
+                        <span className="text-xs text-gray-500">{product.vendor_details.first_name}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {filteredProducts.length > 0 && searchText && (
-                <div 
-                  className="p-3 text-center text-sm font-medium text-[#CBA135] hover:bg-gray-100 cursor-pointer border-t border-gray-100"
-                  onClick={handleSearch}
-                >
-                  View all results for "{searchText}"
-                </div>
-              )}
-            </div>
-          )}
-          {showSearchResults && searchText && filteredProducts.length === 0 && !isLoading && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-4">
-              <div className="text-center text-gray-500">No products found</div>
-            </div>
-          )}
+                ))}
+                {filteredProducts.length > 0 && searchText && (
+                  <div 
+                    className="p-3 text-center text-sm font-medium text-[#CBA135] hover:bg-gray-100 cursor-pointer border-t border-gray-100"
+                    onClick={handleSearch}
+                  >
+                    View all results for "{searchText}"
+                  </div>
+                )}
+              </div>
+            )}
+            {showSearchResults && searchText && filteredProducts.length === 0 && !isLoading && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-4">
+                <div className="text-center text-gray-500">No products found</div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-[1rem] text-sm font-medium">
+        {/* Desktop Icons */}
+        <div className="hidden md:flex items-center gap-4 text-sm font-medium">
           {isAdmin ? (
             <Link
               to="/admin-dashboard"
@@ -194,28 +213,148 @@ const CustomersNavbar = () => {
             </Link>
           ) : (
             <>
-              <Link to="wishlist">
+              <Link to="wishlist" className="p-2">
                 <FaRegHeart size={22} className="cursor-pointer hover:text-red-500 transition" />
               </Link>
-              <Link to="cart">
+              <Link to="cart" className="p-2">
                 <FaCartShopping size={20} className="cursor-pointer hover:text-[#CBA135] transition" />
               </Link>
             </>
           )}
 
-          <Link to="/profile" className="inline-block">
+          <Link to="/profile" className="inline-block p-2">
             <Avatar
               size={32}
               src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop"
               alt="User Avatar"
             />
           </Link>
-          <Link onClick={handleLogout} to='/login'>
+          <Link onClick={handleLogout} to='/login' className="p-2">
             <RxExit size={22} />
           </Link>
         </div>
+
+        {/* Mobile Icons - Only show when search is not focused */}
+        <div className={`md:hidden flex items-center gap-2 ${isSearchFocused ? 'hidden' : 'flex'}`}>
+          {!isAdmin && (
+            <>
+              <Link to="wishlist" className="p-1">
+                <FaRegHeart size={20} className="cursor-pointer hover:text-red-500 transition" />
+              </Link>
+              <Link to="cart" className="p-1">
+                <FaCartShopping size={18} className="cursor-pointer hover:text-[#CBA135] transition" />
+              </Link>
+            </>
+          )}
+          <Link to="/profile" className="inline-block p-1">
+            <Avatar
+              size={28}
+              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop"
+              alt="User Avatar"
+            />
+          </Link>
+        </div>
       </div>
-    </div>
+
+      {/* Mobile Menu Drawer */}
+      <Drawer
+        title={
+          <div className="flex justify-between items-center">
+            <span>Menu</span>
+            <button onClick={() => setMobileMenuOpen(false)}>
+              <IoMdClose size={20} />
+            </button>
+          </div>
+        }
+        placement="left"
+        onClose={() => setMobileMenuOpen(false)}
+        open={mobileMenuOpen}
+        width={280}
+        className="md:hidden"
+      >
+        <div className="flex flex-col h-full">
+          {/* Mobile Search - Only in drawer */}
+
+
+          {/* Mobile Category Dropdown */}
+          <div className="mb-6">
+            <h4 className="font-medium text-gray-700 mb-3">Categories</h4>
+            <div className="space-y-2">
+              {allCategories?.results?.map((category) => (
+                <Link 
+                  to={`/filter?category=${category.id}`} 
+                  key={category.id}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer">
+                    {category.name}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Admin Dashboard Link */}
+          {isAdmin && (
+            <div className="mb-6">
+              <Link
+                to="/admin-dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 bg-[#CBA135] text-white rounded-md text-center hover:bg-[#b38f2e] transition"
+              >
+                Admin Dashboard
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Navigation Links */}
+          <div className="mb-6">
+            <h4 className="font-medium text-gray-700 mb-3">Account</h4>
+            <div className="space-y-2">
+              <Link 
+                to="/profile" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                My Profile
+              </Link>
+              {!isAdmin && (
+                <>
+                  <Link 
+                    to="wishlist" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  >
+                    My Wishlist
+                  </Link>
+                  <Link 
+                    to="cart" 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  >
+                    My Cart
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Logout Button at bottom */}
+          <div className="mt-auto pt-4 border-t border-gray-200">
+            <button
+              onClick={() => {
+                handleLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center w-full px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+            >
+              <RxExit size={18} className="mr-2" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </Drawer>
+    </>
   );
 };
 

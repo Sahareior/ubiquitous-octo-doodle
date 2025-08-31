@@ -111,6 +111,8 @@ const AdminDashboard = () => {
   const {data:notificationData, isLoading} = useGetAllNotificationQuery()
     const { notifications, connected } = useNotificationSocket();
 
+    localStorage.setItem('notify', notifications)
+
   console.log(notificationData, ' this is all')
 
   const {

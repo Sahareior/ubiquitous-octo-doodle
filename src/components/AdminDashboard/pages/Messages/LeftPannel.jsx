@@ -5,13 +5,15 @@ import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/das
 const LeftPannel = ({ setSelectedConversation, selectedConversation, connected }) => {
   const { data = [] } = useGetAllConversationsidQuery(); // default [] if no data
   const user = JSON.parse(localStorage.getItem('customerId'));
-  console.log(user.user.id,'this is user');
+
+  const filtteredData = data.filter(item => item.id !== user.user.id)
+
 
   return (
     <div className="p-4 space-y-3">
       <div className="border-r p-4 space-y-4">
         <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-1">
-          {data.map((conversation) => (
+          {filtteredData.map((conversation) => (
             <div
               key={conversation.id}
               className={`p-3 rounded hover:bg-gray-100 cursor-pointer border-b border-slate-100 ${
