@@ -92,7 +92,7 @@ const Similar = ({ randomProducts }) => {
             />
             <div className="p-4">
               <h2 className="text-[16px] popreg mb-1 truncate">{item.name}</h2>
-              <p className="text-[#CBA135] text-[16px] popreg">${item.price1}</p>
+              <p className="text-[#CBA135] text-[16px] popreg">XAF {item.price1}</p>
             </div>
           </div>
         ))}

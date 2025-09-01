@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 import { 
+  useGetAllProductsQuery,
   useGetCategoriesQuery, 
   useGetTagsQuery,
   useVendorEditProductMutation, 
@@ -51,6 +52,7 @@ const Section = ({ title, children }) => (
 const VEditProducts = () => {
   const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(false);
+   const { data: products,refetch } = useGetAllProductsQuery();
   const location = useLocation();
   const productData = location.state?.productData?.originalData;
   const [vendorEditProduct] = useVendorEditProductMutation()
@@ -72,7 +74,7 @@ const VEditProducts = () => {
     stockQuantity: "",
     colors: [],
     sizes: [],
-    inStock: false,
+    is_stock: false,
     homeDeliveryEnabled: false,
     option1: "",
     pickUpEnabled: false,
@@ -101,7 +103,7 @@ useEffect(() => {
       stockQuantity: productData.stock_quantity || "",
       colors: [],
       sizes: [],
-      inStock: productData.is_stock || false,
+      is_stock: productData.is_stock || false,
       homeDeliveryEnabled: productData.home_delivery || false,
       option1: productData.option1 || "",
       pickUpEnabled: productData.pickup || false,
@@ -204,7 +206,7 @@ useEffect(() => {
       // Use update mutation instead of create
     const res = await vendorEditProduct({id:productData.id, formDataToSend})
       
-  
+      refetch()
       
       setLoading(false);
     } catch (error) {
@@ -400,8 +402,8 @@ useEffect(() => {
         <div className="flex items-center gap-2">
           <span className="font-medium">Active Status:</span>
           <Switch 
-            checked={formData.inStock} 
-            onChange={(checked) => setFormData((prev) => ({ ...prev, inStock: checked }))} 
+            checked={formData.is_stock} 
+            onChange={(checked) => setFormData((prev) => ({ ...prev, is_stock: checked }))} 
           />
         </div>
       </Section>

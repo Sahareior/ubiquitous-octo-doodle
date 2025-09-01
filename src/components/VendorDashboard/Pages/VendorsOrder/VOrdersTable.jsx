@@ -9,29 +9,31 @@ import { useGetVendorOrdersQuery } from '../../../../redux/slices/Apis/vendorsAp
 
 const { Option } = Select;
 
-const VOrdersTable = () => {
+const VOrdersTable = ({data}) => {
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [target, setTarget] = useState("");
-  const { data, isLoading, error } = useGetVendorOrdersQuery();
+  const { data:deo, isLoading, error } = useGetVendorOrdersQuery();
 
   // Transform API data to match table structure
-  const dataSource = data?.results?.map(order => ({
-    key: order.id,
-    orderId: order.order_id,
-    customer: order.customer_name,
-    seller: order.vendor_name,
-    date: new Date(order.order_date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }),
-    total: parseFloat(order.total || 0),
-    payment: order.payment_method_display || 'N/A',
-    status: order.order_status_display,
-    originalData: order // Keep original data for reference
-  })) || [];
+// ✅ correct: data is already an array from parent
+const dataSource = data?.map(order => ({
+  key: order.id,
+  orderId: order.order_id,
+  customer: order.customer_name,
+  seller: order.vendor_name,
+  date: new Date(order.order_date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }),
+  total: parseFloat(order.total || 0),
+  payment: order.payment_method_display || 'N/A',
+  status: order.order_status_display,
+  originalData: order
+})) || [];
+
 
   const handleDelete = (keys) => {
     Swal.fire({

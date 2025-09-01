@@ -3,7 +3,7 @@ import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 
 import { useLocation } from "react-router-dom";
-import { useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import { useGetAllProductsQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
 import Swal from "sweetalert2";
 
@@ -49,6 +49,7 @@ const Section = ({ title, children }) => (
 const EditAdminProducts = () => {
   const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { data: products, refetch } = useGetAllProductsQuery();
   const location = useLocation();
   const productData = location.state?.productData;
   const [vendorEditProduct] = useVendorEditProductMutation()
@@ -72,7 +73,7 @@ const EditAdminProducts = () => {
     stockQuantity: "",
     colors: [],
     sizes: [],
-    inStock: false,
+    is_stock: false,
     homeDeliveryEnabled: false,
     option1: "",
     pickUpEnabled: false,
@@ -101,7 +102,7 @@ useEffect(() => {
       stockQuantity: productData.stock_quantity || "",
       colors: [],
       sizes: [],
-      inStock: productData.is_stock || false,
+      is_stock: productData.is_stock || false,
       homeDeliveryEnabled: productData.home_delivery || false,
       option1: productData.option1 || "",
       pickUpEnabled: productData.pickup || false,
@@ -200,7 +201,7 @@ const handleSubmit = async () => {
 
   try {
     const res = await vendorEditProduct({ id: productData.id, formDataToSend });
-
+    refetch()
     setLoading(false);
 
     // ✅ Success Swal
@@ -354,67 +355,68 @@ const handleSubmit = async () => {
       </Section>
 
       {/* 🔹 Inventory */}
-      <Section title="Inventory & Variants">
-        <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
-          <InputField 
-            label="SKU" 
-            name="sku" 
-            value={formData.sku} 
-            onChange={handleChange} 
-            placeholder="Product SKU" 
-          />
-          <InputField 
-            label="Stock Quantity" 
-            name="stockQuantity" 
-            value={formData.stockQuantity} 
-            onChange={handleChange} 
-            type="number" 
-            placeholder="0" 
-          />
+<Section title="Inventory & Variants">
+  <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
+    <InputField 
+      label="SKU" 
+      name="sku" 
+      value={formData.sku} 
+      onChange={handleChange} 
+      placeholder="Product SKU" 
+    />
+    <InputField 
+      label="Stock Quantity" 
+      name="stock_quantity" 
+      value={formData.stock_quantity} 
+      onChange={handleChange} 
+      type="number" 
+      placeholder="0" 
+    />
 
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Colors</label>
-            <Select
-              mode="multiple"
-              placeholder="Select colors"
-              value={formData.colors}
-              onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
-              options={[
-                { value: 'red', label: 'Red' },
-                { value: 'blue', label: 'Blue' },
-                { value: 'green', label: 'Green' },
-                { value: 'black', label: 'Black' },
-                { value: 'white', label: 'White' },
-              ]}
-            />
-          </div>
+    <div className="flex flex-col gap-1">
+      <label className="popbold text-[14px] text-gray-700">Colors</label>
+      <Select
+        mode="multiple"
+        placeholder="Select colors"
+        value={formData.colors}
+        onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
+        options={[
+          { value: 'red', label: 'Red' },
+          { value: 'blue', label: 'Blue' },
+          { value: 'green', label: 'Green' },
+          { value: 'black', label: 'Black' },
+          { value: 'white', label: 'White' },
+        ]}
+      />
+    </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Sizes</label>
-            <Select
-              mode="multiple"
-              placeholder="Select sizes"
-              value={formData.sizes}
-              onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
-              options={[
-                { value: 's', label: 'S' },
-                { value: 'm', label: 'M' },
-                { value: 'l', label: 'L' },
-                { value: 'xl', label: 'XL' },
-                { value: 'xxl', label: 'XXL' },
-              ]}
-            />
-          </div>
-        </div>
+    <div className="flex flex-col gap-1">
+      <label className="popbold text-[14px] text-gray-700">Sizes</label>
+      <Select
+        mode="multiple"
+        placeholder="Select sizes"
+        value={formData.sizes}
+        onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
+        options={[
+          { value: 's', label: 'S' },
+          { value: 'm', label: 'M' },
+          { value: 'l', label: 'L' },
+          { value: 'xl', label: 'XL' },
+          { value: 'xxl', label: 'XXL' },
+        ]}
+      />
+    </div>
+  </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Active Status:</span>
-          <Switch 
-            checked={formData.inStock} 
-            onChange={(checked) => setFormData((prev) => ({ ...prev, inStock: checked }))} 
-          />
-        </div>
-      </Section>
+  {/* ✅ Toggle for is_stock */}
+  <div className="flex items-center gap-2 mt-4">
+    <span className="font-medium">In Stock:</span>
+    <Switch 
+      checked={formData.is_stock} 
+      onChange={(checked) => setFormData((prev) => ({ ...prev, is_stock: checked }))} 
+    />
+  </div>
+</Section>
 
       {/* 🔹 Delivery */}
       <Section title="Delivery Options">

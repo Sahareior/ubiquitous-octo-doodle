@@ -14,6 +14,7 @@ import { useAddProductToCartMutation, useCreateCheckoutMutation, useCreateSingle
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { FiArrowLeft, FiShoppingCart, FiCreditCard } from "react-icons/fi";
+import FloatingChat from "../../others/FolatingChat/FloatingChat";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -39,7 +40,7 @@ const Details = () => {
     const location = useLocation();
   const { product } = location.state || {};
   const productData = location.state;
-
+  console.log('this is productData', productData)
   const productSpecs = [
     { label: "Dimensions", value: productData?.specifications?.dimensions || "Not specified" },
     { label: "Material", value: productData?.specifications?.material || "Not specified" },
@@ -51,6 +52,7 @@ const Details = () => {
     { label: "Country of Origin", value: productData?.specifications?.country_of_origin || "Not specified" },
   ];
 
+  const vendorId = productData?.vendor_id
 
 
 
@@ -204,9 +206,7 @@ const Details = () => {
       </div>
 
       <div className="px-2 md:px-6 lg:px-20 pb-8 pt-4 lg:pt-8">
-        <div className="hidden lg:block pt-4">
-          <Breadcrumb />
-        </div>
+
 
         <div className="w-full max-w-7xl mx-auto rounded-lg">
           {/* Order Form Drawer for Mobile */}
@@ -487,7 +487,7 @@ const Details = () => {
                 </div>
 
                 <h3 className="text-2xl md:text-3xl lg:text-4xl popbold text-[#CBA135]">
-                  $ {productData?.price1}
+                   {productData?.price1} XAF
                 </h3>
 
                 {/* Color Options */}
@@ -679,7 +679,7 @@ const Details = () => {
       </div>
 
       {/* Mobile Floating Action Buttons */}
-
+                <FloatingChat targetedId={vendorId} />
 
       <DetailsModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin, Drawer } from 'antd';
 import { FaRegHeart, FaFilter } from "react-icons/fa6";
 import Breadcrumb from '../../others/Breadcrumb';
@@ -18,6 +18,9 @@ const ProductFilter = () => {
   const queryParams = new URLSearchParams(location.search);
   const categoryFromUrl = queryParams.get('category'); 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  
+  // Create a ref for the product list section
+  const productListRef = useRef(null);
   
   // Filters state
   const [priceRange, setPriceRange] = useState([0, 5000]);
@@ -124,8 +127,28 @@ const ProductFilter = () => {
   };
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto", // instant scroll
+    });
   }, []);
+
+  // Handle page change with scroll to product list
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    
+    // Scroll to the product list section instead of the top of the page
+    if (productListRef.current) {
+      const yOffset = -60; // Adjust this value as needed
+      const y = productListRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Filter sidebar component
   const FilterSidebar = () => (
@@ -299,7 +322,7 @@ const ProductFilter = () => {
                 </div>
               </div>
 
-              <div id='product-list' className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              <div ref={productListRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {isLoading ? (
                   <div className="col-span-3 flex justify-center py-10">
                     <Spin size="large" />
@@ -375,24 +398,15 @@ const ProductFilter = () => {
               {/* Pagination */}
               {filteredProducts.length > 0 && (
                 <div className="mt-6 flex gap-9 justify-center">
-                <Pagination
-  current={currentPage}
-  total={filteredProducts.length}
-  pageSize={pageSize}
-  onChange={(page) => {
-    setCurrentPage(page);
-
-    const productList = document.querySelector("#product-list");
-    if (productList) {
-      productList.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }}
-  responsive
-  showSizeChanger={false}
-/>
-
+                  <Pagination
+                    current={currentPage}
+                    total={filteredProducts.length}
+                    pageSize={pageSize}
+                    className='space-x-2'
+                    onChange={handlePageChange}
+                    responsive
+                    showSizeChanger={false}
+                  />
                 </div>
               )}
             </div>

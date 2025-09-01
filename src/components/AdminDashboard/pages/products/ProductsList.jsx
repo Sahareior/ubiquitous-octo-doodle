@@ -11,7 +11,7 @@ import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi"
 
 const { Option } = Select;
 
-const ProductsList = () => {
+const ProductsList = ({path}) => {
   const { data: products } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
 
@@ -149,7 +149,7 @@ const ProductsList = () => {
 
       {/* Table */}
       <div>
-        <ProductsTable products={filteredProducts} />
+        <ProductsTable path={path} products={filteredProducts} />
       </div>
     </div>
   );

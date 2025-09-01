@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
-import { useGetCategoriesQuery, useGetTagsQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import { useGetAllProductsQuery, useGetCategoriesQuery, useGetTagsQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import Swal from "sweetalert2";
 import ProductSpecificationForm from "./shared/ProductSpecificationForm";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
@@ -47,6 +47,7 @@ const Section = ({ title, children }) => (
 const NewVendorAddProducts = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+   const { data: products,refetch } = useGetAllProductsQuery();
   const {data:categories} = useGetCategoriesQuery()
   const [vendorProductCreate] = useVendorProductCreateMutation()
   const { sendNotification } = useNotificationSocket();
@@ -63,7 +64,7 @@ const [formData, setFormData] = useState({
   stock_quantity: "",
   colors: [],
   sizes: [],
-  in_stock: true,
+  is_stock: true,   // ✅ toggle for stock
   home_delivery: false,
   pickup: false,
   partner_delivery: false,
@@ -84,6 +85,7 @@ const [formData, setFormData] = useState({
   care_instructions: "",
   country_of_origin: "",
 });
+
 
 
   const handleImageUpload = (files) => {
@@ -216,6 +218,8 @@ const handleSubmit = async () => {
         },
       });
 
+      refetch()
+
       // ✅ Reset all fields & images
       setFormData(initialFormData);
       setImages([]);
@@ -253,7 +257,7 @@ const handleSubmit = async () => {
         Notify
       </Button> */}
       {/* 🔹 Basic Info */}
-      <Section title="Basic Information">
+      <Section title="Basissc Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <InputField 
             label="Product Name" 
@@ -375,67 +379,69 @@ const handleSubmit = async () => {
       </Section>
 
       {/* 🔹 Inventory */}
-      <Section title="Inventory & Variants">
-        <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
-          <InputField 
-            label="SKU" 
-            name="sku" 
-            value={formData.sku} 
-            onChange={handleChange} 
-            placeholder="Product SKU" 
-          />
-          <InputField 
-            label="Stock Quantity" 
-            name="stock_quantity" 
-            value={formData.stock_quantity} 
-            onChange={handleChange} 
-            type="number" 
-            placeholder="0" 
-          />
+<Section title="Inventory & Variants">
+  <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
+    <InputField 
+      label="SKU" 
+      name="sku" 
+      value={formData.sku} 
+      onChange={handleChange} 
+      placeholder="Product SKU" 
+    />
+    <InputField 
+      label="Stock Quantity" 
+      name="stock_quantity" 
+      value={formData.stock_quantity} 
+      onChange={handleChange} 
+      type="number" 
+      placeholder="0" 
+    />
 
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Colors</label>
-            <Select
-              mode="multiple"
-              placeholder="Select colors"
-              value={formData.colors}
-              onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
-              options={[
-                { value: 'red', label: 'Red' },
-                { value: 'blue', label: 'Blue' },
-                { value: 'green', label: 'Green' },
-                { value: 'black', label: 'Black' },
-                { value: 'white', label: 'White' },
-              ]}
-            />
-          </div>
+    <div className="flex flex-col gap-1">
+      <label className="popbold text-[14px] text-gray-700">Colors</label>
+      <Select
+        mode="multiple"
+        placeholder="Select colors"
+        value={formData.colors}
+        onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
+        options={[
+          { value: 'red', label: 'Red' },
+          { value: 'blue', label: 'Blue' },
+          { value: 'green', label: 'Green' },
+          { value: 'black', label: 'Black' },
+          { value: 'white', label: 'White' },
+        ]}
+      />
+    </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Sizes</label>
-            <Select
-              mode="multiple"
-              placeholder="Select sizes"
-              value={formData.sizes}
-              onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
-              options={[
-                { value: 's', label: 'S' },
-                { value: 'm', label: 'M' },
-                { value: 'l', label: 'L' },
-                { value: 'xl', label: 'XL' },
-                { value: 'xxl', label: 'XXL' },
-              ]}
-            />
-          </div>
-        </div>
+    <div className="flex flex-col gap-1">
+      <label className="popbold text-[14px] text-gray-700">Sizes</label>
+      <Select
+        mode="multiple"
+        placeholder="Select sizes"
+        value={formData.sizes}
+        onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
+        options={[
+          { value: 's', label: 'S' },
+          { value: 'm', label: 'M' },
+          { value: 'l', label: 'L' },
+          { value: 'xl', label: 'XL' },
+          { value: 'xxl', label: 'XXL' },
+        ]}
+      />
+    </div>
+  </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Active Status:</span>
-          <Switch 
-            checked={formData.inStock} 
-            onChange={(checked) => setFormData((prev) => ({ ...prev, inStock: checked }))} 
-          />
-        </div>
-      </Section>
+  {/* ✅ Toggle for is_stock */}
+  <div className="flex items-center gap-2 mt-4">
+    <span className="font-medium">In Stock:</span>
+    <Switch 
+      checked={formData.is_stock} 
+      onChange={(checked) => setFormData((prev) => ({ ...prev, is_stock: checked }))} 
+    />
+  </div>
+</Section>
+
 
       {/* 🔹 Delivery */}
       <Section title="Delivery Options">

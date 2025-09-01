@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 
 const { Option } = Select;
 
-const ProductsTable = ({ products }) => {
+const ProductsTable = ({ products,path }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -85,19 +85,16 @@ const handleDelete = async (keys) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const res = await deleteProduct(keys[0]); // don’t unwrap yet
-        console.log('this is deleted response', res)
-
-        if (res?.data?.status === 200 || res?.status === 200) {
-          Swal.fire('Deleted!', 'Product has been removed.', 'success');
-          setDataSource((prev) =>
-            prev.filter((item) => !keys.includes(item.key))
-          );
-          setSelectedRowKeys([]);
-        } else {
-          Swal.fire('Error!', 'Failed to delete product.', 'error');
-        }
+        await deleteProduct(keys[0]); // if this doesn't throw => success
+        Swal.fire('Deleted!', 'Product has been removed.', 'success');
+        
+        // update table locally
+        setDataSource((prev) =>
+          prev.filter((item) => !keys.includes(item.key))
+        );
+        setSelectedRowKeys([]);
       } catch (error) {
+        console.error("Delete error:", error);
         Swal.fire('Error!', 'Server error occurred.', 'error');
       }
     }
@@ -215,6 +212,14 @@ const handleDelete = async (keys) => {
   size={20}
 />
 
+{
+  path === '/vendor-dashboard/vendor-products' ? <Link
+  className="block"
+  to="/vendor-dashboard/editproducts"
+  state={{ productData: record.fullData }} // ✅ full API product
+>
+  <FaEdit className="text-gray-400 cursor-pointer" size={20} />
+</Link>:
 <Link
   className="block"
   to="/admin-dashboard/editAdminProducts"
@@ -222,6 +227,7 @@ const handleDelete = async (keys) => {
 >
   <FaEdit className="text-gray-400 cursor-pointer" size={20} />
 </Link>
+}
           <MdDelete
             className="text-red-500 hover:text-red-600 cursor-pointer"
             size={20}

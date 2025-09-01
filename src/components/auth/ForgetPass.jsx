@@ -30,7 +30,9 @@ const ForgetPass = () => {
         confirmButtonColor: "#CBA135",
       });
 
-      navigate('/verify');  // ✅ fixed the missing quote
+      navigate('/verify',{
+        state: {email}
+      });  // ✅ fixed the missing quote
       console.log("ForgetPass Response:", res);
 
     } catch (error) {

@@ -5,7 +5,7 @@ const Congratulations = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate("/");
+    navigate("/login");
   };
 
   return (

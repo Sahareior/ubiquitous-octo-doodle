@@ -88,13 +88,12 @@ const Orders = () => {
           {/* Search Orders */}
           <div className="w-full">
             <p className="text-sm font-medium text-gray-700 mb-1">Search Orders</p>
-            <Input
-              placeholder="Search by order ID or customer"
-              prefix={<IoSearch />}
-              value={searchTerm}
+                         <input
+                           value={searchTerm}
               onChange={handleSearch}
-              className="w-full popreg h-[45px]"
-            />
+                placeholder="Search by Order ID / Customer r"
+                className="w-full border popreg border-[#D1D5DB] rounded-md px-4 pl-10 h-[45px] placeholder:text-sm focus:outline-none focus:ring-0 focus:border-[#CBA135]"
+              />
           </div>
 
           {/* Order Status Select */}

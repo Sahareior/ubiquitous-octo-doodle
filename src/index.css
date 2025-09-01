@@ -150,3 +150,43 @@ color: white;
 .ant-rate-star-full .anticon {
   color: #FACC15 !important;
 }
+
+
+/* Add to your Floating.css file */
+
+.custom-dark-tabs .ant-tabs-nav::before {
+  border-bottom: 1px solid #4b5563 !important;
+}
+
+.custom-dark-tabs .ant-tabs-tab {
+  background: #1f2937 !important;
+  border: 1px solid #4b5563 !important;
+  border-bottom: none !important;
+  margin-right: 4px !important;
+  border-radius: 9px 9px 0 0 !important;
+  padding: 6px 12px !important;
+}
+
+.custom-dark-tabs .ant-tabs-tab-active {
+  background: #93cd18d4 !important;
+  border-color: #4b5563 !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.custom-dark-tabs .ant-tabs-tab-btn {
+  color: #e5e7eb !important;
+  font-weight: 500;
+}
+
+.custom-dark-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #cba135 !important;
+  font-weight: 600;
+}
+
+.custom-dark-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #cba135 !important;
+}
+
+.custom-dark-tabs .ant-tabs-ink-bar {
+  background: #cba135 !important;
+}

@@ -1,8 +1,105 @@
-import { Button, Input } from "antd";
-import { MdOutlineRemoveRedEye } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Button, Input, message } from "antd";
+// import { MdOutlineRemoveRedEye, MdOutlineRemoveRedEyeOff } from "react-icons/md";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSetNewpasswordMutation } from "../../redux/slices/Apis/customersApi";
+import { useState } from "react";
 
 const ResetPass = () => {
+  const [setNewpassword, { isLoading }] = useSetNewpasswordMutation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { email } = location.state || {};
+  
+  // State for form fields and visibility
+  const [formData, setFormData] = useState({
+    new_password: "",
+    confirm_password: ""
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.new_password) {
+      newErrors.new_password = "Password is required";
+    } else if (formData.new_password.length < 6) {
+      newErrors.new_password = "Password must be at least 6 characters";
+    }
+    
+    if (!formData.confirm_password) {
+      newErrors.confirm_password = "Please confirm your password";
+    } else if (formData.new_password !== formData.confirm_password) {
+      newErrors.confirm_password = "Passwords do not match";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handelSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    if (!email) {
+      message.error("Email not found. Please try the reset process again.");
+      return;
+    }
+    
+    try {
+      const payload = {
+        email,
+        new_password: formData.new_password,
+        confirm_password: formData.confirm_password
+      };
+      
+      const response = await setNewpassword(payload).unwrap();
+      
+      message.success("Password updated successfully!");
+      navigate("/congratulations", { 
+        state: { 
+          message: "Your password has been reset successfully!",
+          from: "reset-password"
+        } 
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      message.error(error.data?.message || "Failed to reset password. Please try again.");
+    }
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   return (
     <div className="relative w-full min-h-screen">
       {/* Background image */}
@@ -35,15 +132,30 @@ const ResetPass = () => {
           Reset Password
         </h2>
 
-        <div className="space-y-6">
+        <form onSubmit={handelSubmit} className="space-y-6">
           {/* Password Input */}
           <div>
             <label className="text-xs sm:text-sm block py-1">Password</label>
-            <Input
-              className="h-[45px] sm:h-[48px] rounded-md bg-white text-black placeholder-[#CBA135]"
-              placeholder="Enter your new password"
-              type="password"
-            />
+            <div className="relative">
+              <Input
+                name="new_password"
+                className="h-[45px] sm:h-[48px] rounded-md bg-white text-black placeholder-[#CBA135]"
+                placeholder="Enter your new password"
+                type={showPassword ? "text" : "password"}
+                value={formData.new_password}
+                onChange={handleInputChange}
+                status={errors.new_password ? "error" : ""}
+              />
+              {/* <div 
+                onClick={togglePasswordVisibility}
+                className="absolute top-3.5 right-4 text-gray-600 cursor-pointer"
+              >
+                {showPassword ? <MdOutlineRemoveRedEyeOff size={20} /> : <MdOutlineRemoveRedEye size={20} />}
+              </div> */}
+            </div>
+            {errors.new_password && (
+              <p className="text-red-300 text-xs mt-1">{errors.new_password}</p>
+            )}
           </div>
 
           {/* Confirm Password */}
@@ -53,29 +165,38 @@ const ResetPass = () => {
             </label>
             <div className="relative">
               <Input
+                name="confirm_password"
                 className="h-[45px] sm:h-[48px] rounded-md bg-white text-black placeholder-[#CBA135]"
                 placeholder="Confirm password"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
+                value={formData.confirm_password}
+                onChange={handleInputChange}
+                status={errors.confirm_password ? "error" : ""}
               />
-              <MdOutlineRemoveRedEye
-                size={20}
+              <div 
+                onClick={toggleConfirmPasswordVisibility}
                 className="absolute top-3.5 right-4 text-gray-600 cursor-pointer"
-              />
+              >
+                {/* {showConfirmPassword ? <MdOutlineRemoveRedEyeOff size={20} /> : <MdOutlineRemoveRedEye size={20} />} */}
+              </div>
             </div>
+            {errors.confirm_password && (
+              <p className="text-red-300 text-xs mt-1">{errors.confirm_password}</p>
+            )}
           </div>
 
           {/* Update Password Button */}
           <div>
-            <Link to="/congratulations" className="w-full block">
-              <Button
-                type="primary"
-                className="w-full bg-[#CBA135] text-white font-medium py-3 sm:py-4 md:py-5 hover:bg-[#b8912f] transition-colors duration-200 text-sm sm:text-base"
-              >
-                Update Password
-              </Button>
-            </Link>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+              className="w-full bg-[#CBA135] text-white font-medium py-3 sm:py-4 md:py-5 hover:bg-[#b8912f] transition-colors duration-200 text-sm sm:text-base"
+            >
+              Update Password
+            </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

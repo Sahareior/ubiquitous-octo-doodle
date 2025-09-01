@@ -79,7 +79,7 @@ const CustomerHero = () => {
         </div>
       </div>
     </div>
-    <div className='px-20 py-16 bg-[#FAF8F2]'>
+    <div className='md:px-20 py-16 bg-[#FAF8F2] text-center md:text-start'>
         <h3 className='text-[36px] popbold font-bold'>Welcome back, {userInfo.user.first_name}</h3>
         <p className='text-[16px] popreg mt-2'>Here are some items you might love</p>
     </div>
