@@ -36,21 +36,23 @@ const Details = () => {
   const [createSingleOrder] = useCreateSingleOrderMutation();
   const { data: sevedAddress } = useGetAddressQuery();
   const [createCheckout] = useCreateCheckoutMutation();
-
-  const productSpecs = [
-    { label: "Dimensions (W×H×D)", value: '88" × 35" × 38"' },
-    { label: "Assembly Required", value: "Minimal (Legs only)" },
-    { label: "Material", value: "Premium Velvet, Hardwood Frame" },
-    { label: "Warranty", value: "2 Years Limited" },
-    { label: "Color", value: "Navy Blue" },
-    { label: "Care Instructions", value: "Professional Cleaning" },
-    { label: "Weight", value: "145 lbs" },
-    { label: "Country of Origin", value: "Italy" },
-  ];
-
-  const location = useLocation();
+    const location = useLocation();
   const { product } = location.state || {};
   const productData = location.state;
+
+  const productSpecs = [
+    { label: "Dimensions", value: productData?.specifications?.dimensions || "Not specified" },
+    { label: "Material", value: productData?.specifications?.material || "Not specified" },
+    { label: "Color", value: productData?.specifications?.color || "Not specified" },
+    { label: "Weight", value: productData?.specifications?.weight || "Not specified" },
+    { label: "Assembly Required", value: productData?.specifications?.assembly_required ? "Yes" : "No" },
+    { label: "Warranty", value: productData?.specifications?.warranty || "Not specified" },
+    { label: "Care Instructions", value: productData?.specifications?.care_instructions || "Not specified" },
+    { label: "Country of Origin", value: productData?.specifications?.country_of_origin || "Not specified" },
+  ];
+
+
+
 
   const filteredProducts = productsData?.results?.filter((product) =>
     product?.categories.some((cat) => productData?.categories?.includes(cat))
@@ -507,14 +509,9 @@ const Details = () => {
                   </h4>
                   <div className="flex flex-wrap gap-2 md:gap-3 popmed">
                     <Button className="border-gray-300 bg-[#CBA135] px-3 md:px-4 lg:px-6 text-white h-8 md:h-10 text-xs md:text-sm">
-                      3 Seater
+                      {productData?.specifications?.dimensions }
                     </Button>
-                    <Button className="border-gray-300 px-3 md:px-4 lg:px-6 h-8 md:h-10 text-xs md:text-sm">
-                      2 Seater
-                    </Button>
-                    <Button className="border-gray-300 px-3 md:px-4 lg:px-6 h-8 md:h-10 text-xs md:text-sm">
-                      L Shape
-                    </Button>
+                   
                   </div>
                 </div>
 
@@ -585,24 +582,9 @@ const Details = () => {
                 Product Description
               </h2>
               <div className="space-y-2 md:space-y-3 lg:space-y-4 popreg text-[#666666] text-sm md:text-base">
-                <p>
-                  Experience ultimate comfort and sophistication with our Luxury
-                  Velvet Sectional Sofa. Crafted with premium velvet upholstery
-                  and a solid hardwood frame, this piece combines durability with
-                  elegance.
-                </p>
-                <p>
-                  Experience ultimate comfort and sophistication with our Luxury
-                  Velvet Sectional Sofa. Crafted with premium velvet upholstery
-                  and a solid hardwood frame, this piece combines durability with
-                  elegance.
-                </p>
-                <p>
-                  Experience ultimate comfort and sophistication with our Luxury
-                  Velvet Sectional Sofa. Crafted with premium velvet upholstery
-                  and a solid hardwood frame, this piece combines durability with
-                  elegance.
-                </p>
+                 <p>{productData?.short_description}</p>
+                <p>{productData?.full_description}</p>
+
               </div>
             </div>
           </div>

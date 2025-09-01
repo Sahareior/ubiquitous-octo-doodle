@@ -11,26 +11,26 @@ import Swal from 'sweetalert2';
 
 const { Option } = Select;
 
-const VendorTable = () => {
+const VendorTable = ({vendors}) => {
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState({})
-  const { data: vendors } = useGetAllVendorsQuery();
+ 
   const [deleteUsers] = useDeleteUsersMutation()
 
   console.log(vendors)
   // Transform API data for table
-  const dataSource = vendors?.results?.map((v, index) => ({
-    key: index + 1,
-    id: v.user_id,
-    vendor: v.vendor_name,
-    status: v.approval_status, // approved/pending/rejected
-    products: v.products_count,
-    orders: v.orders_count,
-    rating: v.ratings,
-    actions: v.actions,
-  })) || [];
+const dataSource = vendors?.map((v, index) => ({
+  key: index + 1,
+  id: v.user_id,
+  vendor: v.vendor_name,
+  status: v.approval_status, // approved/pending/rejected
+  products: v.products_count,
+  orders: v.orders_count,
+  rating: v.ratings,
+  actions: v.actions,
+})) || [];
 
   const columns = [
     {

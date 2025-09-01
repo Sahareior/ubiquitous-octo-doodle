@@ -1,25 +1,74 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import ProductsTable from "./ProductsTable";
-import { Button, Select } from "antd";
+import { Select } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
-import { useGetAllProductsQuery, useVendorAcceptProductMutation } from "../../../../redux/slices/Apis/dashboardApis";
+import {
+  useGetAllProductsQuery,
+  useVendorAcceptProductMutation,
+} from "../../../../redux/slices/Apis/dashboardApis";
 import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
-// import { useGetAllAdminProductsQuery } from "../../../../redux/slices/Apis/customersApi";
-// import { useVendorAcceptProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 
 const { Option } = Select;
 
 const ProductsList = () => {
   const { data: products } = useGetAllProductsQuery();
-   const {data:categories} = useGetCategoriesQuery()
-  
-  const [acceptProduct, { isLoading }] = useVendorAcceptProductMutation();
+  const { data: categories } = useGetCategoriesQuery();
 
+  // --- states for filters ---
+  const [searchText, setSearchText] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [sortOption, setSortOption] = useState("newest");
 
+  // --- filter & sort logic ---
+  const filteredProducts = useMemo(() => {
+    let filtered = products?.results || [];
 
+    // 🔍 search filter
+    if (searchText.trim() !== "") {
+      filtered = filtered.filter((item) =>
+        item.name.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
 
-  console.log("products", products);
+    // 📂 category filter (by id)
+    if (selectedCategory !== "All") {
+      filtered = filtered.filter((item) =>
+        item.categories.includes(Number(selectedCategory))
+      );
+    }
+
+    // 📌 status filter
+    if (selectedStatus !== "All") {
+      if (selectedStatus === "In Stock") {
+        filtered = filtered.filter((item) => item.is_stock === true);
+      } else if (selectedStatus === "Out of stock") {
+        filtered = filtered.filter((item) => item.is_stock === false);
+      } else {
+        filtered = filtered.filter(
+          (item) => item.status.toLowerCase() === selectedStatus.toLowerCase()
+        );
+      }
+    }
+
+    // ⬇️ sorting
+    if (sortOption === "newest") {
+      filtered = [...filtered].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+    } else if (sortOption === "oldest") {
+      filtered = [...filtered].sort(
+        (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      );
+    } else if (sortOption === "priceLowHigh") {
+      filtered = [...filtered].sort((a, b) => parseFloat(a.price1) - parseFloat(b.price1));
+    } else if (sortOption === "priceHighLow") {
+      filtered = [...filtered].sort((a, b) => parseFloat(b.price1) - parseFloat(a.price1));
+    }
+
+    return filtered;
+  }, [products, searchText, selectedCategory, selectedStatus, sortOption]);
 
   return (
     <div className="space-y-8">
@@ -32,63 +81,75 @@ const ProductsList = () => {
               <FaPlus /> Add New Products
             </button>
           </Link>
-
         </div>
       </div>
 
-      {/* Form Filters */}
-      <div className="grid grid-cols-1 p-6 bg-white items-center rounded-md md:grid-cols-3 gap-5">
-        {/* First Name */}
+      {/* Filters */}
+      <div className="grid grid-cols-1 p-6 bg-white items-center rounded-md md:grid-cols-4 gap-5">
+        {/* Search */}
         <div>
           <input
             type="text"
-            placeholder="Enter First Name"
+            placeholder="Search Product Name"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
             className="w-full border border-gray-300 rounded-xl px-4 py-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 
-        {/* Job Title */}
+        {/* Category Filter */}
         <div>
           <Select
-            placeholder="Select Your Role"
+            value={selectedCategory}
+            onChange={(val) => setSelectedCategory(val)}
             className="w-full"
             size="large"
-            defaultValue="Categories"
           >
-            {
-              categories?.results.map(items =>(
-                <Option value="owner">{items.name}</Option>
-              ))
-            }
-            {/* <Option value="owner">Owner</Option>
-            <Option value="manager">Manager</Option>
-            <Option value="designer">Designer</Option> */}
+            <Option value="All">All Categories</Option>
+            {categories?.results?.map((cat) => (
+              <Option key={cat.id} value={cat.id}>
+                {cat.name}
+              </Option>
+            ))}
           </Select>
         </div>
 
-        {/* Department */}
+        {/* Status Filter */}
         <div>
           <Select
-            placeholder="Select Department"
+            value={selectedStatus}
+            onChange={(val) => setSelectedStatus(val)}
             className="w-full"
             size="large"
-            defaultValue="All"
           >
             <Option value="All">All</Option>
-            <Option value="None">None</Option>
             <Option value="In Stock">In Stock</Option>
-            <Option value="Out of stock">Out of stock</Option>
-            <Option value="Low stock">Low stock</Option>
-            <Option value="Approve">Approve</Option>
-            <Option value="Reject">Reject</Option>
-            <Option value="Pending">Pending</Option>
+            <Option value="Out of stock">Out of Stock</Option>
+            <Option value="approved">Approved</Option>
+            <Option value="pending">Pending</Option>
+            <Option value="rejected">Rejected</Option>
+          </Select>
+        </div>
+
+        {/* Sort */}
+        <div>
+          <Select
+            value={sortOption}
+            onChange={(val) => setSortOption(val)}
+            className="w-full"
+            size="large"
+          >
+            <Option value="newest">Newest</Option>
+            <Option value="oldest">Oldest</Option>
+            <Option value="priceLowHigh">Price: Low to High</Option>
+            <Option value="priceHighLow">Price: High to Low</Option>
           </Select>
         </div>
       </div>
 
-      {/* Product Table Section */}
+      {/* Table */}
       <div>
-        <ProductsTable products={products} />
+        <ProductsTable products={filteredProducts} />
       </div>
     </div>
   );

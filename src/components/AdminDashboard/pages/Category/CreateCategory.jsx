@@ -106,7 +106,7 @@ const handleSubmit = async (values) => {
           fontWeight: "500",
         }}
         icon={<ArrowLeftOutlined style={{ color: "#7a6a58" }} />}
-        onClick={() => navigate("/categories")}
+        onClick={() => navigate("/admin-dashboard/category")}
       >
         Back to Categories
       </Button>

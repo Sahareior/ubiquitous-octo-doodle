@@ -133,7 +133,9 @@ const AdminDashboard = () => {
         collapsedWidth="0"
       >
                <div className='p-4 flex flex-col gap-10 justify-center items-center'>
-         <img className='w-[80%]' src="/image/footer.png" alt="" />
+         <Link to='/'>
+         <img className='w-[80%] mx-auto' src="/image/footer.png" alt="" />
+         </Link>
 
 <div className='flex justify-center items-center gap-3 flex-col'>
            <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
