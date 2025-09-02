@@ -14,29 +14,27 @@ const CustomerTable = () => {
   const { data: customerList,refetch } = useGetAllCustomersQuery();
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteCustomers] = useDeleteCustomersMutation()
   const [deleteUsers] = useDeleteUsersMutation()
 
   console.log(customerList,'this is customer list')
 
-  useEffect(()=>{
-    fetch("http://10.10.13.16:15000/api/admin/customers/13/view")
-    .then(res => res.json())
-    .then(data=> console.log(data))
-  },[])
+
 
   // Transform API data for table
-  const dataSource =
-    customerList?.results?.map((c, index) => ({
-      key: index + 1,
-      id: c.user_id,
-      customer: c.customer_name,
-      status: c.payment_status, // N/A, completed, etc.
-      signupDate: c.signup_date,
-      lastActivity: c.last_activity || '—',
-      actions: c.actions,
-    })) || [];
+const dataSource =
+  customerList?.results?.map((c, index) => ({
+    key: index + 1,
+    ...c, // ⬅️ spread the full object here
+    id: c.id,
+    customer: c.customer_name,
+    status: c.payment_status,
+    signupDate: c.signup_date,
+    lastActivity: c.last_activity || '—',
+  })) || [];
+
 
   const columns = [
     {
@@ -99,7 +97,10 @@ const CustomerTable = () => {
       render: (_, record) => (
         <div className="flex items-center gap-3">
           <IoEyeOutline
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setIsModalOpen(true);
+              setSelectedCustomer(record)
+            }}
             className="text-gray-400 cursor-pointer"
             size={20}
           />
@@ -218,7 +219,7 @@ const handleDelete = async (keys) => {
           </div>
         )}
       />
-      <CustomerModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+      <CustomerModal setIsModalOpen={setIsModalOpen} selectedCustomer={selectedCustomer} isModalOpen={isModalOpen} />
     </div>
   );
 };

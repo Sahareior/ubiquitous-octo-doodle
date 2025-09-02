@@ -477,7 +477,7 @@ const Details = () => {
                   </h3>
                   <div className="flex items-center mt-4 md:mt-6 gap-2">
                     <Rate
-                      defaultValue={4}
+                      defaultValue={productData.average_rating}
                       disabled
                       className="text-yellow-500 text-xs md:text-sm"
                     />

@@ -11,12 +11,15 @@ import {
 } from "react-icons/md";
 import { FaCheck, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { useAdminOverViewQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useAdminOverViewQuery, useGetAllNotificationQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import AdminSellsOverview from "./_subComponents/AdminSellsOverview";
 
 
 const DashHome = () => {
   const {data} = useAdminOverViewQuery()
+  const {data:notifications} = useGetAllNotificationQuery()
+
+  console.log(notifications,'notify')
 
 
   const cards = [
@@ -129,20 +132,32 @@ const DashHome = () => {
           </div>
 
           {/* Recent Alerts */}
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-lg font-semibold pb-2">Recent Alerts</p>
-            <div className="space-y-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex items-start gap-3">
-                  <div className="h-2 w-2 rounded-full bg-red-600 mt-2" />
-                  <div>
-                    <p className="text-sm text-gray-700">Low stock alert for "Modern Sofa Set"</p>
-                    <p className="text-xs text-gray-500">2 hours ago</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+<div className="bg-white p-6 rounded-xl shadow-md">
+  <p className="text-lg font-semibold pb-2">Recent Alerts</p>
+  <div className="space-y-3 overflow-y-scroll h-[30vh]">
+    {notifications && notifications.length > 0 ? (
+      notifications.map((alert) => (
+        <div key={alert.id} className="flex items-start gap-3">
+          {/* Red dot if unseen, gray dot if seen */}
+          <div
+            className={`h-2 w-2 rounded-full mt-2 ${
+              alert.seen ? "bg-gray-400" : "bg-red-600"
+            }`}
+          />
+          <div>
+            <p className="text-sm text-gray-700">{alert.message}</p>
+            <p className="text-xs text-gray-500">
+              {new Date(alert.event_time).toLocaleString()}
+            </p>
           </div>
+        </div>
+      ))
+    ) : (
+      <p className="text-sm text-gray-500">No alerts available</p>
+    )}
+  </div>
+</div>
+
 
           {/* Top Categories & Top Sellers */}
           <div className="bg-white p-6 rounded-xl shadow-md">

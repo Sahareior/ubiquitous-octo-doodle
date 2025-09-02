@@ -2,7 +2,7 @@ import { Button, Input } from 'antd';
 import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlice';
 import { useCustomerLoginMutation } from '../../redux/slices/apiSlice';
 import Swal from 'sweetalert2';
@@ -19,54 +19,73 @@ const Login = () => {
   const navigate = useNavigate();
 
   // ✅ Google Sign-In - Modified to get ID token
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Get the Google ID token
-      const idToken = await user.getIdToken();
-      
-      // Send to your backend for verification
-      const googleLoginData = {
-        email: user.email,
-        id_token: idToken
-      };
-      
-      // Call your backend API with Google credentials
-      const res = await customerLogin(googleLoginData).unwrap();
-      
-      // Save tokens and user data
-      localStorage.setItem("access_token", res.access_token);
-      localStorage.setItem("refresh_token", res.refresh_token);
-      localStorage.setItem("user_role", res.user.role);
-      localStorage.setItem("customerId", JSON.stringify(res));
+const handleGoogleLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
 
-      Swal.fire({
-        icon: "success",
-        title: "Google Login Successful",
-        text: `Welcome, ${res?.user?.first_name || user.displayName || "Customer"}!`,
-        confirmButtonColor: "#CBA135",
-      });
+    // Get the Google ID token
+    const idToken = await user.getIdToken();
+    
+    // Prepare userInfo object with necessary details from Firebase
+    const userInfo = {
+      uid: user.uid,
+      email: user.email,
+      display_name: user.displayName,
+      photo_url: user.photoURL,
+      phone_number: user.phoneNumber || null,
+      email_verified: user.emailVerified,
+      provider_data: user.providerData.map(provider => ({
+        provider_id: provider.providerId,
+        uid: provider.uid,
+        display_name: provider.displayName,
+        email: provider.email,
+        phone_number: provider.phoneNumber,
+        photo_url: provider.photoURL
+      }))
+    };
+    
+    // Send to your backend for verification
+    const googleLoginData = {
+      email: user.email,
+      id_token: idToken,
+      user_info: userInfo  // Include the userInfo object
+    };
+    
+    // Call your backend API with Google credentials
+    const res = await customerLogin(googleLoginData).unwrap();
+    
+    // Save tokens and user data
+    localStorage.setItem("access_token", res.access_token);
+    localStorage.setItem("refresh_token", res.refresh_token);
+    localStorage.setItem("user_role", res.user.role);
+    localStorage.setItem("customerId", JSON.stringify(res));
 
-      dispatch(selectedLocation(res?.user?.role));
-      dispatch(addCustomerId(res?.user?.id));
-      navigate("/");
-      
-    } catch (error) {
-      console.error("Google Login Error:", error);
-      
-      // If backend login fails, sign out from Firebase
-      await signOut(auth);
-      
-      Swal.fire({
-        icon: "error",
-        title: "Google Login Failed",
-        text: error.data?.message || "Authentication failed. Please try again.",
-        confirmButtonColor: "#CBA135",
-      });
-    }
-  };
+    Swal.fire({
+      icon: "success",
+      title: "Google Login Successful",
+      text: `Welcome, ${res?.user?.first_name || user.displayName || "Customer"}!`,
+      confirmButtonColor: "#CBA135",
+    });
+
+    dispatch(selectedLocation(res?.user?.role));
+    dispatch(addCustomerId(res?.user?.id));
+    navigate("/");
+    
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    
+    // If backend login fails, sign out from Firebase
+    await signOut(auth);
+    
+    Swal.fire({
+      icon: "error",
+      title: "Google Login Failed",
+      text: error.data?.message || "Authentication failed. Please try again.",
+      confirmButtonColor: "#CBA135",
+    });
+  }
+};
 
   // ✅ Auth Watcher (keeps login state on refresh)
   useEffect(() => {

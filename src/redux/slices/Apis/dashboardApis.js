@@ -23,6 +23,10 @@ export const dashboardApis = createApi({
       query: () => "products/",
     }),
 
+    getProductsById: build.query({
+      query:(id)=> `products/${id}`
+    }),
+
     vendorAcceptProduct: build.mutation({
       query: (id) => ({
         url: `products/${id}/accept/`,
@@ -36,6 +40,10 @@ export const dashboardApis = createApi({
 
     getAllCustomers: build.query({
       query: () => "customers/",
+    }),
+
+    getCustomerByID: build.query({
+      query: (id) => `customers/${id}`
     }),
 
     deleteCustomers: build.mutation({
@@ -211,6 +219,18 @@ export const dashboardApis = createApi({
       query:() => 'admin/top/sell/products/'
     }),
 
+    getPrivacyPolicy: build.query({
+      query: ()=> 'admin/policies/'
+    }),
+
+    updatePolices: build.mutation({
+      query:(data) => ({
+        url:'admin/policies/',
+        method:"POST",
+        body:data
+      })
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -221,6 +241,10 @@ export const dashboardApis = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useUpdatePolicesMutation,
+  useGetPrivacyPolicyQuery,
+  useLazyGetProductsByIdQuery,
+  useLazyGetCustomerByIDQuery,
   useTopProductsSellQuery,
   useReturnDeleteMutation,
   useReturnApproveMutation,

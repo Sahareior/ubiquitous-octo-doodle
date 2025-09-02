@@ -190,3 +190,412 @@ color: white;
 .custom-dark-tabs .ant-tabs-ink-bar {
   background: #cba135 !important;
 }
+
+/* premium-modal.css */
+
+/* Modal styling */
+.premium-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.premium-modal .ant-modal-header {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-bottom: 1px solid #e8e8e8;
+  padding: 20px 24px;
+}
+
+.modal-header .product-title-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header .product-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.modal-header .product-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 12px;
+}
+
+.modal-header .status-tag {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.modal-header .product-sku {
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.modal-header .created-date {
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.premium-modal .ant-modal-body {
+  padding: 0;
+}
+
+.premium-modal .ant-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.premium-modal .accept-btn {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(82, 196, 26, 0.3);
+}
+
+.premium-modal .reject-btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Tabs styling */
+.premium-tabs .ant-tabs-nav {
+  padding: 0 24px;
+  margin: 0;
+}
+
+.premium-tabs .ant-tabs-tab {
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.premium-tabs .ant-tabs-ink-bar {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Card styling */
+.premium-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.premium-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.premium-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  min-height: auto;
+  padding: 16px 20px;
+}
+
+.premium-card .ant-card-head-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.premium-card .ant-card-body {
+  padding: 20px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Image gallery */
+.image-gallery-card .ant-card-body {
+  padding: 12px;
+}
+
+.image-gallery {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px;
+}
+
+.image-container {
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.image-container:hover {
+  transform: translateY(-2px);
+}
+
+.preview-mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.image-container:hover .preview-mask {
+  opacity: 1;
+}
+
+/* Vendor info */
+.vendor-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vendor-avatar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vendor-details h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.vendor-details p {
+  margin: 0;
+  color: #8c8c8c;
+}
+
+.vendor-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.vendor-stats .ant-statistic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vendor-stats .ant-statistic-title {
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.vendor-stats .ant-statistic-content {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Pricing section */
+.pricing-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.price-tier {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.tier-label {
+  font-weight: 500;
+  color: #595959;
+}
+
+.tier-price {
+  font-weight: 600;
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.stock-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stock-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.stock-tag {
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.stock-progress {
+  margin-top: 4px;
+}
+
+/* Description section */
+.description-section h4 {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #262626;
+}
+
+.short-desc, .full-desc {
+  color: #595959;
+  line-height: 1.6;
+}
+
+/* Specifications */
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.spec-label {
+  font-weight: 500;
+  color: #595959;
+}
+
+.spec-value {
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Reviews */
+.rating-overview {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.average-rating {
+  text-align: center;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  min-width: 140px;
+}
+
+.average-rating h2 {
+  font-size: 36px;
+  margin: 0;
+  color: #262626;
+  font-weight: 700;
+}
+
+.rating-stars {
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.rating-breakdown {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rating-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.star-value {
+  width: 60px;
+  font-size: 14px;
+  color: #595959;
+}
+
+.rating-progress {
+  flex: 1;
+  margin: 0;
+}
+
+.rating-count {
+  width: 30px;
+  text-align: right;
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.review-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+}
+
+.review-rating {
+  font-size: 14px;
+}
+
+.review-date {
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.review-comment {
+  margin: 0;
+  color: #595959;
+  line-height: 1.6;
+}
+
+/* Custom divider */
+.custom-divider {
+  margin: 16px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .vendor-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .vendor-stats {
+    justify-content: center;
+  }
+  
+  .rating-overview {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .premium-tabs .ant-tabs-nav {
+    padding: 0 16px;
+  }
+  
+  .modal-header .product-meta {
+    flex-wrap: wrap;
+  }
+}

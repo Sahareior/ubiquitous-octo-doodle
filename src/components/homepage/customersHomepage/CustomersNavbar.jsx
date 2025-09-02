@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
 import { useGetCustomerProductsQuery, useGetProfileQuery } from '../../../redux/slices/Apis/customersApi';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const CustomersNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ const CustomersNavbar = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-   const { data: profileData, error, refetch } = useGetProfileQuery();
+  const { data: profileData, error, refetch } = useGetProfileQuery();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
@@ -23,14 +24,36 @@ const CustomersNavbar = () => {
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'));
-    const isAdmin = userInfo?.user?.email === 'admin@gmail.com' || userInfo?.user?.role === 'admin'|| userInfo.user.role === 'Admin';
+  const isAdmin = userInfo?.user?.email === 'admin@gmail.com' || userInfo?.user?.role === 'admin'|| userInfo?.user?.role === 'Admin';
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("customerId");
-    navigate("/login");
+    // Show confirmation dialog
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out from your account",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Perform logout if confirmed
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("customerId");
+        navigate("/login");
+        
+        // Show success message
+        Swal.fire(
+          'Logged out!',
+          'You have been successfully logged out.',
+          'success'
+        );
+      }
+    });
   };
 
   // Filter products based on search text
@@ -80,9 +103,6 @@ const CustomersNavbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-
-
 
   const profileImg = profileData?.profile_image || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop'
 
@@ -209,7 +229,7 @@ const CustomersNavbar = () => {
         </div>
 
         {/* Desktop Icons */}
-        <div className="hidden md:flex items-center gap-4 text-sm font-medium">
+        <div className="hidden md:flex items-center gap-2 text-sm font-medium">
           {isAdmin ? (
             <Link
               to="/admin-dashboard"
@@ -231,13 +251,17 @@ const CustomersNavbar = () => {
           <Link to="/profile" className="inline-block p-2">
             <Avatar
               size={32}
-              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop"
+              src={profileImg}
               alt="User Avatar"
             />
           </Link>
-          <Link onClick={handleLogout} to='/login' className="p-2">
+          <div 
+            onClick={handleLogout}
+            className="cursor-pointer p-2 hover:text-red-500 transition"
+            title="Logout"
+          >
             <RxExit size={22} />
-          </Link>
+          </div>
         </div>
 
         {/* Mobile Icons - Only show when search is not focused */}
@@ -280,7 +304,6 @@ const CustomersNavbar = () => {
       >
         <div className="flex flex-col h-full">
           {/* Mobile Search - Only in drawer */}
-
 
           {/* Mobile Category Dropdown */}
           <div className="mb-6">

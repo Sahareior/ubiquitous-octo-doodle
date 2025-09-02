@@ -3,7 +3,7 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
 const Similar = ({ randomProducts }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 4;
+  const productsPerPage = 8;
   
   // Calculate total pages
   const totalPages = Math.ceil((randomProducts?.length || 0) / productsPerPage);

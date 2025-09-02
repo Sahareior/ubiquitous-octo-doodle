@@ -23,6 +23,8 @@ import useNotificationSocket from '../../Websocket/useNotificationSocket';
 import { isLoading } from './../../../node_modules/sweetalert2/src/utils/dom/getters';
 import { useGetAllNotificationQuery } from '../../redux/slices/Apis/dashboardApis';
 import Notification from './pages/Notifications/Notification';
+import { RxExit } from 'react-icons/rx';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const { Header, Content, Sider } = Layout;
 
@@ -113,7 +115,37 @@ const AdminDashboard = () => {
 
     localStorage.setItem('notify', notifications)
 
-  console.log(notificationData, ' this is all')
+  const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+
+  const handleLogout = () => {
+    // Show confirmation dialog
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out from the admin dashboard",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Perform logout if confirmed
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("customerId");
+        navigate("/login");
+        
+        // Show success message
+        Swal.fire(
+          'Logged out!',
+          'You have been successfully logged out.',
+          'success'
+        );
+      }
+    });
+  };
 
   const {
     token: { colorBgContainer },
@@ -154,27 +186,22 @@ const AdminDashboard = () => {
                     className="popreg text-lg space-y-2"
             />
           </div>
-          {/* <Link
-            to="/login"
-            className="text-red-600 mb-9 hover:text-green-400 flex justify-center items-center gap-2"
-          >
-            <MdLogout className="-mt-1" size={16} />
-            <h3 className="popmed">Logout</h3>
-          </Link> */}
         </div>
       </Layout.Sider>
 
       <Layout>
         <Layout.Header className="bg-white px-3">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <h5 className="text-[20px] font-semibold">Content</h5>
             <div className="flex items-center gap-3">
     
- <div className='flex justify-center items-center gap-2'>
-     <Notification />
-              <Link to="/admin-dashboard/admin-profile">
-                <Avatar className="w-[30px] h-[30px]" src="https://i.pravatar.cc/40" />
-              </Link>
+ <div className='flex justify-center items-center gap-4'>
+     <div className=''>
+      <Notification />
+     </div>
+              <div onClick={handleLogout} className="cursor-pointer">
+                <RxExit size={20} />
+              </div>
  </div>
             </div>
           </div>

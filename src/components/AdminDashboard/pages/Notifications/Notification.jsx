@@ -20,10 +20,11 @@ import {
   DeleteOutlined,
   EyeOutlined
 } from "@ant-design/icons";
-import { useGetAllNotificationQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useGetAllNotificationQuery, useLazyGetProductsByIdQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 import { FaBell } from "react-icons/fa";
 import "../Notifications/NotificationBell.css"; // We'll create this CSS file
+import NotificationModal from "./NotificationReview";
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
@@ -60,14 +61,39 @@ export default function Notification({ onMarkSeen, onClear }) {
   const { token } = useToken();
   const { data, isLoading,refetch } = useGetAllNotificationQuery();
   const { notifications } = useNotificationSocket();
+  const [notify,setNotify] = useState([])
+  const [isModalVisible, setIsModalVisible] = useState(false);
+const [selectedProduct, setSelectedProduct] = useState(null);
   const [open, setOpen] = useState(false);
+const [triggerGetProductsById, { data: productData, isLoading: productLoading }] = useLazyGetProductsByIdQuery();
 
   useEffect(()=> {
   refetch()
   }, [notifications])
 
+  useEffect(() => {
+  if (notifications && Array.isArray(notifications)) {
+    setNotify(notifications);
+  }
+}, [notifications]);
+
   const newNotifications = localStorage.removeItem('notifications')
   console.log(newNotifications,'ads')
+
+
+const handleMarkSeen = async (notification) => {
+  // onMarkSeen(notification); // Your existing mark seen logic
+  
+  if (notification?.meta_data?.product_id) {
+    try {
+      const product = await triggerGetProductsById(notification.meta_data.product_id).unwrap();
+      setSelectedProduct(product);
+      setIsModalVisible(true);
+    } catch (error) {
+      console.error('Failed to fetch product:', error);
+    }
+  }
+};
 
   // fallback to [] if API hasn't loaded yet
   const items = data || [];
@@ -96,7 +122,8 @@ export default function Notification({ onMarkSeen, onClear }) {
             type="text" 
             icon={<EyeOutlined />} 
             size="small"
-            onClick={() => items.forEach((i) => onMarkSeen(i.id))}
+            onClick={() => items.forEach((i) => handleMarkSeen(i))}
+
             disabled={!items.length}
             title="Mark all as read"
           />
@@ -134,7 +161,8 @@ export default function Notification({ onMarkSeen, onClear }) {
                 transition: 'all 0.2s ease',
                 borderBottom: `1px solid ${token.colorBorderSecondary}`
               }}
-              onClick={() => onMarkSeen(n.id)}
+              onClick={() => handleMarkSeen(n)}
+
             >
               <div className="notification-content">
                 {/* Avatar with user initial */}
@@ -186,7 +214,8 @@ export default function Notification({ onMarkSeen, onClear }) {
   );
 
   return (
-    <Dropdown
+<div>
+      <Dropdown
       dropdownRender={() => menu}
       trigger={["click"]}
       open={open}
@@ -195,18 +224,26 @@ export default function Notification({ onMarkSeen, onClear }) {
       overlayClassName="notification-dropdown"
     >
       <Badge
-        count={notifications.length}
+        count={notify.length}
         size="small"
         overflowCount={99}
-        offset={[-6, 6]}
+        offset={[-2, 24]}
         style={{ 
           boxShadow: `0 0 0 2px ${token.colorBgContainer}`,
         }}
       >
-        <div className="bell-icon-container">
-          <FaBell className="bell-icon mt-1" />
+        <div className="-mt-">
+          <FaBell onClick={()=>setNotify([])} className="bell-icon hover:cursor-pointer mt-7" />
         </div>
       </Badge>
     </Dropdown>
+    <NotificationModal
+    setIsModalVisible={setIsModalVisible}
+    
+    isModalVisible={isModalVisible}
+    selectedProduct={selectedProduct}
+    setSelectedProduct={selectedProduct}
+    />
+</div>
   );
 }

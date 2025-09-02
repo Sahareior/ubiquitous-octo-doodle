@@ -21,6 +21,7 @@ import VendorOverViewModal from '../AdminDashboard/pages/Overview/_subComponents
 import { MdLogout } from 'react-icons/md';
 import useNotificationSocket from '../../Websocket/useNotificationSocket';
 import Notification from '../AdminDashboard/pages/Notifications/Notification';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const { Header, Content, Sider } = Layout;
 
@@ -71,17 +72,44 @@ const items = [
 ];
 
 const VendorDashboard = () => {
-const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate();
   const location = useLocation();
-const currentKey = location.pathname.split('/')[1];
+  const currentKey = location.pathname.split('/')[1];
+  const currentPath = location.pathname.split('/')[2]; // vendor-dashboard/**vendor-products**
+  const activeItem = items.find(item => item.path === currentPath);
+  const selectedKey = activeItem ? [activeItem.key] : [];
+  const { notifications, connected } = useNotificationSocket();
 
-const currentPath = location.pathname.split('/')[2]; // vendor-dashboard/**vendor-products**
-const activeItem = items.find(item => item.path === currentPath);
-const selectedKey = activeItem ? [activeItem.key] : [];
- const { notifications, connected } = useNotificationSocket();
-
-
+  const handleLogout = () => {
+    // Show confirmation dialog
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out from the vendor dashboard",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Perform logout if confirmed
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("customerId");
+        navigate("/login");
+        
+        // Show success message
+        Swal.fire(
+          'Logged out!',
+          'You have been successfully logged out.',
+          'success'
+        );
+      }
+    });
+  };
 
   const {
     token: { colorBgContainer },
@@ -102,7 +130,7 @@ const selectedKey = activeItem ? [activeItem.key] : [];
         }}
       >
        <div className='p-4 flex flex-col gap-10 justify-center items-center'>
-         <img className='w-[80%]' src="/image/footer.png" alt="" />
+      <Link to='/'>   <img className='w-[80%]' src="/image/footer.png" alt="" /></Link>
 
 <div className='flex justify-center items-center gap-3 flex-col'>
            <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
@@ -123,25 +151,25 @@ const selectedKey = activeItem ? [activeItem.key] : [];
       
     />
   </div>
-  <Link to='/login'
-   className='text-red-600 mb-9 hover:text-green-400 flex justify-center items-center gap-2'>
+  <div 
+    onClick={handleLogout}
+    className='text-red-600 mb-9 hover:text-green-400 flex justify-center items-center gap-2 cursor-pointer'
+  >
     <MdLogout className='-mt-1' size={16} />
     <h3 className='popmed'>Logout</h3>
-  </Link>
+  </div>
 </div>
       </Sider>
       <Layout>
         <Header
-         className='bg-white px-3'
+         className='bg-white px-9'
         >
-       <div className='flex justify-between'>
+       <div className='flex justify-between items-center'>
         <h5 className='text-[20px] font-semibold'>Content</h5>
         <div className='flex justify-center items-center gap-3'>
 
         <Notification />
-         <Link to='/vendor-dashboard/vendor-profile'>
-          <Avatar className='w-[34px] h-[34px]' src="https://i.pravatar.cc/40" />
-         </Link>
+     
   
         </div>
        </div>

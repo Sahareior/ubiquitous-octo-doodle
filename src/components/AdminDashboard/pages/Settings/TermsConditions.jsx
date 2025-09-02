@@ -1,9 +1,17 @@
 import React, { useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import EditSection from "./editor/EditSection";
+import { useGetPrivacyPolicyQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 const TermsConditions = () => {
   const [clicked, setClicked] = useState(false)
+    const { data: privacy,refetch } = useGetPrivacyPolicyQuery();
+    
+    // Filter privacy content
+    const IsPrivacy = privacy?.results?.filter(items => items.type === 'terms');
+
+     const privacyContent = IsPrivacy?.[0]?.content || '';
+  const lastUpdated = IsPrivacy?.[0]?.updated_at || 'N/A';
 
   return (
     <div className="w-full mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
@@ -45,41 +53,26 @@ const TermsConditions = () => {
           <FaEdit size={17}/>
         </button>
 
- {
-  clicked? <EditSection /> :
-   <div>
-          <ol className="space-y-5 text-[20px] text-gray-800 leading-relaxed pl-4 list-decimal">
-          <li>
-            <strong className="popbold text-[20px]">Introduction</strong><br />
-            Welcome to WRIKOO. These Terms and Conditions govern your use of our marketplace platform. By accessing or using our services, you agree to be bound by these terms.
-          </li>
-          <li>
-            <strong>Eligibility & Account Registration</strong><br />
-            You must be at least 18 years old to use our platform. All information provided during registration must be accurate and complete.
-          </li>
-          <li>
-            <strong>Vendor Responsibilities</strong><br />
-            Vendors are responsible for accurate product descriptions, timely order fulfillment, and maintaining quality standards as outlined in our vendor guidelines.
-          </li>
-          <li>
-            <strong>Product Listings & Accuracy</strong><br />
-            All product information must be accurate, including descriptions, pricing, and availability. Misleading information may result in account suspension.
-          </li>
-          <li>
-            <strong>Order Fulfillment & Shipping</strong><br />
-            Orders must be processed within the specified timeframe. Shipping policies must be clearly communicated to buyers.
-          </li>
-          <li>
-            <strong>Returns & Refunds</strong><br />
-            Return and refund policies are governed by individual vendor terms, subject to our platform guidelines and applicable consumer protection laws.
-          </li>
-          <li>
-            <strong>Payment Terms</strong><br />
-            Payments are processed securely through our platform. Commission fees and payment schedules are outlined in the vendor agreement.
-          </li>
-        </ol>
-  </div>
- }
+      {clicked ? (
+        <EditSection type='terms' data={privacyContent} />
+      ) : (
+        <div className="bg-[#F9FAFB] border rounded p-4">
+          <div className="flex justify-between items-center mb-3">
+            <p className="font-medium">Privacy Policy Content</p>
+            <p className="text-sm text-gray-500">Last updated: {new Date(lastUpdated).toLocaleDateString()}</p>
+          </div>
+          <div className="h-[0.7px] bg-black w-full my-3" />
+          <div className="space-y-4 text-sm text-gray-700">
+            {/* Dynamically render content */}
+            <div>
+              <p className="font-semibold">1. Introduction</p>
+                    <div
+          dangerouslySetInnerHTML={{ __html: privacyContent }}
+        />
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

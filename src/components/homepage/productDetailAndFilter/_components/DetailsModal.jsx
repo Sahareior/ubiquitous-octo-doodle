@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button, Modal, Rate, message, Select, Spin } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import { usePostReviewsMutation } from '../../../../redux/slices/Apis/customersApi';
-import { useGetCustomerProductsQuery } from '../../../../redux/slices/Apis/customersApi';
+import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { usePostReviewsMutation, useGetCustomerProductsQuery } from '../../../../redux/slices/Apis/customersApi';
 import Swal from 'sweetalert2';
 
 const { Option } = Select;
@@ -11,77 +10,77 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]); // multiple files
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const [postReviews, { isLoading: isPosting }] = usePostReviewsMutation();
 
+  const handleOk = async () => {
+    if (!selectedProduct) {
+      Swal.fire({
+        title: "No Product Selected",
+        text: "Please select a product before submitting your review.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
 
-const handleOk = async () => {
-  if (!selectedProduct) {
-    Swal.fire({
-      title: "No Product Selected",
-      text: "Please select a product before submitting your review.",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+    if (!review.trim()) {
+      Swal.fire({
+        title: "Review Required",
+        text: "Please write a review before submitting.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
 
-  if (!review.trim()) {
-    Swal.fire({
-      title: "Review Required",
-      text: "Please write a review before submitting.",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+    setIsUploading(true);
 
-  setIsUploading(true);
+    const formData = new FormData();
+    formData.append("product_id", selectedProduct);
+    formData.append("rating", rating);
+    formData.append("comment", review);
 
-  const formData = new FormData();
-  formData.append("product", selectedProduct);
-  formData.append("rating", rating);
-  formData.append("comment", review);
-  if (file) {
-    formData.append("images", file);
-  }
+    if (files.length > 0) {
+      files.forEach((file) => {
+        formData.append("images", file);
+      });
+    }
 
-  try {
-    await postReviews(formData).unwrap();
+    try {
+      await postReviews(formData).unwrap();
 
-    Swal.fire({
-      title: "Success!",
-      text: "Your review has been submitted successfully.",
-      icon: "success",
-      confirmButtonText: "OK",
-    }).then(() => {
-      resetForm();
-    });
-  } catch (err) {
-    console.error("Error submitting review:", err);
+      Swal.fire({
+        title: "Success!",
+        text: "Your review has been submitted successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      }).then(() => {
+        resetForm();
+      });
+    } catch (err) {
+      console.error("Error submitting review:", err);
 
-    Swal.fire({
-      title: "Error",
-      text: err?.data?.message || "Failed to submit review. Please try again.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-  } finally {
-    setIsUploading(false);
-  }
-};
+      Swal.fire({
+        title: "Error",
+        text: err?.data?.message || "Failed to submit review. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const resetForm = () => {
     setSelectedProduct(null);
     setReview('');
     setRating(0);
-    setFileName('');
-    setFile(null);
+    setFiles([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -93,27 +92,29 @@ const handleOk = async () => {
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      // Validate file type
-      if (!selectedFile.type.match('image.*')) {
-        message.error('Please select an image file (JPEG, PNG, etc.)');
-        return;
+    const selectedFiles = Array.from(e.target.files);
+
+    const validFiles = selectedFiles.filter((file) => {
+      if (!file.type.match("image.*")) {
+        message.error(`${file.name} is not an image file`);
+        return false;
       }
-      
-      // Validate file size (e.g., 5MB limit)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        message.error('File size must be less than 5MB');
-        return;
+      if (file.size > 5 * 1024 * 1024) {
+        message.error(`${file.name} exceeds 5MB size limit`);
+        return false;
       }
-      
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
-    }
+      return true;
+    });
+
+    setFiles((prev) => [...prev, ...validFiles]);
   };
 
   const handleUploadClick = () => {
     fileInputRef.current.click();
+  };
+
+  const removeImage = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -166,14 +167,14 @@ const handleOk = async () => {
 
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Upload Product Image (Optional)</label>
+          <label className="block text-sm font-medium mb-1">Upload Product Images (Optional)</label>
           <div className="flex items-center gap-2">
             <Button
               onClick={handleUploadClick}
               icon={<UploadOutlined />}
               className="bg-[#676767] text-white"
             >
-              Choose File
+              Choose Files
             </Button>
             <input
               id="uploadFile"
@@ -182,20 +183,29 @@ const handleOk = async () => {
               className="hidden"
               onChange={handleFileChange}
               accept="image/*"
-            />
-            <input
-              disabled
-              value={fileName || 'No file selected'}
-              className="flex-1 border px-3 py-1 rounded-md text-sm text-gray-600 bg-white"
+              multiple
             />
           </div>
-          {file && (
-            <div className="mt-2">
-              <img 
-                src={URL.createObjectURL(file)} 
-                alt="Preview" 
-                className="max-h-20 max-w-full object-contain"
-              />
+
+          {/* Preview Images */}
+          {files.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {files.map((file, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="Preview"
+                    className="h-24 w-full object-cover rounded-md border"
+                  />
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-white shadow rounded-full"
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>

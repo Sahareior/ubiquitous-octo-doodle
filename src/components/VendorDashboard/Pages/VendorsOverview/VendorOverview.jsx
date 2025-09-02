@@ -16,6 +16,7 @@ import VendorOverViewModal from "../../../AdminDashboard/pages/Overview/_subComp
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useGetTopSellsQuery, useGetVendorPayoutQuery, useVendorDashboardQuery } from "../../../../redux/slices/Apis/vendorsApi";
+import { useGetAllNotificationQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
 const VendorOverview = () => {
@@ -23,9 +24,10 @@ const VendorOverview = () => {
   const {data,refetch} = useVendorDashboardQuery()
   const {data:payouts} = useGetVendorPayoutQuery()
   const {data:topProduct} = useGetTopSellsQuery()
+  const {data:notifications} = useGetAllNotificationQuery()
 
+console.log(notifications,'allNio')
 
-  console.log('datataa', payouts)
 const cards = [
   {
     title: "Total Products",
@@ -111,28 +113,44 @@ const cards = [
     <div className="flex-1 flex flex-col space-y-6">
       <SalesOverview  />
 
-      <div className="bg-white rounded-md p-5">
-        <p className="text-[20px] popbold pb-5">Recent Notifications</p>
-        <div className="flex flex-col h-[40vh] overflow-y-auto gap-4">
-          {[1, 2, 3, 4].map((items) => (
+   <div className="bg-white rounded-md p-5">
+      <p className="text-[20px] popbold pb-5">Recent Notifications</p>
+
+      <div className="flex flex-col h-[40vh] overflow-y-auto gap-4">
+        {notifications?.length > 0 ? (
+          notifications.map((item) => (
             <div
-              key={items}
-              className="flex items-start rounded-xl p-4 bg-[#F9FAFB] shadow-sm border border-gray-200 gap-4 hover:shadow-md transition-shadow"
+              key={item.id}
+              className={`flex items-start rounded-xl p-4 ${
+                item.seen ? "bg-[#F9FAFB]" : "bg-[#FFF8E1]"
+              } shadow-sm border border-gray-200 gap-4 hover:shadow-md transition-shadow`}
             >
+              {/* Icon */}
               <div className="text-lg text-[#CBA135] mt-1">
                 <FaCartShopping />
               </div>
+
+              {/* Content */}
               <div className="space-y-1">
-                <p className="text-sm text-gray-500 font-medium">New Orders</p>
-                <p className="text-base text-gray-800 font-semibold">
-                  You have 3 new orders to fulfill
+                <p className="text-sm text-gray-500 font-medium">
+                  {item.full_name}
                 </p>
-                <p className="text-xs text-gray-400">2 hours ago</p>
+                <p className="text-base text-gray-800 font-semibold">
+                  {item.message}
+                </p>
+                {/* <p className="text-xs text-gray-400">
+                  {formatDistanceToNow(new Date(item.event_time), {
+                    addSuffix: true,
+                  })}
+                </p> */}
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-sm">No notifications found.</p>
+        )}
       </div>
+    </div>
     </div>
 
     {/* === Right Sidebar === */}
@@ -140,46 +158,51 @@ const cards = [
       {/* Best Selling Products */}
 <div className="bg-white p-5 rounded-xl shadow-md">
   <p className="popbold text-[20px] mb-4">Best Selling Products</p>
-  <div className="flex h-[60vh] overflow-y-scroll flex-col gap-4">
-    {topProduct?.results?.map((items) => (
-      <div
-        key={items.id}
-        className="flex items-center justify-between gap-4 bg-[#F9FAFB] rounded-md border border-[#E5E7EB] p-3"
-      >
-        {/* Left side: Image + Product info */}
-        <div className="flex gap-3 items-center">
-          <img
-            className="w-[65px] h-[65px] rounded object-cover"
-            src={
-              items.images?.length > 0
-                ? items.images[0] // Use first image from API
-                : "https://via.placeholder.com/65" // Fallback image
-            }
-            alt={items.name}
-          />
-          <div>
-            <h3 className="text-[16px] popmed text-[#2B2B2B]">
-              {items.name}
-            </h3>
-            <p className="popreg text-sm">
-              {items.total_quantity_sold} sold this month
+  <div className="flex h-[54vh] overflow-y-scroll flex-col gap-4">
+    {topProduct?.results?.length > 0 ? (
+      topProduct.results.map((items) => (
+        <div
+          key={items.id}
+          className="flex items-center justify-between gap-4 bg-[#F9FAFB] rounded-md border border-[#E5E7EB] p-3"
+        >
+          {/* Left side: Image + Product info */}
+          <div className="flex gap-3 items-center">
+            <img
+              className="w-[65px] h-[65px] rounded object-cover"
+              src={
+                items.images?.length > 0
+                  ? items.images[0] // Use first image from API
+                  : "https://via.placeholder.com/65" // Fallback image
+              }
+              alt={items.name}
+            />
+            <div>
+              <h3 className="text-[16px] popmed text-[#2B2B2B]">
+                {items.name}
+              </h3>
+              <p className="popreg text-sm">
+                {items.total_quantity_sold} sold this month
+              </p>
+            </div>
+          </div>
+
+          {/* Right side: Price + Change */}
+          <div className="text-right">
+            <p className="text-[16px] popbold">
+              ${parseFloat(items.active_price).toLocaleString()}
+            </p>
+            <p className="text-[#16A34A] text-sm popreg">
+              +15% {/* Replace with real change if available */}
             </p>
           </div>
         </div>
-
-        {/* Right side: Price + Change */}
-        <div className="text-right">
-          <p className="text-[16px] popbold">
-            ${parseFloat(items.active_price).toLocaleString()}
-          </p>
-          <p className="text-[#16A34A] text-sm popreg">
-            +15% {/* Replace with real change if available */}
-          </p>
-        </div>
-      </div>
-    ))}
+      ))
+    ) : (
+      <p className="text-center text-gray-500 mt-10">No data available</p>
+    )}
   </div>
 </div>
+
 
 
       {/* Getting Started Section */}

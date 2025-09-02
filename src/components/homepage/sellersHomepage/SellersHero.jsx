@@ -24,7 +24,7 @@ const SellersHero = () => {
         {/*  */}
        <Link to='/regester-seller'>
         <Button
-          className="bg-[#CBA135] hover:bg-[#b8962e] py-6 popmed text-white font-medium px-9 rounded-md shadow-lg transition-all"
+          className="bg-[#CBA135] hover:bg-[#b8962e] py-6 md:mt-10 popmed text-white font-medium px-9 rounded-md shadow-lg transition-all"
           type="primary"
         >
           Apply to Sell
