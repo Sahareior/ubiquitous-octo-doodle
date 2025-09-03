@@ -8,6 +8,7 @@ import ProductsModal from './ProductsModal/ProductsModal';
 import Swal from 'sweetalert2';
 import { useDeleteProductMutation, useGetCategoriesQuery } from '../../../../redux/slices/Apis/vendorsApi';
 import { Link } from 'react-router-dom';
+import { useBulkProductStatusMutation } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 
@@ -19,6 +20,7 @@ const ProductsTable = ({ products,path }) => {
   const [selected, setSelected] = useState({});
   const [deleteProduct] = useDeleteProductMutation();
      const {data:categories} = useGetCategoriesQuery()
+     const [bulkProductStatus] = useBulkProductStatusMutation()
 
   // Map API products to table format
 
@@ -102,18 +104,42 @@ const handleDelete = async (keys) => {
 };
 
 
-  const handleBulkAction = (action) => {
-    if (selectedRowKeys.length === 0) {
-      message.warning('Please select at least one product.');
-      return;
-    }
+const handleBulkAction = async (action) => {
+  if (selectedRowKeys.length === 0) {
+    message.warning('Please select at least one product.');
+    return;
+  }
 
-    if (action === 'delete') {
-      handleDelete(selectedRowKeys);
-    } else {
-      message.info('Bulk action not implemented.');
-    }
-  };
+  if (action === 'delete') {
+    handleDelete(selectedRowKeys);
+    return;
+  }
+
+  try {
+    const payload = {
+      product_ids: selectedRowKeys, // array of selected IDs
+      status: action,              // e.g. "approved", "pending"
+    };
+
+    await bulkProductStatus(payload).unwrap();
+    message.success(`Successfully updated ${selectedRowKeys.length} product(s) to "${action}".`);
+
+    // locally update status in table instead of waiting for full reload
+    setDataSource((prev) =>
+      prev.map((item) =>
+        selectedRowKeys.includes(item.key)
+          ? { ...item, status: action.charAt(0).toUpperCase() + action.slice(1) }
+          : item
+      )
+    );
+
+    setSelectedRowKeys([]);
+  } catch (error) {
+    console.error("Bulk update failed:", error);
+    message.error("Failed to update products. Try again.");
+  }
+};
+
 
   console.log('selected, ' , selected)
 
@@ -243,15 +269,23 @@ const handleDelete = async (keys) => {
       {/* Bulk Action Controls */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <Select
-            placeholder="Bulk Actions"
-            size="small"
-            className="min-w-[140px]"
-            onChange={handleBulkAction}
-            suffixIcon={<RiArrowDropDownLine />}
-          >
-            <Option value="delete">Delete Selected</Option>
-          </Select>
+<Select
+  placeholder="Bulk Actions"
+  size="small"
+  className="min-w-[180px]"
+  onChange={handleBulkAction}
+  suffixIcon={<RiArrowDropDownLine />}
+>
+  <Option value="approved">Mark as Approved</Option>
+  <Option value="pending">Mark as Pending</Option>
+  <Option value="draft">Mark as Draft</Option>
+  <Option value="rejected">Mark as Rejected</Option>
+  <Option value="active">Mark as Active</Option>
+  <Option value="inactive">Mark as Inactive</Option>
+  <Option value="archived">Mark as Archived</Option>
+  <Option value="delete">Delete Selected</Option>
+</Select>
+
           <span className="text-sm text-gray-500">{selectedRowKeys.length} selected</span>
         </div>
       </div>

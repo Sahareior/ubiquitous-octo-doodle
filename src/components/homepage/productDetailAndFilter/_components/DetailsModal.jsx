@@ -10,12 +10,50 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
-  const [files, setFiles] = useState([]); // multiple files
+  const [images, setImages] = useState([]); // ✅ same structure as product create
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const [postReviews, { isLoading: isPosting }] = usePostReviewsMutation();
+
+  // 🔹 Image handling copied
+  const handleImageUpload = (files) => {
+    const newImages = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages(prev => [...prev, ...newImages]);
+  };
+
+  const handleImageRemove = (index) => {
+    const newImages = [...images];
+    URL.revokeObjectURL(newImages[index].preview);
+    newImages.splice(index, 1);
+    setImages(newImages);
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+
+    const validFiles = selectedFiles.filter((file) => {
+      if (!file.type.match("image.*")) {
+        message.error(`${file.name} is not an image file`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        message.error(`${file.name} exceeds 5MB size limit`);
+        return false;
+      }
+      return true;
+    });
+
+    handleImageUpload(validFiles);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current.click();
+  };
 
   const handleOk = async () => {
     if (!selectedProduct) {
@@ -45,11 +83,10 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
     formData.append("rating", rating);
     formData.append("comment", review);
 
-    if (files.length > 0) {
-      files.forEach((file) => {
-        formData.append("images", file);
-      });
-    }
+    // ✅ append images correctly
+    images.forEach((img) => {
+      formData.append("images", img.file);
+    });
 
     try {
       await postReviews(formData).unwrap();
@@ -64,7 +101,6 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
       });
     } catch (err) {
       console.error("Error submitting review:", err);
-
       Swal.fire({
         title: "Error",
         text: err?.data?.message || "Failed to submit review. Please try again.",
@@ -80,7 +116,8 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
     setSelectedProduct(null);
     setReview('');
     setRating(0);
-    setFiles([]);
+    images.forEach((img) => URL.revokeObjectURL(img.preview)); // ✅ cleanup
+    setImages([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -89,32 +126,6 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
 
   const handleCancel = () => {
     resetForm();
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-
-    const validFiles = selectedFiles.filter((file) => {
-      if (!file.type.match("image.*")) {
-        message.error(`${file.name} is not an image file`);
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        message.error(`${file.name} exceeds 5MB size limit`);
-        return false;
-      }
-      return true;
-    });
-
-    setFiles((prev) => [...prev, ...validFiles]);
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const removeImage = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -188,12 +199,12 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
           </div>
 
           {/* Preview Images */}
-          {files.length > 0 && (
+          {images.length > 0 && (
             <div className="mt-3 grid grid-cols-3 gap-3">
-              {files.map((file, index) => (
+              {images.map((img, index) => (
                 <div key={index} className="relative">
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={img.preview}
                     alt="Preview"
                     className="h-24 w-full object-cover rounded-md border"
                   />
@@ -201,7 +212,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
                     type="text"
                     size="small"
                     icon={<DeleteOutlined />}
-                    onClick={() => removeImage(index)}
+                    onClick={() => handleImageRemove(index)}
                     className="absolute top-1 right-1 bg-white shadow rounded-full"
                   />
                 </div>

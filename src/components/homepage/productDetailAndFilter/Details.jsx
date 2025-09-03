@@ -7,7 +7,7 @@ import Similier from "./_components/Similier";
 import PreviouslyBought from "./_components/PreviouslyBought";
 import Breadcrumb from "../../others/Breadcrumb";
 import DetailsModal from "./_components/DetailsModal";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ZoomSection from "./_components/ZoomSection";
 import { useGetAllProductsQuery } from "../../../redux/slices/Apis/dashboardApis";
 import { useAddProductToCartMutation, useCreateCheckoutMutation, useCreateSingleOrderMutation, useGetAddressQuery, useGetAppCartQuery } from "../../../redux/slices/Apis/customersApi";
@@ -37,6 +37,7 @@ const Details = () => {
   const [createSingleOrder] = useCreateSingleOrderMutation();
   const { data: sevedAddress } = useGetAddressQuery();
   const [createCheckout] = useCreateCheckoutMutation();
+     const navigate = useNavigate();
     const location = useLocation();
   const { product } = location.state || {};
   const productData = location.state;
@@ -129,6 +130,14 @@ const Details = () => {
     setMobileOrderDrawer(true);
   };
 
+
+
+  const handleChange = (value) => {
+    if (value === "new") {
+      navigate("/checkout"); // redirect to checkout
+    }
+  };
+
   const handleOrderSubmit = async (values) => {
     try {
       const payload = {
@@ -218,96 +227,109 @@ const Details = () => {
             open={mobileOrderDrawer}
             className="lg:hidden"
           >
-            <div className="p-4 h-full overflow-y-auto">
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleOrderSubmit}
-                initialValues={{
-                  delivery_type: "express",
-                  payment_method: "bank",
-                }}
-              >
-                {/* Shipping Address */}
-                <Form.Item
-                  name="selected_shipping_address_id"
-                  label="Shipping Address"
-                  rules={[{ required: true, message: "Please select a shipping address" }]}
-                >
-                  <Select placeholder="Select a saved address">
-                    {sevedAddress?.results?.map((address) => (
-                      <Option key={address.id} value={address.id}>
-                        {`${address.street_address}, ${address.city}, ${address.zip_code}`}
-                      </Option>
-                    ))}
-                    <Option value="new">➕ Add new address</Option>
-                  </Select>
-                </Form.Item>
+<div className="p-6 h-full overflow-y-auto bg-gray-50 rounded-lg">
+  <Form
+    form={form}
+    layout="vertical"
+    onFinish={handleOrderSubmit}
+    initialValues={{
+      delivery_type: "express",
+      payment_method: "bank",
+    }}
+  >
+    {/* 🏠 Shipping Address */}
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Shipping Address</h3>
+      <Form.Item
+        name="selected_shipping_address_id"
+        rules={[{ required: true, message: "Please select a shipping address" }]}
+      >
+  <Select
+      placeholder="Select a saved address"
+      onChange={handleChange}
+      style={{ width: "100%" }}
+    >
+      {sevedAddress?.results?.map((address) => (
+        <Option key={address.id} value={address.id}>
+          {`${address.street_address}, ${address.city}, ${address.zip_code}`}
+        </Option>
+      ))}
+      <Option value="new">➕ Add new address</Option>
+    </Select>
+      </Form.Item>
+    </div>
 
-                {/* Delivery Type */}
-                <Form.Item name="delivery_type" label="Delivery Type">
-                  <Radio.Group className="flex gap-6">
-                    <Radio value="standard">Standard</Radio>
-                    <Radio value="express">Express</Radio>
-                  </Radio.Group>
-                </Form.Item>
+    {/* 🚚 Delivery Details */}
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Delivery Details</h3>
 
-                {/* Delivery Date */}
-                <Form.Item name="delivery_date" label="Preferred Delivery Date">
-                  <DatePicker className="w-full" />
-                </Form.Item>
+      <Form.Item name="delivery_type" label="Delivery Type">
+        <Radio.Group className="flex gap-6">
+          <Radio value="standard">🚚 Standard</Radio>
+          <Radio value="express">⚡ Express</Radio>
+        </Radio.Group>
+      </Form.Item>
 
-                {/* Payment Method */}
-                <Form.Item
-                  name="payment_method"
-                  label="Payment Method"
-                  rules={[{ required: true, message: "Please select a payment method" }]}
-                >
-                  <Select>
-                    <Option value="bank">🏦 Bank Transfer</Option>
-                    <Option value="card">💳 Credit/Debit Card</Option>
-                    <Option value="paypal">💲 PayPal</Option>
-                  </Select>
-                </Form.Item>
+      <Form.Item name="delivery_date" label="Preferred Delivery Date">
+        <DatePicker
+          className="w-full"
+          disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+        />
+      </Form.Item>
+    </div>
 
-                {/* Promo Code */}
-                <Form.Item name="promo_code" label="Promo Code (Optional)">
-                  <Input
-                    placeholder="Enter promo code"
-                    className="!border !border-gray-400 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-                  />
-                </Form.Item>
+    {/* 💳 Payment */}
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Payment Method</h3>
+      <Form.Item
+        name="payment_method"
+        rules={[{ required: true, message: "Please select a payment method" }]}
+      >
+        <Select>
+          <Option value="bank">🏦 Bank Transfer</Option>
+          <Option value="card">💳 Credit/Debit Card</Option>
+          <Option value="paypal">💲 PayPal</Option>
+        </Select>
+      </Form.Item>
+    </div>
 
-                {/* Delivery Instructions */}
-                <Form.Item
-                  name="delivery_instructions"
-                  label="Delivery Instructions (Optional)"
-                >
-                  <TextArea
-                    rows={3}
-                    placeholder="Special instructions for delivery"
-                    className="!border !border-gray-400 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-                  />
-                </Form.Item>
+    {/* 🎁 Promo Code */}
+    <Form.Item name="promo_code" label="Promo Code (Optional)">
+      <Input
+        placeholder="Enter promo code"
+        className="!border !border-gray-300 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
+        suffix={<span className="text-green-500 font-medium">✔</span>}
+      />
+    </Form.Item>
 
-                {/* Footer Actions */}
-                <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 bg-white pb-4">
-                  <Button
-                    onClick={handleOrderCancel}
-                    className="h-10 px-6 border-gray-300 hover:border-gray-400"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    className="h-10 px-6 bg-[#CBA135] hover:bg-[#B58C2D] border-[#CBA135] text-white"
-                  >
-                    Place Order
-                  </Button>
-                </div>
-              </Form>
-            </div>
+    {/* 📝 Delivery Instructions */}
+    <Form.Item name="delivery_instructions" label="Delivery Instructions (Optional)">
+      <TextArea
+        rows={3}
+        placeholder="Special instructions for delivery"
+        className="!border !border-gray-300 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
+      />
+    </Form.Item>
+
+    {/* Footer Actions */}
+    <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 bg-white pb-4">
+      <Button
+        onClick={handleOrderCancel}
+        className="h-10 px-6 border-gray-300 hover:border-red-400 hover:text-red-500"
+      >
+        Cancel
+      </Button>
+      <Button
+        type="primary"
+        htmlType="submit"
+        className="h-10 px-6 bg-[#CBA135] hover:bg-[#B58C2D] border-[#CBA135] text-white shadow-md"
+      >
+        Place Order
+      </Button>
+    </div>
+  </Form>
+</div>
+
           </Drawer>
 
           {/* Order Form Modal for Desktop */}

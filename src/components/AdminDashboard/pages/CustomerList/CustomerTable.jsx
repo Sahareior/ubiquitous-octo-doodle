@@ -127,7 +127,7 @@ const dataSource =
     }
   };
 
-  // http://10.10.13.16:15000/api/admin/customers/4/delete  /admin/customers/2/delete
+  // https://ab465d01af38.ngrok-free.app/api/admin/customers/4/delete  /admin/customers/2/delete
 
 const handleDelete = async (keys) => {
   console.log(keys[0],'users keys')

@@ -4,13 +4,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const dashboardApis = createApi({
   reducerPath: "dashboardApis",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.10.13.16:15000/api/",
+    baseUrl: "https://ab465d01af38.ngrok-free.app/api/",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-     
+      headers.set("ngrok-skip-browser-warning", "true");
       return headers;
     },
   }),
@@ -231,6 +231,22 @@ export const dashboardApis = createApi({
       })
     }),
 
+    bulkOrderStatus: build.mutation({
+      query:(data)=>({
+        url:'bulk/orders/status/update-status/',
+        method:'POST',
+        body:data
+      })
+    }),
+
+    bulkProductStatus: build.mutation({
+      query: (data) => ({
+        url: 'bulk/products/status/update-status/',
+        method:"POST",
+        body:data
+      })
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -241,6 +257,8 @@ export const dashboardApis = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useBulkOrderStatusMutation,
+  useBulkProductStatusMutation,
   useUpdatePolicesMutation,
   useGetPrivacyPolicyQuery,
   useLazyGetProductsByIdQuery,

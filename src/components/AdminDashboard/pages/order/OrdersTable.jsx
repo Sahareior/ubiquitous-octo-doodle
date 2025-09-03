@@ -6,7 +6,7 @@ import { MdDelete } from 'react-icons/md';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import OrderModal from './OrderModal/OrderModal';
 import Swal from 'sweetalert2';
-import { useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQuery, useGetAllVendorsQuery, useVendorOrderNameDetailsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useBulkOrderStatusMutation, useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQuery, useGetAllVendorsQuery, useVendorOrderNameDetailsQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 
@@ -23,7 +23,7 @@ const OrdersTable = ({orders}) => {
   const [deleteOrdersById, {isLoading,status}] = useDeleteOrdersByIdMutation()
   const [selectedData, setSelectedData] = useState({})
   const [fullOrderData, setFullOrderData] = useState({}); // New state to store full order data
-
+  const [bulkOrderStatus] = useBulkOrderStatusMutation()
   // Map API data to table format
 useEffect(() => {
   if (orders?.length) {
@@ -43,6 +43,8 @@ useEffect(() => {
     setDataSource([]); // clear table if no data
   }
 }, [orders]);
+
+
 
 
   const getCustomerName =(data) =>{
@@ -142,17 +144,33 @@ useEffect(() => {
     },
   ];
 
-  const handleBulkAction = (action) => {
-    if (selectedRowKeys.length === 0) {
-      message.warning('Please select at least one row.');
-      return;
-    }
-    if (action === 'delete') {
-      handleDelete(selectedRowKeys);
-    } else {
-      message.info('Bulk edit not implemented.');
-    }
-  };
+const handleBulkAction = async (action) => {
+  if (selectedRowKeys.length === 0) {
+    message.warning('Please select at least one row.');
+    return;
+  }
+
+  if (action === "delete") {
+    handleDelete(selectedRowKeys);
+    return;
+  }
+
+  try {
+    const payload = {
+      order_ids: selectedRowKeys, // array of selected IDs
+      status: action, // matches your backend enum (e.g. "shipped")
+    };
+
+    await bulkOrderStatus(payload).unwrap();
+    message.success(`Successfully updated ${selectedRowKeys.length} order(s) to "${action}".`);
+    refetch();
+    setSelectedRowKeys([]);
+  } catch (error) {
+    console.error("Bulk update failed:", error);
+    message.error("Failed to update orders. Try again.");
+  }
+};
+
 
   const handleDelete =  async (keys) => {
     Swal.fire({
@@ -178,12 +196,21 @@ useEffect(() => {
     <div className="bg-white p-4 rounded relative">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <Select placeholder="Bulk Actions" size="small" className="min-w-[140px]" onChange={handleBulkAction} suffixIcon={<RiArrowDropDownLine />}>
-            <Option value="All">All</Option>
-            <Option value="none">None</Option>
-            <Option value="Paid">Paid</Option>
-            <Option value="Unpaid">Unpaid</Option>
-          </Select>
+         <Select
+  placeholder="Bulk Actions"
+  size="small"
+  className="min-w-[160px]"
+  onChange={handleBulkAction}
+  suffixIcon={<RiArrowDropDownLine />}
+>
+  <Option value="paid">Mark as Paid</Option>
+  <Option value="shipped">Mark as Shipped</Option>
+  <Option value="delivered">Mark as Delivered</Option>
+  <Option value="cancelled">Mark as Cancelled</Option>
+  <Option value="refunded">Mark as Refunded</Option>
+  <Option value="delete">Delete</Option>
+</Select>
+
           <span className="text-sm text-gray-500">{selectedRowKeys.length} selected</span>
         </div>
       </div>
