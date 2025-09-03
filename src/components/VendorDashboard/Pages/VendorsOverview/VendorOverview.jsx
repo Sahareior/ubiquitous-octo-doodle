@@ -65,10 +65,15 @@ const cards = [
 
 ];
 
+
+  const userInfo = JSON.parse(localStorage.getItem('customerId'))
+
+  console.log(userInfo.user.first_name)
+
   return (
 <div className="bg-[#FAF8F2] min-h-screen p-4">
   <p className="text-3xl popbold">
-    Welcome back, <span className="text-[#CBA135] text-2xl popmed">Home Decor Masters</span>
+    Welcome back, <span className="text-[#CBA135] text-2xl popmed">{userInfo.user.first_name}</span>
   </p>
 
   {/* === Top Cards === */}

@@ -1,61 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Select, Button, message } from 'antd';
+import React, { useState } from 'react';
+import { Table, Select, message } from 'antd';
 import { FaStar } from 'react-icons/fa';
 import { IoEyeOutline } from 'react-icons/io5';
 import { MdDelete } from 'react-icons/md';
 import { RiArrowDropDownLine } from 'react-icons/ri';
-
 import VendorModal from './VendorModal/VendorModal';
-import { useDeleteUsersMutation, useGetAllVendorsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import {
+  useDeleteBulkUsersMutation,
+  useDeleteUsersMutation,
+} from '../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
 
 const { Option } = Select;
 
-const VendorTable = ({vendors}) => {
+const VendorTable = ({ vendors }) => {
   const [pageSize, setPageSize] = useState(10);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState({})
- 
-  const [deleteUsers] = useDeleteUsersMutation()
+  const [selectedVendor, setSelectedVendor] = useState({});
+  const [deleteBulkUsers] = useDeleteBulkUsersMutation();
+  const [deleteUsers] = useDeleteUsersMutation();
 
-  console.log(vendors)
   // Transform API data for table
-const dataSource = vendors?.map((v, index) => ({
-  key: index + 1,
-  id: v.user_id,
-  vendor: v.vendor_name,
-  status: v.approval_status, // approved/pending/rejected
-  products: v.products_count,
-  orders: v.orders_count,
-  rating: v.ratings,
-  actions: v.actions,
-})) || [];
+  const dataSource =
+    vendors?.map((v, index) => ({
+      key: v.user_id, // use actual id instead of index
+      id: v.user_id,
+      vendor: v.vendor_name,
+      status: v.approval_status,
+      products: v.products_count,
+      orders: v.orders_count,
+      rating: v.ratings,
+      actions: v.actions,
+    })) || [];
 
   const columns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      render: text => <a className="text-[16px] popmed">{text}</a>,
+      render: (text) => <a className="text-[16px] popreg">{text}</a>,
     },
     {
       title: 'Vendor',
       dataIndex: 'vendor',
       key: 'vendor',
-      render: text => (
-        <div>
-          <a className="popmed text-[16px]">{text}</a>
-        </div>
+      render: (text) => (
+        <a className="popreg text-[16px]">{text}</a>
       ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: status => (
+      render: (status) => (
         <span
-          className={`px-3 py-1 popmed rounded-xl text-[16px] font-medium ${
+          className={`px-3 py-1 popreg rounded-xl text-[16px] font-medium ${
             status === 'approved'
               ? 'bg-green-100 text-green-600'
               : status === 'pending'
@@ -71,21 +71,21 @@ const dataSource = vendors?.map((v, index) => ({
       title: 'Products',
       dataIndex: 'products',
       key: 'products',
-      render: text => <span className="popmed text-[16px]">{text}</span>,
+      render: (text) => <span className="popreg text-[16px]">{text}</span>,
     },
     {
       title: 'Orders',
       dataIndex: 'orders',
       key: 'orders',
-      render: text => <span className="popmed text-[16px]">{text}</span>,
+      render: (text) => <span className="popreg text-[16px]">{text}</span>,
     },
     {
       title: 'Rating',
       dataIndex: 'rating',
       key: 'rating',
-      render: rating => (
+      render: (rating) => (
         <div className="flex items-center">
-          <span className="px-2 text-[16px] popmed">{rating}</span>
+          <span className="px-2 text-[16px] popreg">{rating}</span>
           <FaStar
             className={rating > 0 ? 'text-yellow-400' : 'text-gray-300'}
             size={14}
@@ -100,8 +100,8 @@ const dataSource = vendors?.map((v, index) => ({
         <div className="flex items-center gap-3">
           <IoEyeOutline
             onClick={() => {
-              setIsModalOpen(true)
-              setSelectedVendor(record)
+              setIsModalOpen(true);
+              setSelectedVendor(record);
             }}
             className="text-gray-400 cursor-pointer"
             size={20}
@@ -116,43 +116,77 @@ const dataSource = vendors?.map((v, index) => ({
     },
   ];
 
+  // Single delete
+  const handleDelete = async (record) => {
+    const url = record?.actions?.delete_url;
+    const id = url?.split('/')[3]; // extract "17"
 
-const handleDelete = async (keys) => {
-  const url = keys?.actions?.delete_url; // "/admin/vendors/17/delete"
-  const id = url.split("/")[3]; // "17"
-
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won’t be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const res = await deleteUsers(id); // call your API
-        console.log("Extracted ID:", id, "Response:", res);
-
-        Swal.fire("Deleted!", "The user has been deleted.", "success");
-      } catch (error) {
-        console.error("Delete failed:", error);
-        Swal.fire("Error!", "Failed to delete the user.", "error");
-      }
+    if (!id) {
+      message.error('Delete URL missing!');
+      return;
     }
-  });
-};
 
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You won’t be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await deleteUsers(id);
+          console.log('Deleted:', id, res);
+          Swal.fire('Deleted!', 'The vendor has been deleted.', 'success');
+        } catch (error) {
+          console.error('Delete failed:', error);
+          Swal.fire('Error!', 'Failed to delete the vendor.', 'error');
+        }
+      }
+    });
+  };
+
+  // Bulk delete
+  const handleBulkDelete = async () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `Delete ${selectedRowKeys.length} selected vendors?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete them!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await deleteBulkUsers({ user_ids: selectedRowKeys });
+          console.log('Bulk delete response:', res);
+          Swal.fire(
+            'Deleted!',
+            `${selectedRowKeys.length} vendors have been deleted.`,
+            'success'
+          );
+          setSelectedRowKeys([]); // reset selection
+        } catch (error) {
+          console.error('Bulk delete failed:', error);
+          Swal.fire('Error!', 'Failed to delete vendors.', 'error');
+        }
+      }
+    });
+  };
+
+  // Handle dropdown action
   const handleBulkAction = (action) => {
     if (selectedRowKeys.length === 0) {
       message.warning('Please select at least one row.');
       return;
     }
     if (action === 'delete') {
-      handleDelete(selectedRowKeys);
+      handleBulkDelete();
     } else if (action === 'edit') {
-      message.info('Bulk edit not implemented in this example.');
+      message.info('Bulk edit not implemented.');
     }
   };
 
@@ -169,7 +203,7 @@ const handleDelete = async (keys) => {
             suffixIcon={<RiArrowDropDownLine />}
           >
             <Option value="delete">Delete</Option>
-            <Option value="edit">Edit</Option>
+            {/* <Option value="edit">Edit</Option> */}
           </Select>
           <span className="text-sm text-gray-500">
             {selectedRowKeys.length} selected
@@ -181,7 +215,7 @@ const handleDelete = async (keys) => {
       <Table
         rowSelection={{
           selectedRowKeys,
-          onChange: (selectedKeys) => setSelectedRowKeys(selectedKeys),
+          onChange: (keys) => setSelectedRowKeys(keys),
         }}
         columns={columns}
         dataSource={dataSource}
@@ -215,7 +249,11 @@ const handleDelete = async (keys) => {
           </div>
         )}
       />
-      <VendorModal setIsModalOpen={setIsModalOpen} vendorsData={selectedVendor} isModalOpen={isModalOpen} />
+      <VendorModal
+        setIsModalOpen={setIsModalOpen}
+        vendorsData={selectedVendor}
+        isModalOpen={isModalOpen}
+      />
     </div>
   );
 };

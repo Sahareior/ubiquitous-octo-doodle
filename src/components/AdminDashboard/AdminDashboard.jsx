@@ -117,6 +117,10 @@ const AdminDashboard = () => {
 
   const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
 
+  const userInfo = JSON.parse(localStorage.getItem('customerId'))
+
+  console.log(userInfo.user.first_name)
+
   const handleLogout = () => {
     // Show confirmation dialog
     Swal.fire({
@@ -172,7 +176,7 @@ const AdminDashboard = () => {
 <div className='flex justify-center items-center gap-3 flex-col'>
            <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
 
-         <p className='popmed text-lg text-[#666666]'>Home Decor Masters</p>
+         <p className='popmed text-lg text-[#666666]'>Hi {userInfo?.user?.first_name}</p>
 </div>
        </div>
  
@@ -192,7 +196,7 @@ const AdminDashboard = () => {
       <Layout>
         <Layout.Header className="bg-white px-3">
           <div className="flex justify-between items-center">
-            <h5 className="text-[20px] font-semibold">Content</h5>
+            <h5 className="text-[20px] font-semibold">Admin Dashboard</h5>
             <div className="flex items-center gap-3">
     
  <div className='flex justify-center items-center gap-4'>

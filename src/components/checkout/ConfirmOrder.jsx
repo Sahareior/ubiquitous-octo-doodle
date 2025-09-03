@@ -25,31 +25,31 @@ const ConfirmOrder = ({ setSelectedMathod }) => {
             onChange={(e) => setSelectedMathod(e.target.value)} // 🔑 catch selected method
           >
             <div className="border rounded-md p-4 hover:shadow transition">
-              <Radio value="mobile" className="w-full">
+              <Radio value="cash" className="w-full">
                 <div>
-                  <span className="font-medium">Mobile Money</span>
-                  <p className="text-sm text-gray-500 mt-1">M-Pesa, Airtel Money, MTN MoMo</p>
+                  <span className="font-medium">Cash</span>
+                 
                 </div>
               </Radio>
             </div>
 
             <div className="border rounded-md p-4 hover:shadow transition">
-              <Radio value="card" className="w-full">
+              <Radio value="online" className="w-full">
                 <div>
-                  <span className="font-medium">Credit/Debit Card</span>
-                  <p className="text-sm text-gray-500 mt-1">Visa, Mastercard, Verve</p>
+                  <span className="font-medium">Online</span>
+                 
                 </div>
               </Radio>
             </div>
 
-            <div className="border rounded-md p-4 hover:shadow transition">
+            {/* <div className="border rounded-md p-4 hover:shadow transition">
               <Radio value="bank" className="w-full">
                 <div>
                   <span className="font-medium">Bank Transfer</span>
                   <p className="text-sm text-gray-500 mt-1">Direct bank transfer</p>
                 </div>
               </Radio>
-            </div>
+            </div> */}
           </Radio.Group>
 
           {/* Security Notice */}

@@ -81,6 +81,12 @@ const VendorDashboard = () => {
   const selectedKey = activeItem ? [activeItem.key] : [];
   const { notifications, connected } = useNotificationSocket();
 
+
+    const userInfo = JSON.parse(localStorage.getItem('customerId'))
+
+  console.log(userInfo.user.first_name) 
+
+
   const handleLogout = () => {
     // Show confirmation dialog
     Swal.fire({
@@ -135,7 +141,7 @@ const VendorDashboard = () => {
 <div className='flex justify-center items-center gap-3 flex-col'>
            <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
 
-         <p className='popmed text-lg text-[#666666]'>Home Decor Masters</p>
+        
 </div>
        </div>
        <hr className='pb-3' />
@@ -165,7 +171,7 @@ const VendorDashboard = () => {
          className='bg-white px-9'
         >
        <div className='flex justify-between items-center'>
-        <h5 className='text-[20px] font-semibold'>Content</h5>
+        <h5 className='text-[20px] font-semibold'>Vendor Dastboard</h5>
         <div className='flex justify-center items-center gap-3'>
 
         <Notification />

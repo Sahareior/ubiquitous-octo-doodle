@@ -4,13 +4,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const dashboardApis = createApi({
   reducerPath: "dashboardApis",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://ab465d01af38.ngrok-free.app/api/",
+    baseUrl: "http://10.10.13.16:15000/api/",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set("ngrok-skip-browser-warning", "true");
+     
       return headers;
     },
   }),
@@ -19,6 +19,7 @@ export const dashboardApis = createApi({
     getPokemonByName: build.query({
       query: (name) => `pokemon/${name}`,
     }),
+    
     getAllProducts: build.query({
       query: () => "products/",
     }),
@@ -247,6 +248,30 @@ export const dashboardApis = createApi({
       })
     }),
 
+    bulkSellerApplicationsUpdate: build.mutation({
+      query: (data) => ({
+        url: 'seller/applications/bulk-update-status/',
+        method: "POST",
+        body:data
+      })
+    }),
+
+    deleteBulkUsers: build.mutation({
+      query: (data)=>({
+        url: '/users/bulk-delete/',
+        method: 'POST',
+        body:data
+      })
+    }),
+
+    bulkProductDelete: build.mutation({
+      query:(data)=> ({
+        url: 'bulk/products/status/delete/',
+        method: "POST",
+        body:data
+      })
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -258,6 +283,9 @@ export const dashboardApis = createApi({
 export const {
   useGetPokemonByNameQuery,
   useBulkOrderStatusMutation,
+  useBulkProductDeleteMutation,
+  useDeleteBulkUsersMutation,
+  useBulkSellerApplicationsUpdateMutation,
   useBulkProductStatusMutation,
   useUpdatePolicesMutation,
   useGetPrivacyPolicyQuery,

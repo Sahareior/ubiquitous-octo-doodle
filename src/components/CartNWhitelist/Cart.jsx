@@ -76,7 +76,7 @@ const Cart = () => {
 
   React.useEffect(() => {
     if (cartData?.results) {
-      const items = cartData.results.map((cartItem) => ({
+      const items = cartData?.results.map((cartItem) => ({
         id: cartItem.id, // keep cart item id for remove/update
         productId: cartItem.product.id,
         name: cartItem.product.name,
@@ -182,7 +182,7 @@ const Cart = () => {
             ))}
 
 {
-  cartData.length>0 && (
+  cartData?.length>0 && (
                 <div className="bg-white rounded-2xl mt-6 p-6 shadow-sm">
               <h4 className="text-base font-medium text-gray-800 mb-2">
                 Delivery Instructions{" "}

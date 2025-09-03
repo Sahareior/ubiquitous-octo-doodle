@@ -81,7 +81,7 @@ useEffect(() => {
       dataIndex: 'customer',
       key: 'customer',
        render: (_, record) => (
-        <p>{getCustomerName(record)}</p>
+        <p className='popreg'>{getCustomerName(record)}</p>
        )
     },
     {
@@ -89,7 +89,7 @@ useEffect(() => {
       dataIndex: 'seller',
       key: 'seller',
        render: (_, record) => (
-        <p>{getVendorsName(record)}</p>
+        <p className='popreg'>{getVendorsName(record)}</p>
        )
     },
     {

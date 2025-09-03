@@ -8,7 +8,7 @@ import ProductsModal from './ProductsModal/ProductsModal';
 import Swal from 'sweetalert2';
 import { useDeleteProductMutation, useGetCategoriesQuery } from '../../../../redux/slices/Apis/vendorsApi';
 import { Link } from 'react-router-dom';
-import { useBulkProductStatusMutation } from '../../../../redux/slices/Apis/dashboardApis';
+import { useBulkProductDeleteMutation, useBulkProductStatusMutation } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 
@@ -21,6 +21,7 @@ const ProductsTable = ({ products,path }) => {
   const [deleteProduct] = useDeleteProductMutation();
      const {data:categories} = useGetCategoriesQuery()
      const [bulkProductStatus] = useBulkProductStatusMutation()
+     const [bulkProductDelete] = useBulkProductDeleteMutation()
 
   // Map API products to table format
 
@@ -63,6 +64,38 @@ useEffect(() => {
 
   setDataSource(mappedData);
 }, [products, categories]);
+
+
+// 🗑 Bulk delete products
+const handleBulkDelete = async () => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: `Delete ${selectedRowKeys.length} selected product(s)?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete them!',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await bulkProductDelete({ product_ids: selectedRowKeys }).unwrap();
+
+        Swal.fire('Deleted!', 'Selected products have been removed.', 'success');
+
+        // update UI locally
+        setDataSource((prev) =>
+          prev.filter((item) => !selectedRowKeys.includes(item.key))
+        );
+        setSelectedRowKeys([]);
+      } catch (error) {
+        console.error('Bulk delete failed:', error);
+        Swal.fire('Error!', 'Failed to delete selected products.', 'error');
+      }
+    }
+  });
+};
+
 
 
 
@@ -111,20 +144,19 @@ const handleBulkAction = async (action) => {
   }
 
   if (action === 'delete') {
-    handleDelete(selectedRowKeys);
+    handleBulkDelete();
     return;
   }
 
   try {
     const payload = {
-      product_ids: selectedRowKeys, // array of selected IDs
-      status: action,              // e.g. "approved", "pending"
+      product_ids: selectedRowKeys,
+      status: action, // e.g. "approved", "draft"
     };
 
     await bulkProductStatus(payload).unwrap();
     message.success(`Successfully updated ${selectedRowKeys.length} product(s) to "${action}".`);
 
-    // locally update status in table instead of waiting for full reload
     setDataSource((prev) =>
       prev.map((item) =>
         selectedRowKeys.includes(item.key)
@@ -139,6 +171,7 @@ const handleBulkAction = async (action) => {
     message.error("Failed to update products. Try again.");
   }
 };
+
 
 
   console.log('selected, ' , selected)
@@ -290,44 +323,47 @@ const handleBulkAction = async (action) => {
         </div>
       </div>
 
-      <Table
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (selectedKeys) => setSelectedRowKeys(selectedKeys),
-        }}
-        columns={columns}
-        dataSource={dataSource}
-        className="relative"
-        pagination={{
-          pageSize,
-          total: dataSource.length,
-          showTotal: (total, range) =>
-            `Showing ${range[0]} to ${range[1]} of ${total} products`,
-          showSizeChanger: false,
-          position: ['bottomRight'],
-        }}
-        footer={() => (
-          <div className="flex justify-between items-center px-2">
-            <div className="flex items-center gap-2 text-sm">
-              <span>Show</span>
-              <Select
-                value={pageSize}
-                onChange={(value) => setPageSize(value)}
-                size="small"
-                style={{ width: 70 }}
-                suffixIcon={<RiArrowDropDownLine />}
-              >
-                {[10, 20, 50].map((size) => (
-                  <Option key={size} value={size}>
-                    {size}
-                  </Option>
-                ))}
-              </Select>
-              <span>entries</span>
-            </div>
-          </div>
-        )}
-      />
+<Table
+  rowSelection={{
+    selectedRowKeys,
+    onChange: (selectedKeys) => setSelectedRowKeys(selectedKeys),
+  }}
+  columns={columns}
+  dataSource={dataSource}
+  className="relative"
+  pagination={{
+    pageSize,
+    total: dataSource.length,
+    showSizeChanger: false,
+    position: ['bottomRight'],
+    showQuickJumper: true,        // 🔥 allows jumping to a page
+    showLessItems: false,         // 🔥 ensures more buttons are visible
+    showTotal: (total, range) => 
+      `Showing ${range[0]} to ${range[1]} of ${total} products`,
+  }}
+  footer={() => (
+    <div className="flex justify-between items-center px-2">
+      <div className="flex items-center gap-2 text-sm">
+        <span>Show</span>
+        <Select
+          value={pageSize}
+          onChange={(value) => setPageSize(value)}
+          size="small"
+          style={{ width: 70 }}
+          suffixIcon={<RiArrowDropDownLine />}
+        >
+          {[10, 20, 50].map((size) => (
+            <Option key={size} value={size}>
+              {size}
+            </Option>
+          ))}
+        </Select>
+        <span>entries</span>
+      </div>
+    </div>
+  )}
+/>
+
 
       <ProductsModal
         setIsModalOpen={setIsModalOpen}

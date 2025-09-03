@@ -14,6 +14,9 @@ const Checkout = () => {
     const { data: address, refetch } = useGetAddressQuery();
   const location = useLocation()
 
+  const isDetails = location.state?.productData ? true : false;
+
+
 const onFinish = async (values) => {
   const payload = {
     full_name: values.fullname,
@@ -41,11 +44,21 @@ const onFinish = async (values) => {
       icon: "success",
       confirmButtonText: "OK",
     }).then(() => {
-navigate("/cart/checkout1", {
+
+      if(isDetails){
+        navigate(`/details`,{
+          state: location.state.productData
+        })
+        refetch()
+      }
+      else{
+        navigate("/cart/checkout1", {
   state: {
     ...location.state
   }
+  
 });
+      }
 
 
     });
@@ -143,7 +156,9 @@ navigate("/cart/checkout1", {
         </Form.Item>
       </Form>
     </div>
-    <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
+{
+  !isDetails && (
+        <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
   <h3 className="text-lg popbold font-semibold mb-4">Order Summary</h3>
 
   {/* Order Items */}
@@ -203,6 +218,8 @@ navigate("/cart/checkout1", {
     <a href="#" className="text-[#CBA135] underline">return & shipping policies</a>
   </p>
 </div>
+  )
+}
 
 </div>
 </div>

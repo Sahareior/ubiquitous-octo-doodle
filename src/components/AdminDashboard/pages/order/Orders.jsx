@@ -91,7 +91,7 @@ const Orders = () => {
                          <input
                            value={searchTerm}
               onChange={handleSearch}
-                placeholder="Search by Order ID / Customer r"
+                placeholder="Search by Order ID / Customer"
                 className="w-full border popreg border-[#D1D5DB] rounded-md px-4 pl-10 h-[45px] placeholder:text-sm focus:outline-none focus:ring-0 focus:border-[#CBA135]"
               />
           </div>

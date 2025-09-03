@@ -14,10 +14,7 @@ export default function Sweeper() {
       slidesPerView={3}
       spaceBetween={30}
       loop={true}
-      autoplay={{
-        delay: 3500,
-        disableOnInteraction: false,
-      }}
+      autoplay={{ delay: 3500, disableOnInteraction: false }}
       pagination={{ clickable: true }}
       modules={[Autoplay, Pagination]}
       className="mySwiper"
@@ -29,9 +26,11 @@ export default function Sweeper() {
       }}
     >
       {data?.results?.map((item, idx) => (
-        <SwiperSlide className="pb-12" key={idx}>
+        <SwiperSlide key={idx} className="pb-12">
           <div className="flex justify-center h-full px-1">
             <div className="w-full h-full p-6 bg-white rounded-xl shadow-md flex flex-col">
+              
+              {/* User info */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-[#CBA135] flex items-center justify-center text-white font-bold text-lg">
                   {item.user.first_name?.[0]}
@@ -46,24 +45,36 @@ export default function Sweeper() {
                       <LiaStarSolid key={i} />
                     ))}
                   </div>
+                  <p className="text-xs text-gray-400">{item.time_since}</p>
                 </div>
               </div>
 
-              {/* Comment section with fixed height and scroll */}
+              {/* Comment */}
               <div className="flex-1 min-h-0 mb-4">
                 <p className="text-gray-700 popreg italic break-words overflow-y-auto max-h-20 pr-2 custom-scrollbar">
                   "{item.comment}"
                 </p>
               </div>
 
-              {/* Product image */}
-              <div className="mt-auto">
-                <img
-                  className="w-16 h-16 object-cover rounded-lg"
-                  src={`https://images.unsplash.com/photo-1501028391897-5c5eae694383?q=80&w=387&auto=format&fit=crop`}
-                  alt={item.product_name}
-                />
+              {/* Product info */}
+              <div className="mb-2 text-sm font-medium text-gray-600">
+                Product: {item.product.name}
               </div>
+
+              {/* Review Images */}
+              {item.images.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {item.images.map(img => (
+                    <img
+                      key={img.id}
+                      src={img.image}
+                      alt={`review-${img.id}`}
+                      className="w-20 h-20 object-cover rounded-lg shadow-sm"
+                    />
+                  ))}
+                </div>
+              )}
+
             </div>
           </div>
         </SwiperSlide>
@@ -72,43 +83,36 @@ export default function Sweeper() {
   );
 }
 
-// Add this CSS to your global styles or use a CSS module
+// CSS for custom scrollbar
 const styles = `
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #cba135;
   border-radius: 10px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a8842a;
 }
-
 .mySwiper .swiper-slide {
   height: auto;
 }
-
 .mySwiper .swiper-pagination-bullet {
   background: #cba135;
   opacity: 0.5;
   width: 10px;
   height: 10px;
 }
-
 .mySwiper .swiper-pagination-bullet-active {
   opacity: 1;
 }
 `;
 
-// Inject styles
 const styleSheet = document.createElement('style');
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);

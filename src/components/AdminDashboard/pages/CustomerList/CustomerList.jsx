@@ -1,61 +1,69 @@
-import React from 'react';
-import { Avatar, Button, Input, Select } from 'antd';
-import CustomerTable from './CustomerTable';
-import { FaPlus } from 'react-icons/fa';
+import React, { useState, useMemo } from 'react';
+import { Select } from 'antd';
 import { RiArrowDropDownLine } from 'react-icons/ri';
+import { useGetAllCustomersQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import CustomerTable from './CustomerTable';
 
 const { Option } = Select;
 
 const CustomerList = () => {
+  const { data, refetch } = useGetAllCustomersQuery();
+  const customers = data?.results || [];
+
+  // Local states for searching & filtering
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+
+  // Derived filtered data
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) => {
+      // Search filter (case-insensitive, matches customer_name or customer_email)
+      const matchesSearch =
+        customer.customer_name.toLowerCase().includes(searchText.toLowerCase()) ||
+        customer.customer_email.toLowerCase().includes(searchText.toLowerCase());
+
+      // Status filter
+      let matchesStatus = true;
+      if (statusFilter === 'Active') {
+        matchesStatus = customer.is_active === true;
+      } else if (statusFilter === 'Trial/Inactive') {
+        matchesStatus = customer.is_active === false;
+      }
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [customers, searchText, statusFilter]);
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between px-6 items-center ">
-        <div className="space-y-2 ">
-          <h2 className="popbold flex items-center gap-2 text-[28px] sm:text-[34px]">
-          Customer List
-          <span className="flex items-center gap-2 text-[16px] sm:text-[18px]">
-            <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
-            Active
-          </span>
-        </h2>
-
-        {/* Avatars */}
-        <div className="flex items-center ">
-          <Avatar src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg" />
-          <Avatar src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg" />
-          <Avatar src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg" />
-          <Avatar src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg" />
-          <p className="text-[12px] popreg text-gray-600 ml-2">
-            Mubun, Faiza, Ramon +12 others
-          </p>
-        </div>
-        </div>
-        <Button className='bg-[#CBA135] flex items-center gap-2 text-white py-5 px-5'><FaPlus /> Create Account</Button>
-      </div>
-
-      {/* Filter and Info */}
+      {/* Filter and Search */}
       <div className="flex rounded-xl bg-white p-5 flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center flex-col sm:flex-row w-1/2 gap-12">
-          <input placeholder="Enter First Name" className="w-full border border-[#D1D5DB] rounded-md px-4 h-[45px] placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" />
-<Select
-  defaultValue="All Status"
-  className="w-full h-[45px]"
-  suffixIcon={<RiArrowDropDownLine size={22} />}
->
-  <Option value="All Status">All Status</Option>
-  <Option value="Active">Active</Option>
-  <Option value="Trial/Inactive">Trial/Inactive</Option>
+        <div className="flex items-center flex-col sm:flex-row w-full gap-4">
+          {/* Search Input */}
+          <input
+            placeholder="Search by Name or Email"
+            className="w-full sm:w-1/2 border border-[#D1D5DB] rounded-md px-4 h-[45px] placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
 
-</Select>
+          {/* Status Filter */}
+          <Select
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            className="w-full sm:w-1/2 h-[45px]"
+            suffixIcon={<RiArrowDropDownLine size={22} />}
+          >
+            <Option value="All Status">All Status</Option>
+            <Option value="Active">Active</Option>
+            <Option value="Trial/Inactive">Trial/Inactive</Option>
+          </Select>
         </div>
-        <p className="text-[14px] popreg text-gray-700">
-          Showing 20 of 242 customers
-        </p>
       </div>
 
+      {/* Table */}
       <div>
-        <CustomerTable />
+        <CustomerTable customerList={filteredCustomers} />
       </div>
     </div>
   );

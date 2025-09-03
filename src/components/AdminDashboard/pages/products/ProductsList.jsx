@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import {
   useGetAllProductsQuery,
-  useVendorAcceptProductMutation,
 } from "../../../../redux/slices/Apis/dashboardApis";
 import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
@@ -14,6 +13,8 @@ const { Option } = Select;
 const ProductsList = ({path}) => {
   const { data: products } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
+
+  console.log(products,'this sasasasas')
 
   // --- states for filters ---
   const [searchText, setSearchText] = useState("");
@@ -24,6 +25,8 @@ const ProductsList = ({path}) => {
   // --- filter & sort logic ---
   const filteredProducts = useMemo(() => {
     let filtered = products?.results || [];
+
+    console.log(filtered,'ad')
 
     // 🔍 search filter
     if (searchText.trim() !== "") {
@@ -93,7 +96,7 @@ const ProductsList = ({path}) => {
             placeholder="Search Product Name"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl px-4 py-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full border popreg border-[#D1D5DB] rounded-md px-4 pl-10 h-[45px] placeholder:text-sm focus:outline-none focus:ring-0 focus:border-[#CBA135]"
           />
         </div>
 

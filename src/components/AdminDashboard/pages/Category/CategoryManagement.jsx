@@ -126,14 +126,14 @@ const CategoryManagement = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span className="font-semibold text-gray-800">{text}</span>,
+      render: (text) => <span className="font-semibold popreg text-gray-800">{text}</span>,
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
-      render: (text) => <Tag color="blue" className="font-mono">{text}</Tag>,
+      render: (text) => <Tag color="blue" className="font-mono popreg">{text}</Tag>,
     },
     {
       title: "Image",
@@ -180,7 +180,7 @@ const CategoryManagement = () => {
       dataIndex: "description",
       key: "description",
       ellipsis: true,
-      render: (text) => text || <span className="text-gray-400 italic">No description provided</span>,
+      render: (text) => text || <span className="text-gray-400 italic popreg">No description provided</span>,
     },
     {
       title: "Created At",
@@ -203,7 +203,7 @@ const CategoryManagement = () => {
       key: "updated_at",
       render: (date) => (
         <Tooltip title={dayjs(date).format('MMMM Do YYYY, h:mm:ss A')}>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs popreg text-gray-500">
             {dayjs(date).format("MMM D, YYYY")}
             <br />
             {dayjs(date).format("h:mm A")}

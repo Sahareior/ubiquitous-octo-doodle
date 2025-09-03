@@ -10,6 +10,7 @@ import {
 } from "../../../../redux/slices/Apis/vendorsApi";
 import { useLocation } from "react-router-dom";
 import ProductSpecificationFormEdit from "./shared/ProductSpecificationFormEdit";
+import Swal from "sweetalert2";
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -135,6 +136,16 @@ useEffect(() => {
 
 
   const handleImageUpload = (files) => {
+        if(newImages.length>4){
+              Swal.fire({
+          icon: "warning",
+          title: "You Cant upload more then 5 images",
+          text: "Please reduce the number.",
+          confirmButtonColor: "#3085d6",
+        });
+        // setImages([])
+        return
+        }
     const uploadedImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),

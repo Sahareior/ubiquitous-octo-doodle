@@ -51,11 +51,11 @@ const VendorList = () => {
         {/* Left */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           {/* Search Input */}
-          <Input
+          <input
             placeholder="Search Vendor"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full sm:w-[340px] h-10"
+            className="w-full border popreg border-[#D1D5DB] rounded-md px-4 pl-10 h-[45px] placeholder:text-sm focus:outline-none focus:ring-0 focus:border-[#CBA135]"
           />
 
           {/* Status Filter */}

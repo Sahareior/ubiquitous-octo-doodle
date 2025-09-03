@@ -134,7 +134,9 @@ const Details = () => {
 
   const handleChange = (value) => {
     if (value === "new") {
-      navigate("/checkout"); // redirect to checkout
+      navigate("/checkout", {
+        state:{productData:productData}
+      }); // redirect to checkout
     }
   };
 
@@ -219,240 +221,124 @@ const Details = () => {
 
         <div className="w-full max-w-7xl mx-auto rounded-lg">
           {/* Order Form Drawer for Mobile */}
-          <Drawer
-            title="Complete Your Order"
-            placement="bottom"
-            height="90%"
-            onClose={() => setMobileOrderDrawer(false)}
-            open={mobileOrderDrawer}
-            className="lg:hidden"
-          >
-<div className="p-6 h-full overflow-y-auto bg-gray-50 rounded-lg">
-  <Form
-    form={form}
-    layout="vertical"
-    onFinish={handleOrderSubmit}
-    initialValues={{
-      delivery_type: "express",
-      payment_method: "bank",
-    }}
-  >
-    {/* 🏠 Shipping Address */}
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Shipping Address</h3>
-      <Form.Item
-        name="selected_shipping_address_id"
-        rules={[{ required: true, message: "Please select a shipping address" }]}
-      >
-  <Select
-      placeholder="Select a saved address"
-      onChange={handleChange}
-      style={{ width: "100%" }}
+   <Drawer
+  title={
+    <h2 className="text-xl font-bold popmed text-gray-800">
+      Complete Your Order
+    </h2>
+  }
+  placement="bottom"
+  height="80%"
+  onClose={() => setMobileOrderDrawer(false)}
+  open={mobileOrderDrawer}
+  className="lg:hidden popmed"
+  bodyStyle={{ padding: 0 }}
+>
+  <div className="p-6 h-full overflow-y-auto bg-gray-50 rounded-t-2xl">
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleOrderSubmit}
+      initialValues={{
+        delivery_type: "express",
+        payment_method: "bank",
+      }}
     >
-      {sevedAddress?.results?.map((address) => (
-        <Option key={address.id} value={address.id}>
-          {`${address.street_address}, ${address.city}, ${address.zip_code}`}
-        </Option>
-      ))}
-      <Option value="new">➕ Add new address</Option>
-    </Select>
-      </Form.Item>
-    </div>
+      {/* 🏠 Shipping Address */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
+          Shipping Address
+        </h3>
+        <Form.Item
+          name="selected_shipping_address_id"
+          rules={[{ required: true, message: "Please select a shipping address" }]}
+        >
+          <Select
+            placeholder="Select a saved address"
+            onChange={handleChange}
+            style={{ width: "100%" }}
+            className="popreg rounded-lg shadow-sm border border-gray-300 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+          >
+            {sevedAddress?.results?.map((address) => (
+              <Option key={address.id} value={address.id}>
+                {`${address.street_address}, ${address.city}, ${address.zip_code}`}
+              </Option>
+            ))}
+            <Option value="new">➕ Add new address</Option>
+          </Select>
+        </Form.Item>
+      </div>
 
-    {/* 🚚 Delivery Details */}
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Delivery Details</h3>
+      {/* 🚚 Delivery Details */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
+          Delivery Details
+        </h3>
 
-      <Form.Item name="delivery_type" label="Delivery Type">
-        <Radio.Group className="flex gap-6">
-          <Radio value="standard">🚚 Standard</Radio>
-          <Radio value="express">⚡ Express</Radio>
-        </Radio.Group>
-      </Form.Item>
+        <Form.Item name="delivery_type" label="Delivery Type">
+          <Radio.Group className="flex gap-6">
+            <Radio className="popreg" value="standard">🚚 Standard</Radio>
+            <Radio className="popreg" value="express">⚡ Express</Radio>
+            <Radio className="popreg" value="pickup">🚚 Pickup</Radio>
+          </Radio.Group>
+        </Form.Item>
 
-      <Form.Item name="delivery_date" label="Preferred Delivery Date">
-        <DatePicker
-          className="w-full"
-          disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+        <Form.Item name="delivery_date" label="Preferred Delivery Date">
+          <DatePicker
+            className="w-full rounded-lg border border-gray-300 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+            disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+          />
+        </Form.Item>
+      </div>
+
+      {/* 💳 Payment */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
+          Payment Method
+        </h3>
+        <Form.Item
+          name="payment_method"
+          rules={[{ required: true, message: "Please select a payment method" }]}
+        >
+          <Select
+            className="rounded-lg border border-gray-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+          >
+            <Option value="cash">🏦 Cash</Option>
+            <Option value="online">💳 Online</Option>
+          </Select>
+        </Form.Item>
+      </div>
+
+      {/* 📝 Delivery Instructions */}
+      <Form.Item name="delivery_instructions" label="Delivery Instructions (Optional)">
+        <TextArea
+          rows={3}
+          placeholder="Special instructions for delivery"
+          className="rounded-lg border border-gray-300 shadow-sm p-2 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
         />
       </Form.Item>
-    </div>
 
-    {/* 💳 Payment */}
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-2 border-b pb-2">Payment Method</h3>
-      <Form.Item
-        name="payment_method"
-        rules={[{ required: true, message: "Please select a payment method" }]}
-      >
-        <Select>
-          <Option value="bank">🏦 Bank Transfer</Option>
-          <Option value="card">💳 Credit/Debit Card</Option>
-          <Option value="paypal">💲 PayPal</Option>
-        </Select>
-      </Form.Item>
-    </div>
+      {/* Footer Actions */}
+      <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 bg-white p-4 shadow-md rounded-t-lg">
+        <Button
+          onClick={handleOrderCancel}
+          className="h-10 px-6 border border-gray-300 hover:border-red-400 hover:text-red-500 rounded-lg"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="primary"
+          htmlType="submit"
+          className="h-10 px-6 bg-yellow-500 hover:bg-yellow-600 border-yellow-500 text-white shadow-lg rounded-lg"
+        >
+          Place Order
+        </Button>
+      </div>
+    </Form>
+  </div>
+</Drawer>
 
-    {/* 🎁 Promo Code */}
-    <Form.Item name="promo_code" label="Promo Code (Optional)">
-      <Input
-        placeholder="Enter promo code"
-        className="!border !border-gray-300 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-        suffix={<span className="text-green-500 font-medium">✔</span>}
-      />
-    </Form.Item>
 
-    {/* 📝 Delivery Instructions */}
-    <Form.Item name="delivery_instructions" label="Delivery Instructions (Optional)">
-      <TextArea
-        rows={3}
-        placeholder="Special instructions for delivery"
-        className="!border !border-gray-300 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-      />
-    </Form.Item>
-
-    {/* Footer Actions */}
-    <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 bg-white pb-4">
-      <Button
-        onClick={handleOrderCancel}
-        className="h-10 px-6 border-gray-300 hover:border-red-400 hover:text-red-500"
-      >
-        Cancel
-      </Button>
-      <Button
-        type="primary"
-        htmlType="submit"
-        className="h-10 px-6 bg-[#CBA135] hover:bg-[#B58C2D] border-[#CBA135] text-white shadow-md"
-      >
-        Place Order
-      </Button>
-    </div>
-  </Form>
-</div>
-
-          </Drawer>
-
-          {/* Order Form Modal for Desktop */}
-          {orderFormVisible && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 hidden lg:flex">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-                {/* Header */}
-                <div className="flex justify-between items-center border-b px-6 py-4">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Complete Your Order
-                  </h2>
-                  <button
-                    onClick={handleOrderCancel}
-                    className="text-gray-500 hover:text-gray-700 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Body */}
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleOrderSubmit}
-                    initialValues={{
-                      delivery_type: "express",
-                      payment_method: "bank",
-                    }}
-                  >
-                    {/* Form content same as above */}
-                    {/* Shipping Address */}
-                    <Form.Item
-                      name="selected_shipping_address_id"
-                      label="Shipping Address"
-                      rules={[{ required: true, message: "Please select a shipping address" }]}
-                    >
-                      <Select placeholder="Select a saved address">
-                        {sevedAddress?.results?.map((address) => (
-                          <Option key={address.id} value={address.id}>
-                            {`${address.street_address}, ${address.city}, ${address.zip_code}`}
-                          </Option>
-                        ))}
-                        <Option value="new">➕ Add new address</Option>
-                      </Select>
-                    </Form.Item>
-
-                    {/* Delivery Type */}
-                    <Form.Item name="delivery_type" label="Delivery Type">
-                      <Radio.Group className="flex gap-6">
-                        <Radio value="standard">Standard</Radio>
-                        <Radio value="express">Express</Radio>
-                      </Radio.Group>
-                    </Form.Item>
-
-                    {/* Delivery Date */}
-                    <Form.Item name="delivery_date" label="Preferred Delivery Date">
-                      <DatePicker className="w-full" />
-                    </Form.Item>
-
-                    {/* Payment Method */}
-                    <Form.Item
-                      name="payment_method"
-                      label="Payment Method"
-                      rules={[{ required: true, message: "Please select a payment method" }]}
-                    >
-                      <Select>
-                        <Option value="bank">🏦 Bank Transfer</Option>
-                        <Option value="card">💳 Credit/Debit Card</Option>
-                        <Option value="paypal">💲 PayPal</Option>
-                      </Select>
-                    </Form.Item>
-
-                    {/* Promo Code */}
-                    <Form.Item name="promo_code" label="Promo Code (Optional)">
-                      <Input
-                        placeholder="Enter promo code"
-                        className="!border !border-gray-400 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-                      />
-                    </Form.Item>
-
-                    {/* Delivery Instructions */}
-                    <Form.Item
-                      name="delivery_instructions"
-                      label="Delivery Instructions (Optional)"
-                    >
-                      <TextArea
-                        rows={3}
-                        placeholder="Special instructions for delivery"
-                        className="!border !border-gray-400 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-                      />
-                    </Form.Item>
-
-                    {/* Notes */}
-                    <Form.Item name="notes" label="Additional Notes (Optional)">
-                      <TextArea
-                        rows={3}
-                        placeholder="Any additional notes"
-                        className="!border !border-gray-400 !rounded-lg !p-2 focus:!border-blue-500 focus:!shadow-md"
-                      />
-                    </Form.Item>
-
-                    {/* Footer Actions */}
-                    <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-                      <Button
-                        onClick={handleOrderCancel}
-                        className="h-10 px-6 border-gray-300 hover:border-gray-400"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        className="h-10 px-6 bg-[#CBA135] hover:bg-[#B58C2D] border-[#CBA135] text-white"
-                      >
-                        Place Order
-                      </Button>
-                    </div>
-                  </Form>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Main Product Section */}
           <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 lg:p-8 mb-6 md:mb-8">
@@ -499,7 +385,7 @@ const Details = () => {
                   </h3>
                   <div className="flex items-center mt-4 md:mt-6 gap-2">
                     <Rate
-                      defaultValue={productData.average_rating}
+                      defaultValue={productData?.average_rating}
                       disabled
                       className="text-yellow-500 text-xs md:text-sm"
                     />

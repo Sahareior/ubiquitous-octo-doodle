@@ -1,65 +1,66 @@
-import React from "react";
-
-import { Button, Select } from "antd";
+import React, { useState, useMemo } from "react";
+import { Select } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
-import { useGetAllProductsQuery, useVendorAcceptProductMutation } from "../../../../redux/slices/Apis/dashboardApis";
-import SellersTable from "./_components/SellersTable";
 
+import SellersTable from "./_components/SellersTable";
+import { useBulkSellerApplicationsUpdateMutation, useGetAllSellerApplicationQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 const { Option } = Select;
 
 const SellerApplications = () => {
-  const { data: products } = useGetAllProductsQuery();
-  const [acceptProduct, { isLoading }] = useVendorAcceptProductMutation();
+  const { data: applicants, isLoading } = useGetAllSellerApplicationQuery();
+  const [bulkSellerApplicationsUpdate] = useBulkSellerApplicationsUpdateMutation()
 
+  // filter states
+  const [searchName, setSearchName] = useState("");
+  const [jobTitle, setJobTitle] = useState(null);
+  const [status, setStatus] = useState(null);
 
-  const handleAccept = async () => {
-    try {
-      const res = await acceptProduct(12).unwrap(); // 12 = product ID
-      console.log("Product accepted:", res);
-    } catch (err) {
-      console.error("Error accepting product:", err);
-    }
-  };
+  // filter logic
+  const filteredApplicants = useMemo(() => {
+    if (!applicants?.results) return [];
 
-  console.log("products", products);
+    return applicants.results.filter((applicant) => {
+      const matchesName = searchName
+        ? applicant.legal_business_name
+            .toLowerCase()
+            .includes(searchName.toLowerCase())
+        : true;
+
+      const matchesJob = jobTitle ? applicant.job_title === jobTitle : true;
+
+      const matchesStatus = status
+        ? applicant.status.toLowerCase() === status.toLowerCase()
+        : true;
+
+      return matchesName && matchesJob && matchesStatus;
+    });
+  }, [applicants, searchName, jobTitle, status]);
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-center pt-4">
-        <p className="text-[34px] popbold">Products List</p>
-        <div className="flex gap-4">
-          <Link to="admin-overview/addproducts">
-            <button className="bg-[#CBA135] popmed flex justify-end py-3 px-5 rounded-md text-end items-center gap-3 text-white">
-              <FaPlus /> Add New Products
-            </button>
-          </Link>
-          <Button onClick={handleAccept} loading={isLoading}>
-            Accept Product
-          </Button>
-        </div>
-      </div>
-
-      {/* Form Filters */}
+      {/* Filters */}
       <div className="grid grid-cols-1 p-6 bg-white items-center rounded-md md:grid-cols-3 gap-5">
-        {/* First Name */}
+        {/* Business Name Search */}
         <div>
           <input
             type="text"
-            placeholder="Enter First Name"
+            placeholder="Enter Business Name"
             className="w-full border border-gray-300 rounded-xl px-4 py-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
           />
         </div>
 
         {/* Job Title */}
         <div>
           <Select
-            placeholder="Select Your Role"
+            placeholder="Select Job Title"
             className="w-full"
             size="large"
-            defaultValue="Categories"
+            allowClear
+            onChange={(val) => setJobTitle(val)}
           >
             <Option value="owner">Owner</Option>
             <Option value="manager">Manager</Option>
@@ -67,29 +68,25 @@ const SellerApplications = () => {
           </Select>
         </div>
 
-        {/* Department */}
+        {/* Status */}
         <div>
           <Select
-            placeholder="Select Department"
+            placeholder="Select Status"
             className="w-full"
             size="large"
-            defaultValue="All"
+            allowClear
+            onChange={(val) => setStatus(val)}
           >
-            <Option value="All">All</Option>
-            <Option value="None">None</Option>
-            <Option value="In Stock">In Stock</Option>
-            <Option value="Out of stock">Out of stock</Option>
-            <Option value="Low stock">Low stock</Option>
-            <Option value="Approve">Approve</Option>
-            <Option value="Reject">Reject</Option>
-            <Option value="Pending">Pending</Option>
+            <Option value="approved">Approved</Option>
+            <Option value="rejected">Rejected</Option>
+            <Option value="pending">Pending</Option>
           </Select>
         </div>
       </div>
 
-      {/* Product Table Section */}
+      {/* Sellers Table */}
       <div>
-        <SellersTable products={products} />
+        <SellersTable applicants={filteredApplicants} loading={isLoading} />
       </div>
     </div>
   );

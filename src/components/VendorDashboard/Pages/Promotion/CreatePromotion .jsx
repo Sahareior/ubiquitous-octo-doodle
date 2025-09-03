@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FiSearch, FiX } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   useCreatePromotionMutation,
   useEditPromotionMutation,
@@ -13,8 +15,8 @@ const CreatePromotion = () => {
   const [name, setName] = useState("");
   const [discountType, setDiscountType] = useState("percentage");
   const [discountValue, setDiscountValue] = useState("");
-  const [startDateTime, setStartDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
+  const [startDateTime, setStartDateTime] = useState(null);
+  const [endDateTime, setEndDateTime] = useState(null);
   const [description, setDescription] = useState("");
   const [isActive] = useState(true);
 
@@ -25,8 +27,8 @@ const CreatePromotion = () => {
 
   const location = useLocation();
   const [createPromotion] = useCreatePromotionMutation();
-    const { data,refetch } = useGetPromotionQuery();
-  const [editPromotion] = useEditPromotionMutation()
+  const { data, refetch } = useGetPromotionQuery();
+  const [editPromotion] = useEditPromotionMutation();
   const { data: productsData, isLoading, error } = useGetAllProductsQuery();
 
   // Prefill form if location.state exists
@@ -36,11 +38,13 @@ const CreatePromotion = () => {
       setName(promo.name || "");
       setDiscountType(promo.discount_type || "percentage");
       setDiscountValue(promo.discount_value || "");
+      
+      // Set dates using Date objects
       setStartDateTime(
-        promo.start_datetime ? promo.start_datetime.slice(0, 16) : ""
-      ); // ✅ format datetime-local
+        promo.start_datetime ? new Date(promo.start_datetime) : null
+      );
       setEndDateTime(
-        promo.end_datetime ? promo.end_datetime.slice(0, 16) : ""
+        promo.end_datetime ? new Date(promo.end_datetime) : null
       );
       setDescription(promo.description || "");
     }
@@ -78,64 +82,95 @@ const CreatePromotion = () => {
     setSelectedProducts(selectedProducts.filter((p) => p.prod_id !== prodId));
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    // Validate dates
+    if (!startDateTime || !endDateTime) {
+      Swal.fire({
+        icon: "error",
+        title: "Missing Dates",
+        text: "Please select both start and end dates",
+        confirmButtonColor: "#CBA135",
+      });
+      return;
+    }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+    if (startDateTime >= endDateTime) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Dates",
+        text: "End date must be after start date",
+        confirmButtonColor: "#CBA135",
+      });
+      return;
+    }
 
-  const payload = {
-    name,
-    discount_type: discountType,
-    discount_value: discountValue,
-    products: selectedProducts.map((p) => p.id),
-    start_datetime: new Date(startDateTime).toISOString(),
-    end_datetime: new Date(endDateTime).toISOString(),
-    description,
-    is_active: isActive,
+    const payload = {
+      name,
+      discount_type: discountType,
+      discount_value: discountValue,
+      products: selectedProducts.map((p) => p.id),
+      start_datetime: startDateTime.toISOString(),
+      end_datetime: endDateTime.toISOString(),
+      description,
+      is_active: isActive,
+    };
+
+    try {
+      if (location.state) {
+        // Edit promotion
+        await editPromotion({ id: location.state.id, payload }).unwrap();
+        Swal.fire({
+          icon: "success",
+          title: "Promotion Updated!",
+          text: "The promotion has been successfully updated.",
+          confirmButtonColor: "#CBA135",
+        });
+        refetch();
+      } else {
+        // Create promotion
+        await createPromotion(payload).unwrap();
+        Swal.fire({
+          icon: "success",
+          title: "Promotion Created!",
+          text: "Your promotion has been successfully created.",
+          confirmButtonColor: "#CBA135",
+        });
+
+        // Reset form after creation
+        setName("");
+        setDiscountType("percentage");
+        setDiscountValue("");
+        setStartDateTime(null);
+        setEndDateTime(null);
+        setDescription("");
+        setSelectedProducts([]);
+        setSearchQuery("");
+        refetch();
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong. Please try again.",
+        confirmButtonColor: "#CBA135",
+      });
+    }
   };
 
-  try {
-    if (location.state) {
-      // Edit promotion
-      await editPromotion({ id: location.state.id, payload }).unwrap();
-      Swal.fire({
-        icon: "success",
-        title: "Promotion Updated!",
-        text: "The promotion has been successfully updated.",
-        confirmButtonColor: "#CBA135",
-      });
-      refetch()
-    } else {
-      // Create promotion
-      await createPromotion(payload).unwrap();
-      Swal.fire({
-        icon: "success",
-        title: "Promotion Created!",
-        text: "Your promotion has been successfully created.",
-        confirmButtonColor: "#CBA135",
-      });
-
-      // Reset form after creation
-      setName("");
-      setDiscountType("percentage");
-      setDiscountValue("");
-      setStartDateTime("");
-      setEndDateTime("");
-      setDescription("");
-      setSelectedProducts([]);
-      setSearchQuery("");
-      refetch()
-    }
-  } catch (err) {
-    console.error("Error:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "Something went wrong. Please try again.",
-      confirmButtonColor: "#CBA135",
-    });
-  }
-};
+  // Custom input component for DatePicker to match your styling
+  const CustomInput = React.forwardRef(({ value, onClick }, ref) => (
+    <input
+      className="w-[400px] border rounded-md px-3 py-2"
+      onClick={onClick}
+      ref={ref}
+      value={value}
+      readOnly
+      placeholder="Select date and time"
+    />
+  ));
 
   if (isLoading) return <p>Loading products...</p>;
   if (error) return <p>Error loading products</p>;
@@ -294,30 +329,48 @@ const handleSubmit = async (e) => {
           </div>
         </div>
 
-        {/* Date pickers */}
+        {/* Date pickers - Improved with React DatePicker */}
         <div className="flex gap-4">
-          <div className="flex-1">
+          <div className="">
             <label className="block popmed text-[14px] mb-1">
               Start Date & Time *
             </label>
-            <input
-              type="datetime-local"
-              value={startDateTime}
-              onChange={(e) => setStartDateTime(e.target.value)}
-              className="w-full border rounded-md px-3 py-2"
-              required
+            <DatePicker
+              selected={startDateTime}
+              onChange={(date) => setStartDateTime(date)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Time"
+              dateFormat="MMMM d, yyyy h:mm aa"
+              placeholderText="Select start date and time"
+              customInput={<CustomInput />}
+              isClearable
+              selectsStart
+              startDate={startDateTime}
+              endDate={endDateTime}
+              minDate={new Date()}
             />
           </div>
-          <div className="flex-1">
+          <div className="">
             <label className="block popmed text-[14px] mb-1">
               End Date & Time *
             </label>
-            <input
-              type="datetime-local"
-              value={endDateTime}
-              onChange={(e) => setEndDateTime(e.target.value)}
-              className="w-full border rounded-md px-3 py-2"
-              required
+            <DatePicker
+              selected={endDateTime}
+              onChange={(date) => setEndDateTime(date)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Time"
+              dateFormat="MMMM d, yyyy h:mm aa"
+              placeholderText="Select end date and time"
+              customInput={<CustomInput />}
+              isClearable
+              selectsEnd
+              startDate={startDateTime}
+              endDate={endDateTime}
+              minDate={startDateTime || new Date()}
             />
           </div>
         </div>
