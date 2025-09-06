@@ -6,10 +6,10 @@ import { RxExit } from 'react-icons/rx';
 import { useEffect, useRef, useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
-import { useGetCustomerProductsQuery, useGetProfileQuery } from '../../../redux/slices/Apis/customersApi';
+import { useGetAllWishListQuery, useGetCustomerProductsQuery, useGetProfileQuery } from '../../../redux/slices/Apis/customersApi';
 import Swal from 'sweetalert2'; // Import SweetAlert2
 
-const CustomersNavbar = () => {
+const CustomersNavbar = ({ cartCount }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -22,6 +22,7 @@ const CustomersNavbar = () => {
   const navigate = useNavigate();
   const { data: allCategories } = useGetCategoriesQuery();
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
+   const { data: wishLists,  isError } = useGetAllWishListQuery();
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'));
   const isAdmin = userInfo?.user?.email === 'admin@gmail.com' || userInfo?.user?.role === 'admin'|| userInfo?.user?.role === 'Admin';
@@ -239,12 +240,26 @@ const CustomersNavbar = () => {
             </Link>
           ) : (
             <>
-              <Link to="wishlist" className="p-2">
-                <FaRegHeart size={22} className="cursor-pointer hover:text-red-500 transition" />
-              </Link>
-              <Link to="cart" className="p-2">
-                <FaCartShopping size={20} className="cursor-pointer hover:text-[#CBA135] transition" />
-              </Link>
+       {/* Wishlist Icon with Count */}
+<Link to="wishlist" className="relative p-2">
+  <FaRegHeart size={22} className="cursor-pointer hover:text-red-500 transition" />
+  {wishLists?.count > 0 && (
+ <span className="absolute -top-1 -right-1 bg-[#CBA135] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+      {wishLists.count}
+    </span>
+  )}
+</Link>
+
+{/* Cart Icon with Count */}
+<Link to="cart" className="relative p-2">
+  <FaCartShopping size={20} className="cursor-pointer hover:text-[#CBA135] transition" />
+  {cartCount > 0 && (
+    <span className="absolute -top-1 -right-1 bg-[#CBA135] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+      {cartCount}
+    </span>
+  )}
+</Link>
+
             </>
           )}
 

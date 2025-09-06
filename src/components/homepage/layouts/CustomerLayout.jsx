@@ -11,17 +11,20 @@ import Footer from '../_components/Footer';
 import CustomersNavbar from '../customersHomepage/CustomersNavbar';
 import FloatingChat from '../../others/FolatingChat/FloatingChat';
 import Banner from '../customersHomepage/Banner';
+import { useGetAppCartQuery } from '../../../redux/slices/Apis/customersApi';
 
 const CustomerLayout = () => {
   const location = useLocation();
-  
+  const { data: cartData, refetch } = useGetAppCartQuery();
+
+  console.log('Cart Data:', cartData?.count); // Debugging line to check cart data
 
   // ✅ Only show homepage sections on "/"
   const isHomePage = location.pathname === '/';
 
   return (
     <div className='relative'>
-      <CustomersNavbar />
+      <CustomersNavbar cartCount={cartData?.count} />
 
       {isHomePage && (
         <>

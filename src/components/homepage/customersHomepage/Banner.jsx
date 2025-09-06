@@ -94,7 +94,7 @@ const Banner = () => {
   const currentBanner = banners.results[currentIndex];
 
   return (
-    <div className="relative w-full h-64 md:h-[40rem] my-5 overflow-hidden rounded-xl shadow-2xl group">
+    <div className="relative w-full h-64 md:h-[30rem]  overflow-hidden  shadow-2xl group">
       {/* Banner Image with Link - Using fade animation */}
       <a 
         href={currentBanner.link} 

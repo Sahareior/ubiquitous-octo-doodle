@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; 
 import { useLocation, Link } from 'react-router-dom';
 import Breadcrumb from '../others/Breadcrumb';
 import { MdOutlineDone } from 'react-icons/md';
@@ -7,10 +7,13 @@ import { BiCopy } from "react-icons/bi";
 import { FaArrowDownLong } from 'react-icons/fa6';
 import CustomModal from './modal/CustomModal';
 import { useGetReceptQuery } from '../../redux/slices/Apis/customersApi';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const ConfirmationPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const pdfRef = useRef();
 
   const location = useLocation();
 
@@ -25,10 +28,50 @@ const ConfirmationPage = () => {
     skip: !orderId,
   });
 
-  console.log('this is order id', orderId)
-
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const downloadPdf = () => {
+    const input = pdfRef.current;
+    
+    // Hide elements that shouldn't be in the PDF
+    const elementsToHide = input.querySelectorAll('.no-print');
+    elementsToHide.forEach(el => {
+      el.style.visibility = 'hidden';
+    });
+    
+    html2canvas(input, {
+      scale: 2, // Higher quality
+      useCORS: true,
+      logging: false,
+    }).then((canvas) => {
+      // Restore hidden elements
+      elementsToHide.forEach(el => {
+        el.style.visibility = 'visible';
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add more pages if the content is too long
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`order-confirmation-${orderRecipt.order_id}.pdf`);
+    });
   };
 
   if (isLoading || !orderRecipt) {
@@ -40,7 +83,7 @@ const ConfirmationPage = () => {
       <div className='mx-40 pb-10'>
         <Breadcrumb />
         <div className='max-w-6xl bg-white mx-auto px-4'>
-          <div className='max-w-3xl mx-auto rounded-2xl p-8 mt-6'>
+          <div ref={pdfRef} className='max-w-3xl mx-auto rounded-2xl p-8 mt-6'>
             
             {/* Success Message */}
             <div className='flex flex-col items-center justify-center gap-3 mb-6'>
@@ -66,7 +109,7 @@ const ConfirmationPage = () => {
                   #{orderRecipt.order_id}
                   <BiCopy
                     onClick={() => handleCopy(orderRecipt.order_id)}
-                    className='cursor-pointer'
+                    className='cursor-pointer no-print' // Hide from PDF
                     size={18}
                   />
                 </span>
@@ -137,8 +180,11 @@ const ConfirmationPage = () => {
             </div>
 
             {/* Actions */}
-            <div className='mt-14 flex flex-col justify-center items-center gap-4'>
-              <p className='flex items-center gap-1 text-[#CBA135] text-[16px] cursor-pointer'>
+            <div className='mt-14 flex flex-col justify-center items-center gap-4 no-print'>
+              <p 
+                onClick={downloadPdf}
+                className='flex items-center gap-1 text-[#CBA135] text-[16px] cursor-pointer'
+              >
                 <FaArrowDownLong /> Download
               </p>
               <button

@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Modal, Button } from 'antd';
 import { FaEdit, FaTrash, FaDownload, FaUser, FaStore, FaMoneyBill, FaTruck, FaCalendar, FaFileInvoice, FaMapMarkerAlt, FaPhone, FaEnvelope, FaHome, FaCity } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
+  const invoiceRef = useRef();
+  
   const handleCancel = () => {
     setIsModalOpen(false);
   };
@@ -23,6 +27,38 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
     return `$${parseFloat(amount).toFixed(2)}`;
   };
 
+  // Download PDF function
+  const downloadPDF = () => {
+    const input = invoiceRef.current;
+    
+    html2canvas(input, {
+      scale: 2, // Higher quality
+      useCORS: true,
+      logging: false,
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add more pages if the content is too long
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`invoice-${orderDetails.order_id}.pdf`);
+    });
+  };
+
   if (!orderDetails) return null;
 
   return (
@@ -35,7 +71,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
         closable={false}
         className="rounded-lg"
       >
-        <div className="p-6 space-y-6">
+        <div ref={invoiceRef} className="p-6 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-2xl popbold">Order Details – #{orderDetails.order_id}</h2>
@@ -43,7 +79,6 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
           <hr />
           
           <div className="space-x-2 flex justify-end">
-
             <p className='flex items-center gap-2 p-2 bg-[#F87171] px-2 text-sm rounded-md text-white'>
               <FaTrash /> Delete
             </p>
@@ -57,59 +92,59 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
                 <span className="popmed text-sm text-[#666666] flex items-center gap-1">
                   <FaUser size={12} /> Customer Name:
                 </span>
-                {orderDetails.customer.first_name} {orderDetails.customer.last_name}
+                {orderDetails?.customer?.first_name} {orderDetails?.customer?.last_name}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Email:</span>
-                {orderDetails.customer.email}
+                {orderDetails?.customer?.email}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666] flex items-center gap-1">
                   <FaStore size={12} /> Vendor:
                 </span>
-                {orderDetails.vendor.email}
+                {orderDetails?.vendor?.email}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666] flex items-center gap-1">
                   <FaCalendar size={12} /> Order Date:
                 </span>
-                {formatDate(orderDetails.order_date)}
+                {formatDate(orderDetails?.order_date)}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Order Status:</span>
                 <span className={`px-2 py-1 w-24 rounded-full text-xs ${
-                  orderDetails.order_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  orderDetails.order_status === 'completed' ? 'bg-green-100 text-green-800' :
+                  orderDetails?.order_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  orderDetails?.order_status === 'completed' ? 'bg-green-100 text-green-800' :
                   'bg-blue-100 text-blue-800'
                 }`}>
-                  {orderDetails.order_status_display}
+                  {orderDetails?.order_status_display}
                 </span>
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666] flex items-center gap-1">
                   <FaMoneyBill size={12} /> Payment Method:
                 </span>
-                {orderDetails.payment_method === 'mobile' ? 'Mobile Banking' : orderDetails.payment_method}
+                {orderDetails?.payment_method === 'mobile' ? 'Mobile Banking' : orderDetails?.payment_method}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Payment Status:</span>
                 <span className={`px-2 py-1 w-24 rounded-full text-xs ${
-                  orderDetails.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  orderDetails.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                  orderDetails?.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  orderDetails?.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
                   'bg-red-100 text-red-800'
                 }`}>
-                  {orderDetails.payment_status_display}
+                  {orderDetails?.payment_status_display}
                 </span>
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666] flex items-center gap-1">
                   <FaTruck size={12} /> Delivery Type:
                 </span>
-                {orderDetails.delivery_type_display}
+                {orderDetails?.delivery_type_display}
               </p>
               <p className='flex flex-col gap-2 text-[16px] popreg text-[#333333]'>
                 <span className="popmed text-sm text-[#666666]">Items:</span>
-                {orderDetails.item_count} items
+                {orderDetails?.item_count} items
               </p>
             </div>
             <div className='h-[0.8px] w-full bg-slate-300 my-6' />
@@ -117,17 +152,17 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
               <div>
                 <p className="flex justify-between mb-1">
                   <span>Subtotal:</span>
-                  <span>{formatCurrency(orderDetails.subtotal)}</span>
+                  <span>{formatCurrency(orderDetails?.subtotal)}</span>
                 </p>
                 {orderDetails.discount_amount !== "0.00" && (
                   <p className="flex justify-between mb-1 text-red-500">
                     <span>Discount:</span>
-                    <span>-{formatCurrency(orderDetails.discount_amount)}</span>
+                    <span>-{formatCurrency(orderDetails?.discount_amount)}</span>
                   </p>
                 )}
                 <p className="flex justify-between mb-1">
                   <span>Tax:</span>
-                  <span>{formatCurrency(orderDetails.tax_amount)}</span>
+                  <span>{formatCurrency(orderDetails?.tax_amount)}</span>
                 </p>
                 <p className="flex justify-between mb-1">
                   <span>Delivery Fee:</span>
@@ -137,7 +172,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
               <div className="text-right flex flex-col justify-end">
                 <div className="text-lg text-[#666666] popbold flex justify-between items-center">
                   <span>Total:</span>
-                  <span className='text-yellow-500 text-2xl'>{formatCurrency(orderDetails.total_amount)}</span>
+                  <span className='text-yellow-500 text-2xl'>{formatCurrency(orderDetails?.total_amount)}</span>
                 </div>
               </div>
             </div>
@@ -153,22 +188,22 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
               <p className="col-span-2 text-right">Subtotal</p>
             </div>
             {orderDetails.items.map((item) => (
-              <div key={item.id} className="grid grid-cols-12 gap-x-4 items-center mt-4 py-2 text-[16px] popmed border-b last:border-b-0">
+              <div key={item?.id} className="grid grid-cols-12 gap-x-4 items-center mt-4 py-2 text-[16px] popmed border-b last:border-b-0">
                 <div className="col-span-6 flex items-center gap-3">
                   <img 
-                    src={item.product.images[0]?.image || "https://via.placeholder.com/50"} 
-                    alt={item.product.name} 
+                    src={item?.product?.images[0]?.image || "https://via.placeholder.com/50"} 
+                    alt={item?.product?.name} 
                     className="w-12 h-12 rounded object-cover" 
                   />
                   <div>
-                    <span className="block">{item.product.name}</span>
-                    <span className="text-sm text-gray-500">SKU: {item.product.sku}</span>
+                    <span className="block">{item?.product?.name}</span>
+                    <span className="text-sm text-gray-500">SKU: {item?.product?.sku}</span>
                   </div>
                 </div>
-                <p className="col-span-2 text-center">{item.quantity}</p>
-                <p className="col-span-2 text-right">{formatCurrency(item.price)}</p>
+                <p className="col-span-2 text-center">{item?.quantity}</p>
+                <p className="col-span-2 text-right">{formatCurrency(item?.price)}</p>
                 <p className="col-span-2 text-right">
-                  {formatCurrency(parseFloat(item.price) * item.quantity)}
+                  {formatCurrency(parseFloat(item?.price) * item?.quantity)}
                 </p>
               </div>
             ))}
@@ -294,6 +329,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
             <Button 
               type="link" 
               className="text-yellow-500 font-medium flex items-center gap-2 mx-auto"
+              onClick={downloadPDF}
             >
               <FaDownload /> Download Invoice
             </Button>

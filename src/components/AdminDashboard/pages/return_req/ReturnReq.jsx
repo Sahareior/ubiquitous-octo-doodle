@@ -17,7 +17,6 @@ const ReturnReq = () => {
           Return Requests
         </h2>
 
-    <Button className='bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5'><FaDownload /> Vendor Data</Button>
       </div>
 
      

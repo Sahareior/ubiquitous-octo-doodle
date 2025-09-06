@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { Button, Input, Select } from "antd";
+import { Button, Select } from "antd";
 import { FaChevronDown, FaDownload } from "react-icons/fa";
 import { useGetAllVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import VendorTable from "./VendorTable";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
@@ -19,8 +20,8 @@ const VendorList = () => {
 
     return vendors.results.filter((vendor) => {
       const matchesSearch =
-        vendor.vendor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vendor.user_id.toLowerCase().includes(searchTerm.toLowerCase());
+        vendor.vendor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendor.user_id?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
         statusFilter === "All"
@@ -33,6 +34,47 @@ const VendorList = () => {
     });
   }, [vendors, searchTerm, statusFilter]);
 
+  // ✅ Export CSV function
+  const handleExportVendors = () => {
+    if (!filteredVendors.length) {
+      alert("No vendor data available to export!");
+      return;
+    }
+
+    // Define CSV headers
+    const headers = [
+      "Vendor ID",
+      "Vendor Name",
+      "User ID",
+      "Approval Status",
+      "Created Date"
+    ];
+
+    // Map vendor data
+    const rows = filteredVendors.map((vendor) => [
+      vendor.id,
+      vendor.vendor_name,
+      vendor.user_id,
+      vendor.approval_status ? "Active" : "Inactive",
+      vendor.created_at ? dayjs(vendor.created_at).format("YYYY-MM-DD") : ""
+    ]);
+
+    // Convert to CSV string
+    const csvContent =
+      [headers, ...rows].map((row) => row.map((val) => `"${val || ""}"`).join(",")).join("\n");
+
+    // Create Blob and trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `vendors_${dayjs().format("YYYY-MM-DD")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -41,7 +83,10 @@ const VendorList = () => {
           Vendor list
         </h2>
 
-        <Button className="bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5">
+        <Button
+          onClick={handleExportVendors}
+          className="bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5"
+        >
           <FaDownload /> Vendor Data
         </Button>
       </div>
