@@ -226,6 +226,14 @@ export const customersApi = createApi({
       })
     }),
 
+    shippingAddressDelete: build.mutation({
+      query: (id) => ({
+        url: `shipping-addresses/${id}/`,
+        method: "DELETE"
+      })
+    }),
+    
+
     getAddress: build.query({
       query: () => 'shipping-addresses/'
     })
@@ -238,6 +246,7 @@ export const customersApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useSetNewpasswordMutation,
+  useShippingAddressDeleteMutation,
   useVerifyOtpMutation,
   useForgetPassRequestMutation,
   useGetDeleveredOrdersQuery,

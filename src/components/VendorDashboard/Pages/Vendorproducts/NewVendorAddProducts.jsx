@@ -62,8 +62,6 @@ const [formData, setFormData] = useState({
   price3: "",
   sku: "",
   stock_quantity: "",
-  colors: [],
-  sizes: [],
   is_stock: true,   // ✅ toggle for stock
   home_delivery: false,
   pickup: false,
@@ -89,16 +87,15 @@ const [formData, setFormData] = useState({
 
 
   const handleImageUpload = (files) => {
-    if(images.length>4){
-          Swal.fire({
-      icon: "warning",
-      title: "You Cant upload more then 5 images",
-      text: "Please reduce the number.",
+    if (images.length + files.length > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "You can’t upload more than 5 images",
+        text: `You can only add ${5 - images.length} more image(s).`,
       confirmButtonColor: "#3085d6",
     });
-    // setImages([])
-    return
-    }
+    return;
+  }
     const newImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file)
@@ -192,17 +189,30 @@ const handleSubmit = async () => {
   formDataToSend.append("specifications", JSON.stringify(specifications));
 
   // Append other fields
+  // Object.keys(restFormData).forEach((key) => {
+  //   if (Array.isArray(restFormData[key])) {
+  //     restFormData[key].forEach((value) => {
+  //       formDataToSend.append(key, value);
+  //     });
+  //   } else if (typeof restFormData[key] === "boolean") {
+  //     formDataToSend.append(key, restFormData[key].toString());
+  //   } else {
+  //     formDataToSend.append(key, restFormData[key]);
+  //   }
+  // });
+
   Object.keys(restFormData).forEach((key) => {
-    if (Array.isArray(restFormData[key])) {
-      restFormData[key].forEach((value) => {
-        formDataToSend.append(key, value);
-      });
-    } else if (typeof restFormData[key] === "boolean") {
-      formDataToSend.append(key, restFormData[key].toString());
-    } else {
-      formDataToSend.append(key, restFormData[key]);
-    }
-  });
+  if (Array.isArray(restFormData[key])) {
+    restFormData[key].forEach((value) => {
+      formDataToSend.append(`${key}[]`, value); // append as array
+    });
+  } else if (typeof restFormData[key] === "boolean") {
+    formDataToSend.append(key, restFormData[key].toString());
+  } else {
+    formDataToSend.append(key, restFormData[key]);
+  }
+});
+
 
 
   // Append specifications as JSON
@@ -408,39 +418,8 @@ const handleSubmit = async () => {
       placeholder="0" 
     />
 
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Colors</label>
-      <Select
-        mode="multiple"
-        placeholder="Select colors"
-        value={formData.colors}
-        onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
-        options={[
-          { value: 'red', label: 'Red' },
-          { value: 'blue', label: 'Blue' },
-          { value: 'green', label: 'Green' },
-          { value: 'black', label: 'Black' },
-          { value: 'white', label: 'White' },
-        ]}
-      />
-    </div>
 
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Sizes</label>
-      <Select
-        mode="multiple"
-        placeholder="Select sizes"
-        value={formData.sizes}
-        onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
-        options={[
-          { value: 's', label: 'S' },
-          { value: 'm', label: 'M' },
-          { value: 'l', label: 'L' },
-          { value: 'xl', label: 'XL' },
-          { value: 'xxl', label: 'XXL' },
-        ]}
-      />
-    </div>
+
   </div>
 
   {/* ✅ Toggle for is_stock */}

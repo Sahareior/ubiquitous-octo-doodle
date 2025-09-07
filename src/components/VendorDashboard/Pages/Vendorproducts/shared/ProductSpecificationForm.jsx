@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { Select } from "antd";
 
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
   <div className="flex flex-col gap-1">
@@ -14,7 +15,7 @@ const InputField = ({ label, name, placeholder, type = "text", value, onChange }
   </div>
 );
 
-const ProductSpecificationForm = ({formData,setFormData}) => {
+const ProductSpecificationForm = ({ formData, setFormData }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +25,8 @@ const ProductSpecificationForm = ({formData,setFormData}) => {
     }));
   };
 
+  // Color options for select
+  const colorOptions = ["Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray"];
 
   return (
     <form className="bg-white p-6 rounded-2xl shadow-md space-y-4">
@@ -37,12 +40,12 @@ const ProductSpecificationForm = ({formData,setFormData}) => {
           value={formData.dimensions}
           onChange={handleChange}
         />
-<InputField
-  label="Assembly Required"
-  name="assembly_required"
-  value={formData.assembly_required}
-  onChange={handleChange}
-/>
+        <InputField
+          label="Assembly Required"
+          name="assembly_required"
+          value={formData.assembly_required}
+          onChange={handleChange}
+        />
         <InputField
           label="Material"
           name="material"
@@ -57,19 +60,31 @@ const ProductSpecificationForm = ({formData,setFormData}) => {
           value={formData.warranty}
           onChange={handleChange}
         />
+
+        {/* 🔹 Replace InputField with Select for Colors */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Color(s)</label>
+          <Select
+            mode="multiple"
+            placeholder="Select color(s)"
+            value={formData.color ? formData.color.split(', ') : []}
+            onChange={(values) =>
+              setFormData(prev => ({
+                ...prev,
+                color: values.join(', ') // store as single string
+              }))
+            }
+            options={colorOptions.map(color => ({ label: color, value: color }))}
+            style={{ width: "100%" }}
+          />
+        </div>
+
         <InputField
-          label="Color"
-          name="color"
-          placeholder="e.g. Navy Blue"
-          value={formData.color}
+          label="Care Instructions"
+          name="care_instructions"
+          value={formData.care_instructions}
           onChange={handleChange}
         />
-<InputField
-  label="Care Instructions"
-  name="care_instructions"
-  value={formData.care_instructions}
-  onChange={handleChange}
-/>
         <InputField
           label="Weight"
           name="weight"
@@ -77,16 +92,13 @@ const ProductSpecificationForm = ({formData,setFormData}) => {
           value={formData.weight}
           onChange={handleChange}
         />
-<InputField
-  label="Country of Origin"
-  name="country_of_origin"
-  value={formData.country_of_origin}
-  onChange={handleChange}
-/>
-
+        <InputField
+          label="Country of Origin"
+          name="country_of_origin"
+          value={formData.country_of_origin}
+          onChange={handleChange}
+        />
       </div>
-
-
     </form>
   );
 };

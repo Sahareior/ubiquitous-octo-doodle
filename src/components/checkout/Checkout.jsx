@@ -15,6 +15,7 @@ const Checkout = () => {
   const location = useLocation()
 
   const isDetails = location.state?.productData ? true : false;
+  
 
 
 const onFinish = async (values) => {
@@ -156,70 +157,7 @@ const onFinish = async (values) => {
         </Form.Item>
       </Form>
     </div>
-{
-  !isDetails && (
-        <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
-  <h3 className="text-lg popbold font-semibold mb-4">Order Summary</h3>
-
-  {/* Order Items */}
-  <div className="space-y-4">
-    {[1, 2, 3].map((item, idx) => (
-      <div key={idx} className="flex justify-between gap-4">
-        <div className="flex gap-4">
-          <img src="/image/featured/img1.png" alt="Sofa" className="w-16 h-16 object-cover rounded-md" />
-          <div>
-            <h4 className="text-sm popmed">Luxury Velvet Sectional Sofa</h4>
-            <p className="text-xs popreg text-gray-500">by Elegant Furniture Co.</p>
-            <p className="text-xs popreg text-gray-500">Qty: 1</p>
-          </div>
-        </div>
-        <p className="text-sm popreg text-[#666666] font-semibold text-right">$3000.00</p>
-      </div>
-    ))}
-  </div>
-
-  {/* Price Summary */}
-  <div className="border-t border-gray-300 popreg mt-6 pt-4 space-y-2 text-sm text-gray-700">
-    <div className="flex justify-between">
-      <span>Subtotal (3 items)</span>
-      <span>$7000.00</span>
-    </div>
-    <div className="flex justify-between">
-      <span>Delivery fee</span>
-      <span>$80.00</span>
-    </div>
-    <div className="flex justify-between">
-      <span>Tax</span>
-      <span>$50.00</span>
-    </div>
-    <div className="flex justify-between">
-      <span>Total Discount</span>
-      <span className="text-green-600">-$100.00</span>
-    </div>
-  </div>
-<div className='h-[0.8px] mt-2 bg-black w-full' />
-  {/* Total */}
-  <hr />
-  <div className="flex justify-between items-center mt-4">
-    <h4 className="text-base popbold font-semibold">Total</h4>
-    <h4 className="text-xl font-bold text-[#CBA135]">$7030.00</h4>
-  </div>
-
-  {/* Place Order Button */}
-<Link >
-  <button className="w-full bg-[#CBA135] popbold text-white font-semibold text-sm py-3 mt-5 rounded-md hover:bg-yellow-600">
-    Place Order
-  </button>
-</Link>
-
-  {/* Policy Note */}
-  <p className="text-[11px] popreg text-center text-gray-500 mt-2">
-    By clicking Place Order, you accept WRIKXO’s <br />
-    <a href="#" className="text-[#CBA135] underline">return & shipping policies</a>
-  </p>
-</div>
-  )
-}
+{/*  */}
 
 </div>
 </div>

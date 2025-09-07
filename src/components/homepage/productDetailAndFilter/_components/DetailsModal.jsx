@@ -6,7 +6,7 @@ import { useGetCustomerProductsQuery, usePostReviewsMutation } from '../../../..
 
 const { Option } = Select;
 
-const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
+const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
@@ -74,10 +74,10 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
   };
 
   const handleOk = async () => {
-    if (!selectedProduct) {
-      Swal.fire("No Product Selected", "Please select a product before submitting your review.", "warning");
-      return;
-    }
+    // if (!selectedProduct) {
+    //   Swal.fire("No Product Selected", "Please select a product before submitting your review.", "warning");
+    //   return;
+    // }
     if (!review.trim()) {
       Swal.fire("Review Required", "Please write a review before submitting.", "warning");
       return;
@@ -87,7 +87,12 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
 
     try {
       const formData = new FormData();
-      formData.append("product_id", selectedProduct);
+     if(id){
+        formData.append("product_id", id);
+     }
+     else{
+        formData.append("product", selectedProduct);
+     }
       formData.append("rating", rating);
       formData.append("comment", review);
       uploadedImages.forEach(image => formData.append("uploaded_images", image.file));
@@ -126,7 +131,8 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
       >
         <div className="space-y-6">
           {/* Product Select */}
-          <div>
+{
+  !id && (          <div>
             <label className="block text-sm font-medium mb-2">Select Product</label>
             {isLoading ? <Spin /> : (
               <Select
@@ -146,6 +152,8 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
               </Select>
             )}
           </div>
+  )
+}
 
           {/* Review Textarea */}
           <div>
@@ -242,8 +250,8 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen }) => {
             <Button
               onClick={handleOk}
               className="bg-[#CBA135] hover:bg-[#b38f29] text-white px-10 py-2 rounded-md shadow-md"
-              disabled={!selectedProduct || !review.trim() || isUploading}
-              loading={isPosting || isUploading}
+           
+              loading={isPosting }
             >
               Submit Review
             </Button>

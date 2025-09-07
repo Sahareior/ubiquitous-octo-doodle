@@ -180,55 +180,69 @@ const handleApprove = async () => {
 
 
   return (
-    <Modal
-      className="premium-modal"
-      title={
-        <div className="modal-header">
-          <div className="product-title-section">
-            <h2 className="product-title popbold">{name}</h2>
-            <div className="product-meta">
-              <Tag 
-                className="status-tag popmed" 
-                color={status === "pending" ? "gold" : "green"}
-              >
-                {status?.toUpperCase()}
-              </Tag>
-              <span className="product-sku">SKU: {sku}</span>
-              <span className="created-date popmed">
-                <CalendarOutlined /> {new Date(created_at).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
+<Modal
+  className="premium-modal"
+  title={
+    <div className="modal-header">
+      <div className="product-title-section">
+        <h2 className="product-title popbold">{name}</h2>
+        <div className="product-meta">
+          <Tag
+            className="status-tag popmed"
+            color={status === "pending" ? "gold" : "green"}
+          >
+            {status?.toUpperCase()}
+          </Tag>
+          <span className="product-sku">SKU: {sku}</span>
+          <span className="created-date popmed">
+            <CalendarOutlined /> {new Date(created_at).toLocaleDateString()}
+          </span>
         </div>
-      }
-      open={isModalVisible}
-      onCancel={handleModalClose}
-footer={[
-  <Button 
-    key="reject" 
-    size="large" 
-    className="reject-btn"
-    icon={<CloseCircleOutlined className="text-red-500 bg-red-500" />}
-    onClick={() => Swal.fire("Rejected!", `${selectedProduct?.name} has been rejected.`, "warning")}
-  >
-    Reject Product
-  </Button>,
-  <Button 
-    key="accept" 
-    type="primary" 
-    size="large"
-    className="accept-btn"
-    icon={<CheckCircleOutlined />}
-    onClick={handleApprove} // ✅ call approve
-  >
-    Approve Product
-  </Button>,
-]}
-
-      width={900}
-      style={{ top: 20 }}
-      bodyStyle={{ padding: 0 }}
+      </div>
+    </div>
+  }
+  open={isModalVisible}
+  onCancel={handleModalClose}
+  footer={[
+    // ✅ Show Reject button only if not approved
+    selectedProduct?.status !== "approved" && (
+      <Button
+        key="reject"
+        size="large"
+        className="reject-btn"
+        icon={<CloseCircleOutlined />}
+        onClick={() =>
+          Swal.fire(
+            "Rejected!",
+            `${selectedProduct?.name} has been rejected.`,
+            "warning"
+          )
+        }
+      >
+        Reject Product
+      </Button>
+    ),
+    // ✅ Always show Approve button
+    <Button
+      key="accept"
+      type="primary"
+      size="large"
+      className="accept-btn"
+      icon={<CheckCircleOutlined />}
+      onClick={handleApprove}
     >
+{
+   selectedProduct?.status !== "approved" ? "Approve Product" : "Approved"
+}
+      {/* Approve Product */}
+    </Button>,
+  ]}
+  width={900}
+  style={{ top: 20 }}
+  bodyStyle={{ padding: 0 }}
+>
+
+
       <div className="modal-content">
         <Tabs 
           activeKey={activeTab} 

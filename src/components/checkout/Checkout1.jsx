@@ -10,14 +10,16 @@ import {
   useCreateCheckoutMutation,
   useCreateOrderFromCartMutation,
   useGetAddressQuery,
+  useShippingAddressDeleteMutation,
 } from "../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
 
 const Checkout1 = () => {
   const location = useLocation();
-  const { data: address, isLoading: addressLoading } = useGetAddressQuery();
+  const { data: address, isLoading: addressLoading, refetch} = useGetAddressQuery();
 const [createOrderFromCart] = useCreateOrderFromCartMutation()
 const [createCheckout] = useCreateCheckoutMutation()
+   const [shippingAddressDelete] = useShippingAddressDeleteMutation()
 const isLoading = false
   const [selectedMethod, setSelectedMethod] = useState("");
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -34,6 +36,27 @@ const isLoading = false
   // Total items
   const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
 
+
+  const handleAddressDelete = async (id) => {
+    try {
+      await shippingAddressDelete(id).unwrap();
+      refetch();
+      Swal.fire({
+        title: "Deleted!",
+        text: "Address has been deleted successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to delete address. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  };
 
 const handlePlaceOrder = async () => {
   if (!selectedAddress) {
@@ -143,19 +166,21 @@ const handlePlaceOrder = async () => {
                       }`}
                     >
                       <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {item?.full_name}
-                          </h3>
-                          <div className="flex gap-3">
-                            <button className="text-amber-600 hover:text-amber-800 transition-colors">
-                              <AiOutlineEdit size={18} />
-                            </button>
-                            <button className="text-red-400 hover:text-red-600 transition-colors">
-                              <MdDelete size={18} />
-                            </button>
-                          </div>
-                        </div>
+          <div className="flex items-center justify-between mb-3">
+  <h3 className="text-lg font-medium text-gray-900">{item?.full_name}</h3>
+  <div className="flex gap-3">
+    <button
+      className="text-red-400 hover:text-red-600 transition-colors"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleAddressDelete(item.id);
+      }}
+    >
+      <MdDelete size={18} />
+    </button>
+  </div>
+</div>
+
 
                         <div className="text-gray-700">
                           <p className="text-md">
@@ -183,11 +208,11 @@ const handlePlaceOrder = async () => {
                   <p className="text-gray-500 mb-4">No saved addresses found.</p>
                 </div>
               )}
-
+  {/* className="bg-[#CBA135] hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold" */}
               {/* Add Address Button */}
               <div className="mt-6">
-                <Link to="/checkout" state={location.state}>
-                  <button className="w-full py-3 px-4 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium transition-colors duration-300 shadow-md hover:shadow-lg">
+                <Link className="flex justify-center" to="/checkout" state={location.state}>
+                  <button className="bg-[#CBA135] mx-auto hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold">
                     Add New Address
                   </button>
                 </Link>
@@ -261,13 +286,14 @@ const handlePlaceOrder = async () => {
               </div>
 
               {/* Place Order */}
+              {/* bg-[#CBA135] hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={isLoading}
                 className={`w-full py-3.5 px-4 rounded-lg text-white font-semibold transition-all duration-300 ${
                   isLoading
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-amber-600 hover:bg-amber-700 shadow-md hover:shadow-lg"
+                    : "bg-[#CBA135] hover:bg-yellow-600 shadow-md hover:shadow-lg"
                 }`}
               >
                 {isLoading ? (

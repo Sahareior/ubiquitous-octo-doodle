@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import { Button, Modal } from 'antd';
 import { LiaStarSolid } from "react-icons/lia";
-import { useAcceptProductsMutation, useGetAllProductsQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useAcceptProductsMutation, useGetAllProductsQuery, useRejectProductsMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
 
-const ProductsModal = ({ isModalOpen, setIsModalOpen, productData }) => {
+const ProductsModal = ({ isModalOpen, setIsModalOpen, productData,path }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [acceptProducts] = useAcceptProductsMutation();
+  const [rejectProducts] = useRejectProductsMutation()
     const { data: products, refetch } = useGetAllProductsQuery();
 
 const handleApprove = async () => {
@@ -49,6 +50,62 @@ const handleApprove = async () => {
       confirmButtonText: "OK"
     });
     refetch()
+    setIsModalOpen(false);
+
+  } catch (err) {
+    console.error('Error approving product:', err);
+
+    // ❌ Error Swal
+    Swal.fire({
+      title: "Error!",
+      text: "Something went wrong while approving the product.",
+      icon: "error",
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Close"
+    });
+  }
+};
+const handleReject = async () => {
+  if (!productData) return;
+
+  const payload = {
+    categories: productData?.categories?.length ? productData.categories.map(c => c.id) : [0],
+    tags: productData?.tags?.length ? productData.tags.map(t => t.id) : [0],
+    seo: productData?.seo || 0,
+    name: productData?.name || 'string',
+    sku: productData?.sku || 'string',
+    short_description: productData?.short_description || 'string',
+    full_description: productData?.full_description || 'string',
+    price1: productData?.price1?.toString() || '0',
+    price2: productData?.price2?.toString() || '0',
+    price3: productData?.price3?.toString() || '0',
+    option1: productData?.option1 || '',
+    option2: productData?.option2 || '',
+    option3: productData?.option3 || '',
+    option4: productData?.option4 || '',
+    is_stock: productData?.is_stock,
+    stock_quantity: productData?.stock_quantity || 0,
+    home_delivery: productData?.home_delivery,
+    pickup: productData?.pickup,
+    partner_delivery: productData?.partner_delivery,
+    is_approve: true,
+    estimated_delivery_days: productData?.estimated_delivery_days || 0,
+  };
+
+  try {
+    const res = await rejectProducts({ id: productData?.id, data: payload }).unwrap();
+    console.log('Rejected:', res);
+
+    // ✅ Success Swal
+    Swal.fire({
+      title: "Rejected!",
+      text: `${productData?.name} has been rejected successfully.`,
+      icon: "success",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK"
+    });
+    refetch()
+    setIsModalOpen(false);
 
   } catch (err) {
     console.error('Error approving product:', err);
@@ -64,8 +121,13 @@ const handleApprove = async () => {
   }
 };
 
+
+
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);
+
+
+  console.log("prodaddddddddddddddductData", productData?.is_approve );
 
   return (
     <>
@@ -82,10 +144,18 @@ const handleApprove = async () => {
             <h2 className="text-2xl popbold text-gray-900">Products Details</h2>
           </div>
 
-          <div className='flex py-4 justify-end items-center gap-2'>
-            <Button onClick={() => handleApprove()} className='bg-[#CBA135] text-white'>Approve</Button>
-            <Button className='bg-[#F87171] text-white'>Reject</Button>
-          </div>
+{productData?.status === 'approved' || !path && (
+  <div className="flex py-4 justify-end items-center gap-2">
+    <Button 
+      onClick={() => handleApprove()} 
+      className="bg-[#CBA135] text-white"
+    >
+      Approve
+    </Button>
+    <Button onClick={() => handleReject()} className="bg-[#F87171] text-white">Reject</Button>
+  </div>
+)}
+
 
           {/* Content */}
           <div className="p-6 bg-white shadow-sm rounded mt-4">
@@ -164,9 +234,7 @@ const handleApprove = async () => {
               </div>
 
               <div>
-                <button className="text-yellow-600 underline font-medium">
-                  Product details
-                </button>
+
               </div>
             </div>
           </div>

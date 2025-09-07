@@ -24,6 +24,16 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
     }));
   };
 
+  const colorOptions = [
+  "Navy Blue",
+  "Red",
+  "White",
+  "Black",
+  "Green",
+  "Yellow",
+  "Gray",
+];
+
 
   return (
     <form className="bg-white p-6 rounded-2xl shadow-md space-y-4">
@@ -57,13 +67,14 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
           value={formData.warranty}
           onChange={handleChange}
         />
-        <InputField
-          label="Color"
-          name="color"
-          placeholder="e.g. Navy Blue"
-          value={formData.color}
-          onChange={handleChange}
-        />
+       <InputField
+  label="Color(s)"
+  name="color"
+  placeholder="e.g. Navy Blue, Red, White"
+  value={formData.color}
+  onChange={handleChange}
+/>
+
 <InputField
   label="Care Instructions"
   name="care_instructions"

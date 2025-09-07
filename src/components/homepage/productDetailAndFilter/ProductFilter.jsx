@@ -349,47 +349,75 @@ const ProductFilter = () => {
                     const rating = product.average_rating || 0;
 
                     return (
-                      <div key={product.id} className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]">
-                        <Link to='details' state={product}>
-                          <img 
-                            src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"} 
-                            alt={product.name} 
-                            className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover" 
-                          />
-                        </Link>
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            dispatch(addToWishList(product));
-                            MySwal.fire({
-                              position: 'top-end',
-                              icon: 'success',
-                              title: 'Item added to Wishlist!',
-                              showConfirmButton: false,
-                              timer: 1800,
-                              toast: true,
-                            });
-                          }}
-                          className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
-                        >
-                          <FaRegHeart size={15} />
-                        </div>
-                        <div className="p-4 space-y-2">
-                          <h3 className="popmed text-base md:text-lg line-clamp-1">{product.name}</h3>
-                          <div className="flex gap-2">
-                            <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
-                          </div>
-                          <div className="flex justify-between items-center gap-2">
-                            <p className="text-lg md:text-[20px] popbold">${price}</p>
-                            <Button 
-                              onClick={() => handleCart(product)} 
-                              className="bg-yellow-600 rounded-xl popreg text-white py-1 md:py-2 px-2 md:px-4 hover:bg-yellow-700 text-xs md:text-sm"
-                            >
-                              Add to Cart
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+<div
+  key={product.id}
+  className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]"
+>
+  <Link to='details' state={product}>
+    <img
+      src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"}
+      alt={product.name}
+      className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover"
+    />
+  </Link>
+
+  {/* Wishlist */}
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      dispatch(addToWishList(product));
+      MySwal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Item added to Wishlist!',
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    }}
+    className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
+  >
+    <FaRegHeart size={15} />
+  </div>
+
+  <div className="p-4 space-y-2">
+    <h3 className="popmed text-base md:text-lg line-clamp-1">{product.name}</h3>
+    <div className="flex gap-2">
+      <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
+    </div>
+
+    {/* Price & Discount */}
+    <div className="flex justify-between items-center gap-2">
+      <div className="flex flex-col">
+        {product.promotion_discount_value > 0 ? (
+          <>
+            <span className="text-gray-400 line-through text-sm">
+              XAF {product.price1}
+            </span>
+            <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
+              XAF {product.new_price}
+            </span>
+            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
+              -{product.promotion_discount_value}{product.promotion_type === 'percentage' ? '%' : 'XAF'}
+            </span>
+          </>
+        ) : (
+          <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
+            XAF {product.price1}
+          </span>
+        )}
+      </div>
+
+      <Button
+        onClick={() => handleCart(product)}
+        className="bg-yellow-600 rounded-xl popreg text-white py-1 md:py-2 px-2 md:px-4 hover:bg-yellow-700 text-xs md:text-sm"
+      >
+        Add to Cart
+      </Button>
+    </div>
+  </div>
+</div>
+
                     );
                   })
                 )}

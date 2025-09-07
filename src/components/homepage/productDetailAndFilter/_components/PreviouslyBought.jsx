@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
-const PreviouslyBought = ({ filteredProducts }) => {
+const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   
@@ -80,24 +80,44 @@ const PreviouslyBought = ({ filteredProducts }) => {
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 mt-9 gap-6 py-5">
-        {currentProducts.map((item) => (
-          <div
-            key={item.id}
-            className="w-full bg-white rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg"
-          >
-            <img
-              src={item.images?.[0]?.image || '/image/placeholder.png'}
-              alt={item.name}
-              className="h-48 w-full object-cover rounded-t-xl"
-            />
-            <div className="p-4">
-              <h2 className="text-[16px] popreg mb-1 truncate">{item.name}</h2>
-              <p className="text-[#CBA135] text-[16px] popreg">XAF {item.price1}</p>
+        {currentProducts.map((item) => {
+          // Static values for now
+  const newPrice = item?.new_price;
+  const discount = item?.promotion_discount_value;
+  const hasDiscount = discount && discount > 0;
+
+          return (
+            <div
+              key={item.id}
+              onClick={() => setSelectedProduct(item)}
+              className="w-full hover:cursor-pointer bg-white rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
+            >
+              {/* Discount Badge */}
+          {hasDiscount && (
+            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
+              -{discount}{item?.promotion_type === 'percentage' ? '%' : 'XAF'}
             </div>
-          </div>
-        ))}
+          )}
+
+              <img
+                src={item.images?.[0]?.image || '/image/placeholder.png'}
+                alt={item.name}
+                className="h-48 w-full object-cover rounded-t-xl"
+              />
+              <div className="p-4">
+                <h2 className="text-[16px] popreg mb-1 truncate">{item.name}</h2>
+
+                {/* Price Section */}
+                <div className="flex flex-col">
+                  <span className="text-gray-400 line-through text-sm">XAF {item.price1}</span>
+                  <span className="text-[#CBA135] text-[16px] popbold">XAF {newPrice}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      
+
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center mt-8 space-x-2">
@@ -105,14 +125,14 @@ const PreviouslyBought = ({ filteredProducts }) => {
             onClick={prevPage}
             disabled={currentPage === 1}
             className={`flex items-center justify-center w-10 h-10 rounded-full ${
-              currentPage === 1 
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              currentPage === 1
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-white text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
             }`}
           >
             <LeftOutlined />
           </button>
-          
+
           {getPageNumbers().map((pageNumber, index) => (
             <button
               key={index}
@@ -128,7 +148,7 @@ const PreviouslyBought = ({ filteredProducts }) => {
               {pageNumber}
             </button>
           ))}
-          
+
           <button
             onClick={nextPage}
             disabled={currentPage === totalPages}

@@ -135,16 +135,15 @@ useEffect(() => {
 
   const handleImageUpload = (files) => {
     
-        if(newImages.length>4){
-          Swal.fire({
-      icon: "warning",
-      title: "You Cant upload more then 5 images",
-      text: "Please reduce the number.",
+ if (newImages.length + files.length > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "You can’t upload more than 5 newImages",
+        text: `You can only add ${5 - newImages.length} more image(s).`,
       confirmButtonColor: "#3085d6",
     });
-    // setImages([])
-    return
-    }
+    return;
+  }
     const uploadedImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),

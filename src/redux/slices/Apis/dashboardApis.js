@@ -80,11 +80,31 @@ export const dashboardApis = createApi({
           body: payload,
         }),
     }),
+    rejectSeller: build.mutation({
+      query: ({ id, payload }) =>
+        // console.log(id)
+        ({
+          url: `seller/applications/${id}/reject/`,
+          method: "POST",
+          body: payload,
+        }),
+    }),
+
     acceptProducts: build.mutation({
       query: ({ id, data }) => {
         console.log(data);
         return {
           url: `products/${id}/accept/`,
+          method: "POST",
+          body: data,
+        };
+      },
+    }),
+    rejectProducts: build.mutation({
+      query: ({ id, data }) => {
+        console.log(data);
+        return {
+          url: `products/${id}/reject/`,
           method: "POST",
           body: data,
         };
@@ -283,6 +303,8 @@ export const dashboardApis = createApi({
 export const {
   useGetPokemonByNameQuery,
   useBulkOrderStatusMutation,
+  useRejectProductsMutation,
+  useRejectSellerMutation,
   useBulkProductDeleteMutation,
   useDeleteBulkUsersMutation,
   useBulkSellerApplicationsUpdateMutation,
@@ -306,6 +328,7 @@ export const {
   useGetAllPayoutsQuery,
   useGetAllProductsQuery,
   useVendorAcceptProductMutation,
+  
   useAcceptSellerMutation,
   useAcceptProductsMutation,
   useGetAllVendorsQuery,

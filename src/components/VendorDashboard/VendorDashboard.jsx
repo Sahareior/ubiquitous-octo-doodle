@@ -123,49 +123,49 @@ const VendorDashboard = () => {
 
   return (
     <Layout>
-      <Sider
-        className="bg-white"
-        breakpoint="lg"
-        width={250}
-        collapsedWidth="0"
-        onBreakpoint={(broken) => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
-      >
-       <div className='p-4 flex flex-col gap-10 justify-center items-center'>
-      <Link to='/'>   <img className='w-[80%]' src="/image/footer.png" alt="" /></Link>
+ <Sider
+  className="bg-white"
+  breakpoint="lg"
+  width={250}
+  collapsedWidth="0"
+>
+  {/* Top logo and user info */}
+  <div className='p-4 flex flex-col gap-10 justify-center items-center'>
+    <Link to='/'>
+      <img className='w-[80%]' src="/image/footer.png" alt="" />
+    </Link>
 
-<div className='flex justify-center items-center gap-3 flex-col'>
-           <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
+    <div className='flex justify-center items-center gap-3 flex-col'>
+      <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
+    </div>
+  </div>
 
-        
-</div>
-       </div>
-       <hr className='pb-3' />
-     <div className='flex flex-col gap-40 justify-around'>
-    <div className="flex-1 justify-between  h-screen overflow-auto">
-    <Menu
-      theme="light"
-      mode="inline"
-      
-      selectedKeys={selectedKey}
-      items={items}
-      className="popreg text-lg space-y-2"
-      
-    />
+  <hr className='pb-3' />
+
+  {/* Menu + Logout */}
+  <div className="flex flex-col justify-between h-[calc(100vh-150px)]">
+    {/* Menu */}
+    <div className="flex-1 overflow-auto">
+      <Menu
+        theme="light"
+        mode="inline"
+        selectedKeys={selectedKey}
+        items={items}
+        className="popreg text-lg space-y-2"
+      />
+    </div>
+
+    {/* Logout at bottom */}
+    <div 
+      onClick={handleLogout}
+      className='text-red-600 mb-16 hover:text-green-400 flex justify-center items-center gap-2 cursor-pointer'
+    >
+      <MdLogout className='-mt-1' size={16} />
+      <h3 className='popmed'>Logout</h3>
+    </div>
   </div>
-  <div 
-    onClick={handleLogout}
-    className='text-red-600 mb-9 hover:text-green-400 flex justify-center items-center gap-2 cursor-pointer'
-  >
-    <MdLogout className='-mt-1' size={16} />
-    <h3 className='popmed'>Logout</h3>
-  </div>
-</div>
-      </Sider>
+</Sider>
+
       <Layout>
         <Header
          className='bg-white px-9'
@@ -181,7 +181,7 @@ const VendorDashboard = () => {
        </div>
         </Header>
 
-        <Content className="bg-[#FAF8F2] h-[85vh] overflow-y-scroll px-2" style={{ margin: '0' }}>
+        <Content className="bg-[#FAF8F2] h-[80vh] overflow-y-scroll px-2" style={{ margin: '0' }}>
           <Outlet />
         </Content>
       </Layout>

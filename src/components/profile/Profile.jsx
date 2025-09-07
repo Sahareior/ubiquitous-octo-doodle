@@ -96,6 +96,7 @@ const handlePhotoChange = async (e) => {
       return;
     }
     await updateProfileData({ phone_number: phoneValue });
+    refetch()
   };
 
   if (isLoading) return <div>Loading profile...</div>;

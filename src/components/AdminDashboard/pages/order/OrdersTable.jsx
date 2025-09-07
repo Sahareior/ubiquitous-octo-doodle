@@ -23,6 +23,7 @@ const OrdersTable = ({orders}) => {
   const [deleteOrdersById, {isLoading,status}] = useDeleteOrdersByIdMutation()
   const [selectedData, setSelectedData] = useState({})
   const [fullOrderData, setFullOrderData] = useState({}); // New state to store full order data
+const [bulkAction, setBulkAction] = useState(null);
   const [bulkOrderStatus] = useBulkOrderStatusMutation()
   // Map API data to table format
 useEffect(() => {
@@ -146,51 +147,59 @@ useEffect(() => {
 
 const handleBulkAction = async (action) => {
   if (selectedRowKeys.length === 0) {
-    message.warning('Please select at least one row.');
+    message.warning("Please select at least one row.");
+    setBulkAction(null); // reset select value
     return;
   }
 
   if (action === "delete") {
-    handleDelete(selectedRowKeys);
+    await handleDelete(selectedRowKeys);
+    setBulkAction(null); // reset select after delete
     return;
   }
 
   try {
     const payload = {
-      order_ids: selectedRowKeys, // array of selected IDs
-      status: action, // matches your backend enum (e.g. "shipped")
+      order_ids: selectedRowKeys,
+      status: action,
     };
 
     await bulkOrderStatus(payload).unwrap();
-    message.success(`Successfully updated ${selectedRowKeys.length} order(s) to "${action}".`);
+    message.success(
+      `Successfully updated ${selectedRowKeys.length} order(s) to "${action}".`
+    );
     refetch();
     setSelectedRowKeys([]);
+    setBulkAction(null); // reset select
   } catch (error) {
     console.error("Bulk update failed:", error);
     message.error("Failed to update orders. Try again.");
+    setBulkAction(null);
   }
 };
 
+const handleDelete = async (keys) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await deleteOrdersById(keys[0]).unwrap();
+      refetch();
+      setSelectedRowKeys([]);
+      setBulkAction(null); // reset dropdown
+      message.success(`${keys.length} order(s) deleted.`);
+      Swal.fire("Deleted!", "Your order(s) has been deleted.", "success");
+    }
+  });
+};
 
-  const handleDelete =  async (keys) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!"
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const res = await deleteOrdersById(keys[0]).unwrap()
-        refetch()
-        setSelectedRowKeys([]);
-        message.success(`${keys.length} order(s) deleted.`);
-        Swal.fire("Deleted!", "Your order(s) has been deleted.", "success");
-      }
-    });
-  };
+
 
   return (
     <div className="bg-white p-4 rounded relative">
@@ -201,6 +210,7 @@ const handleBulkAction = async (action) => {
   size="small"
   className="min-w-[160px]"
   onChange={handleBulkAction}
+   value={bulkAction}  
   suffixIcon={<RiArrowDropDownLine />}
 >
   <Option value="paid">Mark as Paid</Option>

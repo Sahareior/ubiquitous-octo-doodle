@@ -229,29 +229,6 @@ const Cart = () => {
                 )}
               </div>
 
-              {/* Promo Code */}
-              <div className="mt-5">
-                <div className="flex gap-2">
-                  <input
-                    placeholder="Promo code"
-                    className="w-full border border-[#D1D5DB] rounded-md px-4 h-[40px] placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                  />
-                  <Button
-                    className="h-[40px] text-white bg-[#2B2B2B] hover:bg-gray-200"
-                    onClick={() => {
-                      setAppliedCoupon({
-                        code: couponCode,
-                        discount: 1000,
-                      });
-                    }}
-                  >
-                    Apply
-                  </Button>
-                </div>
-              </div>
-
               <div className="flex justify-between text-lg font-semibold mt-6">
                 <h3>Total</h3>
                 <h3 className="text-[#CBA135]">{formatXAF(total)}</h3>
@@ -264,9 +241,6 @@ const Cart = () => {
                     Proceed to Checkout
                   </button>
                 </Link>
-                <button className="h-[56px] hover:bg-slate-100 border rounded-md border-gray-300">
-                  Save for Later
-                </button>
               </div>
             </div>
 

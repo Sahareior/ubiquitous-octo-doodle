@@ -25,14 +25,16 @@ const isLoading = false
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-const handleSubmit = async () => {
+const handleSubmit = async (e) => {
+  e.preventDefault(); // 🚀 stop page refresh
+
   try {
     const res = await customerSignup(formData).unwrap();
 
-    // Save access token to localStorage
     localStorage.setItem("access_token", res.access_token);
 
-    // Show success alert
+    console.log(res.data)
+
     await Swal.fire({
       icon: "success",
       title: "Account Created!",
@@ -40,21 +42,32 @@ const handleSubmit = async () => {
       confirmButtonColor: "#CBA135",
     });
 
-    console.log("Signup successful:", res);
-    navigate('/login')
+    navigate("/login");
+} catch (error) {
+  console.error("Signup failed:", error);
 
-  } catch (error) {
-    console.error("Signup failed:", error);
+  // Try to extract validation errors
+  let errorMessage = "Something went wrong. Please try again.";
 
-    // Show error alert
-    Swal.fire({
-      icon: "error",
-      title: "Signup Failed",
-      text: error?.data?.message || "Something went wrong. Please try again.",
-      confirmButtonColor: "#CBA135",
-    });
+  if (error?.data) {
+    // if email error exists
+    if (error.data.email && Array.isArray(error.data.email)) {
+      errorMessage = error.data.email[0]; 
+    } else if (typeof error.data === "string") {
+      errorMessage = error.data;
+    }
   }
+
+  Swal.fire({
+    icon: "error",
+    title: "Signup Failed",
+    text: errorMessage,
+    confirmButtonColor: "#CBA135",
+  });
+}
+
 };
+
 
   return (
 <div className="relative w-full min-h-screen">

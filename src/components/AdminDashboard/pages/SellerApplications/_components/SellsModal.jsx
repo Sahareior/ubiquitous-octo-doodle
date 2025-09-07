@@ -19,13 +19,14 @@ import {
   FaTimesCircle,
   FaRegClock 
 } from 'react-icons/fa';
-import { useAcceptSellerMutation, useGetAllSellerApplicationQuery, useGetAllVendorsQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useAcceptSellerMutation, useGetAllSellerApplicationQuery, useGetAllVendorsQuery, useRejectSellerMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 
 const { Step } = Steps;
 
 const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
   const { data: applicants, isLoading, refetch } = useGetAllSellerApplicationQuery();
   const [acceptSeller] = useAcceptSellerMutation();
+  const [rejectSeller] = useRejectSellerMutation();
     const { data: vendors, refetch:vendorRefetch } = useGetAllVendorsQuery();
   const [activeTab, setActiveTab] = useState('info');
 
@@ -62,11 +63,41 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
         console.error(err);
       });
   };
-
   const handleReject = () => {
-    // Implement reject functionality
-    message.info("Reject functionality would be implemented here");
+    if (!sellerInfo) return;
+
+    const payload = {
+      job_title: sellerInfo.jobTitle || "",
+      phone_number: sellerInfo.phone || "",
+      legal_business_name: sellerInfo.name || "",
+      business_address: sellerInfo.businessAddress || "",
+      country: sellerInfo.country || "",
+      city_town: sellerInfo.city || "",
+      state_province: sellerInfo.stateProvince || "",
+      postal_code: sellerInfo.postalCode || "",
+      established_date: sellerInfo.establishedDate || new Date().toISOString().split('T')[0],
+      business_type: sellerInfo.businessType || "",
+      taxpayer_number: sellerInfo.documents?.taxpayerDoc || "",
+      trade_register_number: sellerInfo.documents?.tradeRegisterDoc || "",
+      home_localization_plan: sellerInfo.documents?.homeLocalizationPlan || "",
+      business_localization_plan: sellerInfo.documents?.businessLocalizationPlan || ""
+    };
+
+    rejectSeller({ id: sellerInfo.id, payload })
+      .unwrap()
+      .then(() => {
+        message.success("Seller rejected successfully!");
+        refetch();
+        vendorRefetch()
+        setIsModalOpen(false);
+      })
+      .catch((err) => {
+        message.error("Failed to approve seller.");
+        console.error(err);
+      });
   };
+
+
 
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);

@@ -20,7 +20,7 @@ const CustomerTable = ({ customerList }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const [bulkAction, setBulkAction] = useState(undefined); // ✅ NEW
   const [deleteUsers] = useDeleteUsersMutation();
   const [deleteBulkUsers] = useDeleteBulkUsersMutation();
 
@@ -129,41 +129,46 @@ const CustomerTable = ({ customerList }) => {
     });
   };
 
-  // ✅ Bulk delete
-  const handleBulkDelete = async (ids) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are deleting ${ids.length} users!`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete them!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteBulkUsers({ user_ids: ids }).unwrap();
-          refetch();
-          setSelectedRowKeys([]);
-          Swal.fire('Deleted!', `${ids.length} users have been deleted.`, 'success');
-        } catch (error) {
-          console.error('Bulk delete failed:', error);
-          Swal.fire('Error!', 'Failed to delete users.', 'error');
-        }
+// ✅ Bulk delete
+const handleBulkDelete = async (ids) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: `You are deleting ${ids.length} users!`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete them!',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await deleteBulkUsers({ user_ids: ids }).unwrap();
+        refetch();
+        setSelectedRowKeys([]);
+        setBulkAction(undefined); // ✅ Reset dropdown
+        Swal.fire('Deleted!', `${ids.length} users have been deleted.`, 'success');
+      } catch (error) {
+        console.error('Bulk delete failed:', error);
+        Swal.fire('Error!', 'Failed to delete users.', 'error');
       }
-    });
-  };
-
-  const handleBulkAction = (action) => {
-    if (selectedRowKeys.length === 0) {
-      message.warning('Please select at least one row.');
-      return;
+    } else {
+      setBulkAction(undefined); // ✅ Reset if cancelled too
     }
+  });
+};
 
-    if (action === 'delete') {
-      handleBulkDelete(selectedRowKeys);
-    }
-  };
+const handleBulkAction = (action) => {
+  if (selectedRowKeys.length === 0) {
+    message.warning('Please select at least one row.');
+    setBulkAction(undefined); // ✅ Reset when no rows selected
+    return;
+  }
+
+  if (action === 'delete') {
+    handleBulkDelete(selectedRowKeys);
+  }
+};
+
 
   return (
     <div className="bg-white p-4 rounded relative shadow-md">
@@ -174,7 +179,11 @@ const CustomerTable = ({ customerList }) => {
             placeholder="Bulk Actions"
             size="small"
             className="min-w-[140px]"
-            onChange={handleBulkAction}
+            value={bulkAction} 
+            onChange={(val) => {
+    setBulkAction(val);
+    handleBulkAction(val);
+  }}
             suffixIcon={<RiArrowDropDownLine />}
           >
             <Option value="delete">Delete Selected</Option>
@@ -210,6 +219,7 @@ const CustomerTable = ({ customerList }) => {
                 value={pageSize}
                 onChange={(value) => setPageSize(value)}
                 size="small"
+                
                 style={{ width: 70 }}
                 suffixIcon={<RiArrowDropDownLine />}
               >

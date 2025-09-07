@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { FiArrowLeft, FiShoppingCart, FiCreditCard } from "react-icons/fi";
 import FloatingChat from "../../others/FolatingChat/FloatingChat";
+import jsPDF from "jspdf";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -24,12 +25,14 @@ const MySwal = withReactContent(Swal);
 const Details = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderFormVisible, setOrderFormVisible] = useState(false);
+ 
   const [randomProducts, setRandomProducts] = useState([]);
   const [mainImage, setMainImage] = useState(null);
   const [mobileOrderDrawer, setMobileOrderDrawer] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [currentSection, setCurrentSection] = useState("description");
   const form = Form.useForm()[0];
+
   const zoomPaneRef = useRef(null);
   const { data: productsData } = useGetAllProductsQuery();
   const [addProductToCart] = useAddProductToCartMutation();
@@ -40,25 +43,27 @@ const Details = () => {
      const navigate = useNavigate();
     const location = useLocation();
   const { product } = location.state || {};
-  const productData = location.state;
-  console.log('this is productData', productData)
+  
+
+   const [selectedProduct, setSelectedProduct] = useState(location.state);
+  console.log('this is selectedProduct', selectedProduct)
   const productSpecs = [
-    { label: "Dimensions", value: productData?.specifications?.dimensions || "Not specified" },
-    { label: "Material", value: productData?.specifications?.material || "Not specified" },
-    { label: "Color", value: productData?.specifications?.color || "Not specified" },
-    { label: "Weight", value: productData?.specifications?.weight || "Not specified" },
-    { label: "Assembly Required", value: productData?.specifications?.assembly_required ? "Yes" : "No" },
-    { label: "Warranty", value: productData?.specifications?.warranty || "Not specified" },
-    { label: "Care Instructions", value: productData?.specifications?.care_instructions || "Not specified" },
-    { label: "Country of Origin", value: productData?.specifications?.country_of_origin || "Not specified" },
+    { label: "Dimensions", value: selectedProduct?.specifications?.dimensions || "Not specified" },
+    { label: "Material", value: selectedProduct?.specifications?.material || "Not specified" },
+    { label: "Color", value: selectedProduct?.specifications?.color || "Not specified" },
+    { label: "Weight", value: selectedProduct?.specifications?.weight || "Not specified" },
+    { label: "Assembly Required", value: selectedProduct?.specifications?.assembly_required ? "Yes" : "No" },
+    { label: "Warranty", value: selectedProduct?.specifications?.warranty || "Not specified" },
+    { label: "Care Instructions", value: selectedProduct?.specifications?.care_instructions || "Not specified" },
+    { label: "Country of Origin", value: selectedProduct?.specifications?.country_of_origin || "Not specified" },
   ];
 
-  const vendorId = productData?.vendor_id
+  const vendorId = selectedProduct?.vendor_id
 
 
 
   const filteredProducts = productsData?.results?.filter((product) =>
-    product?.categories.some((cat) => productData?.categories?.includes(cat))
+    product?.categories.some((cat) => selectedProduct?.categories?.includes(cat))
   );
 
   // Fisher–Yates shuffle
@@ -77,12 +82,12 @@ const Details = () => {
     }
   }, [productsData]);
 
-  // Set the initial main image when productData is available
+  // Set the initial main image when selectedProduct is available
   useEffect(() => {
-    if (productData?.images && productData?.images?.length > 0) {
-      setMainImage(productData?.images[0]);
+    if (selectedProduct?.images && selectedProduct?.images?.length > 0) {
+      setMainImage(selectedProduct?.images[0]);
     }
-  }, [productData]);
+  }, [selectedProduct]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -135,10 +140,31 @@ const Details = () => {
   const handleChange = (value) => {
     if (value === "new") {
       navigate("/checkout", {
-        state:{productData:productData}
+          state:{productData:selectedProduct}
       }); // redirect to checkout
     }
   };
+
+
+  const handleDownloadSpecs = () => {
+  const doc = new jsPDF();
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("Product Specifications", 14, 20);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+
+  let y = 35;
+  productSpecs.forEach((spec) => {
+    doc.text(`${spec.label}: ${spec.value}`, 14, y);
+    y += 10;
+  });
+
+  doc.save(`${selectedProduct?.name || "product"}-specifications.pdf`);
+};
+
 
   const handleOrderSubmit = async (values) => {
     try {
@@ -152,7 +178,7 @@ const Details = () => {
         selected_shipping_address_id: values.selected_shipping_address_id ?? null,
         payment_method: values.payment_method ?? "bank",
         notes: values.notes ?? "",
-        product_id: productData.id,
+        product_id: selectedProduct.id,
       };
 
       const res = await createSingleOrder(payload);
@@ -212,7 +238,7 @@ const Details = () => {
           <Link to="/" className="mr-3">
             <FiArrowLeft size={20} />
           </Link>
-          <h1 className="text-lg font-medium truncate">{productData?.name}</h1>
+          <h1 className="text-lg font-medium truncate">{selectedProduct?.name}</h1>
         </div>
       </div>
 
@@ -351,7 +377,7 @@ const Details = () => {
 
                 {/* Image Gallery */}
                 <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2">
-                  {productData?.images?.map((image, index) => (
+                  {selectedProduct?.images?.map((image, index) => (
                     <div
                       key={image.id}
                       className={`relative flex-shrink-0 w-20 h-16 md:w-24 md:h-20 lg:w-28 lg:h-24 rounded-lg cursor-pointer overflow-hidden ${
@@ -370,92 +396,115 @@ const Details = () => {
               </div>
 
               {/* Product Info */}
-              <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
-                <div
-                  ref={zoomPaneRef}
-                  className="absolute rounded-md w-full max-w-md h-96 z-50 pointer-events-none"
-                ></div>
+        <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
+  <div
+    ref={zoomPaneRef}
+    className="absolute rounded-md w-full max-w-md h-96 z-50 pointer-events-none"
+  ></div>
 
-                <div>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl popbold text-gray-800 mb-1">
-                    {productData?.name}
-                  </h2>
-                  <h3 className="text-sm md:text-base popreg text-gray-500">
-                    by Elegant Furniture Co.
-                  </h3>
-                  <div className="flex items-center mt-4 md:mt-6 gap-2">
-                    <Rate
-                      defaultValue={productData?.average_rating}
-                      disabled
-                      className="text-yellow-500 text-xs md:text-sm"
-                    />
-                    <p>•</p>
-                    <p className="popreg text-xs md:text-sm">127 reviews</p>
-                  </div>
-                </div>
+  {/* Product Title & Brand */}
+  <div>
+    <h2 className="text-xl md:text-2xl lg:text-3xl popbold text-gray-800 mb-1">
+      {selectedProduct?.name}
+    </h2>
+    <h3 className="text-sm md:text-base popreg text-gray-500">
+      by Elegant Furniture Co.
+    </h3>
+    <div className="flex items-center mt-4 md:mt-6 gap-2">
+      <Rate
+        defaultValue={selectedProduct?.average_rating}
+        disabled
+        className="text-yellow-500 text-xs md:text-sm"
+      />
+      <p>•</p>
+      <p className="popreg text-xs md:text-sm">{selectedProduct?.reviews.length} reviews</p>
+    </div>
+  </div>
 
-                <h3 className="text-2xl md:text-3xl lg:text-4xl popbold text-[#CBA135]">
-                   {productData?.price1} XAF
-                </h3>
+  {/* Prices & Discount */}
+  {(() => {
+    const oldPrice = selectedProduct?.price1;
+    const newPrice = selectedProduct?.new_price;
+    const discount = selectedProduct?.promotion_discount_value;
+    return (
+      <div className="flex items-center gap-3">
+        <h3 className="text-2xl md:text-3xl lg:text-4xl popbold text-[#CBA135]">
+          XAF {newPrice}
+        </h3>
+        <span className="text-gray-400 line-through popreg text-lg">
+          XAF {oldPrice}
+        </span>
+        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
+          -{discount} {selectedProduct?.promotion_type === "percentage" ? "%" : "XAF"}
+        </span>
+      </div>
+    );
+  })()}
 
-                {/* Color Options */}
-                <div>
-                  <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">
-                    Color
-                  </h4>
-                  <div className="flex gap-2 md:gap-3">
-                    <div className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-fuchsia-500 border-2 border-gray-300 cursor-pointer" />
-                    <div className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-[#1E40AF] border-2 border-gray-300 cursor-pointer" />
-                    <div className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-lg bg-[#374151] border-2 border-gray-300 cursor-pointer" />
-                  </div>
-                </div>
+  {/* Color Options */}
+  <div>
+    <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Color</h4>
+    <div className="flex gap-2 md:gap-3 flex-wrap">
+      {selectedProduct?.specifications?.color
+        ?.split(",")
+        .map((clr, index) => {
+          const colorName = clr.trim();
+          return (
+            <button
+              key={index}
+              style={{
+                backgroundColor: colorName,
+                color: ["white", "black", "blue"].includes(colorName.toLowerCase())
+                  ? "white"
+                  : "black",
+                border: "1px solid #ddd",
+              }}
+              className="h-8 md:h-10 md:w-10 text-xs md:text-sm rounded-full shadow-sm"
+            ></button>
+          );
+        })}
+    </div>
+  </div>
 
-                {/* Size Options */}
-                <div>
-                  <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">
-                    Size
-                  </h4>
-                  <div className="flex flex-wrap gap-2 md:gap-3 popmed">
-                    <Button className="border-gray-300 bg-[#CBA135] px-3 md:px-4 lg:px-6 text-white h-8 md:h-10 text-xs md:text-sm">
-                      {productData?.specifications?.dimensions }
-                    </Button>
-                   
-                  </div>
-                </div>
+  {/* Size Options */}
+  <div>
+    <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Size</h4>
+    <div className="flex flex-wrap gap-2 md:gap-3 popmed">
+      <p className="bg-purple-400 px-4 text-white rounded-md">
+        {selectedProduct?.specifications?.dimensions}
+      </p>
+    </div>
+  </div>
 
-                {/* Stock & Wishlist */}
-                <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 max-w-md">
-                  <div className="flex items-center gap-2">
-                    <Tag className="popmed text-xs md:text-sm" color="green">
-                      In Stock
-                    </Tag>
-                    <p className="text-xs md:text-sm popreg text-gray-400">
-                      * Only 3 left
-                    </p>
-                  </div>
-                  <p className="text-xs md:text-sm text-[#CBA135] popreg cursor-pointer hover:underline">
-                    Move to Wishlist
-                  </p>
-                </div>
+  {/* Stock & Wishlist */}
+  <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 max-w-md">
+    <div className="flex items-center gap-2">
+      <Tag className="popmed text-xs md:text-sm" color="green">
+        In Stock
+      </Tag>
+      <p className="text-xs md:text-sm popreg text-gray-400"></p>
+    </div>
+  </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
-                  <button
-                    onClick={() => handleCart(productData)}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 md:px-6 lg:px-8 popbold rounded-xl h-10 md:h-12 w-full sm:w-auto flex items-center justify-center gap-2"
-                  >
-                    <FiShoppingCart size={16} />
-                    Add to Cart
-                  </button>
-                  <button 
-                    onClick={() => handleOrder(productData)} 
-                    className="border-yellow-600 px-4 md:px-6 lg:px-8 h-10 md:h-12 popbold rounded-xl text-white bg-[#2B2B2B] w-full sm:w-auto flex items-center justify-center gap-2"
-                  >
-                    <FiCreditCard size={16} />
-                    Buy Now
-                  </button>
-                </div>
-              </div>
+  {/* Action Buttons */}
+  <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
+    <button
+      onClick={() => handleCart(selectedProduct)}
+      className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 md:px-6 lg:px-8 popbold rounded-xl h-10 md:h-12 w-full sm:w-auto flex items-center justify-center gap-2"
+    >
+      <FiShoppingCart size={16} />
+      Add to Cart
+    </button>
+    <button
+      onClick={() => handleOrder(selectedProduct)}
+      className="border-yellow-600 px-4 md:px-6 lg:px-8 h-10 md:h-12 popbold rounded-xl text-white bg-[#2B2B2B] w-full sm:w-auto flex items-center justify-center gap-2"
+    >
+      <FiCreditCard size={16} />
+      Buy Now
+    </button>
+  </div>
+</div>
+
             </div>
           </div>
 
@@ -490,8 +539,8 @@ const Details = () => {
                 Product Description
               </h2>
               <div className="space-y-2 md:space-y-3 lg:space-y-4 popreg text-[#666666] text-sm md:text-base">
-                 <p>{productData?.short_description}</p>
-                <p>{productData?.full_description}</p>
+                 <p>{selectedProduct?.short_description}</p>
+                <p>{selectedProduct?.full_description}</p>
 
               </div>
             </div>
@@ -504,9 +553,13 @@ const Details = () => {
                 <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-36 pb-1">
                   Specifications
                 </p>
-                <p className="text-[#CBA135] flex gap-2 items-center font-semibold text-sm md:text-base cursor-pointer">
-                  <FaLongArrowAltDown size={16} /> Download
-                </p>
+<p
+  onClick={handleDownloadSpecs}
+  className="text-[#CBA135] flex gap-2 items-center font-semibold text-sm md:text-base cursor-pointer"
+>
+  <FaLongArrowAltDown size={16} /> Download
+</p>
+
               </div>
             </div>
 
@@ -564,7 +617,7 @@ const Details = () => {
                 </Link>
               </div>
             </div>
-            <Similier randomProducts={randomProducts} />
+            <Similier setSelectedProduct={setSelectedProduct} randomProducts={randomProducts} />
           </div>
 
           {/* Compare Similar Section */}
@@ -581,7 +634,7 @@ const Details = () => {
                 </Link>
               </div>
             </div>
-            <PreviouslyBought filteredProducts={filteredProducts} />
+            <PreviouslyBought setSelectedProduct={setSelectedProduct} filteredProducts={filteredProducts} />
           </div>
         </div>
       </div>
@@ -589,7 +642,7 @@ const Details = () => {
       {/* Mobile Floating Action Buttons */}
                 <FloatingChat targetedId={vendorId} />
 
-      <DetailsModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+      <DetailsModal id={selectedProduct?.id} setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
     </div>
   );
 };

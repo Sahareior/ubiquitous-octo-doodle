@@ -16,44 +16,70 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 const MySwal = withReactContent(Swal);
 
 // Memoized Product Card
-const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => (
-  <div className="shadow-md">
-    <div className="bg-white rounded-xl transition relative">
-      {/* Wishlist Icon */}
-      <div
-        onClick={() => handleWishlist(item)}
-        className="absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400"
-      >
-        <AiFillHeart size={18} />
-      </div>
+const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
+  const newPrice = item?.new_price || item?.price1; // fallback to original price if no discount
+  const discount = item?.promotion_discount_value;
 
-      {/* Image */}
-      <Link to={`/details`} state={item}>
-        <img
-          src={item?.images?.[0]?.image || 'https://via.placeholder.com/300x200'}
-          alt={item.name}
-          className="w-full h-[192px] object-cover rounded-md mb-4"
-          loading="lazy"
-        />
-      </Link>
+  // Determine if there is a discount
+  const hasDiscount = discount && discount > 0;
 
-      {/* Info */}
-      <div className="p-5">
-        <h2 className="text-[16px] popbold text-gray-800">{item.name}</h2>
-        <p className="text-sm popreg text-gray-500 mb-3">{item.sku}</p>
-        <div className="flex justify-between items-center">
-          <h4 className="text-[#CBA135] popbold text-[16px]">XAF {item.price1}</h4>
-          <button
-            onClick={() => handleCart(item)}
-            className="bg-[#CBA135] rounded-md popbold text-white border-none px-4 py-1"
-          >
-            Add to Cart
-          </button>
+  return (
+    <div className="shadow-md">
+      <div className="bg-white rounded-xl h-full transition relative">
+        {/* Wishlist Icon */}
+        <div
+          onClick={() => handleWishlist(item)}
+          className="absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400"
+        >
+          <AiFillHeart size={18} />
+        </div>
+
+        {/* Discount Badge */}
+        {hasDiscount && (
+          <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
+            -{discount} {item?.promotion_type === "percentage" ? "%" : "XAF"}
+          </div>
+        )}
+
+        {/* Image */}
+        <Link to={`/details`} state={item}>
+          <img
+            src={item?.images?.[0]?.image || "https://via.placeholder.com/300x200"}
+            alt={item.name}
+            className="w-full h-[192px] object-cover rounded-md mb-4"
+            loading="lazy"
+          />
+        </Link>
+
+        {/* Info */}
+        <div className="p-5">
+          <h2 className="text-[16px] popbold text-gray-800">{item.name}</h2>
+          <p className="text-sm popreg text-gray-500 mb-3">{item.sku}</p>
+
+          {/* Price Section */}
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col">
+              {hasDiscount && (
+                <span className="text-gray-400 line-through text-[16px]">
+                  XAF {item.price1}
+                </span>
+              )}
+              <span className="text-[#CBA135] popbold text-[16px]">XAF {newPrice}</span>
+            </div>
+            <button
+              onClick={() => handleCart(item)}
+              className="bg-[#CBA135] rounded-md popbold text-white border-none px-4 py-1"
+            >
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
+
+
 ProductCard.displayName = 'ProductCard';
 
 const FeaturedProducts = () => {

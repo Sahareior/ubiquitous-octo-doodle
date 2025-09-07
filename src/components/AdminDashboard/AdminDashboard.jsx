@@ -113,13 +113,13 @@ const AdminDashboard = () => {
   const {data:notificationData, isLoading} = useGetAllNotificationQuery()
     const { notifications, connected } = useNotificationSocket();
 
-    localStorage.setItem('notify', notifications)
+    localStorage.setItem('notify', JSON.stringify(notifications))
 
   const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
-  console.log(userInfo.user.first_name)
+
 
   const handleLogout = () => {
     // Show confirmation dialog

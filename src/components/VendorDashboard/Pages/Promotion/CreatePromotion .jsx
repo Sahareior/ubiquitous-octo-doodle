@@ -70,6 +70,8 @@ const CreatePromotion = () => {
       p.prod_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  console.log("Selected Products:", filteredProducts);
+
   const handleProductSelect = (product) => {
     if (!selectedProducts.some((p) => p.prod_id === product.prod_id)) {
       setSelectedProducts([...selectedProducts, product]);
@@ -294,38 +296,57 @@ const CreatePromotion = () => {
               />
             </div>
 
-            {showProductDropdown && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <div
-                      key={product.prod_id}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
-                      onClick={() => handleProductSelect(product)}
-                    >
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {product.prod_id} - ৳
-                          {Number(product.price).toLocaleString()}
-                        </p>
-                      </div>
-                      {selectedProducts.some(
-                        (p) => p.prod_id === product.prod_id
-                      ) && (
-                        <span className="text-green-500 text-sm">
-                          ✓ Selected
-                        </span>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-gray-500">
-                    No products found
-                  </div>
-                )}
-              </div>
-            )}
+{showProductDropdown && (
+  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+    {filteredProducts.length > 0 ? (
+      filteredProducts.map((product) => (
+        <div
+          key={product.prod_id}
+          className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex  items-center gap-3"
+          onClick={() => handleProductSelect(product)}
+        >
+          {/* Product image */}
+          {product.images && product.images.length > 0 ? (
+            <img
+              src={product.images[0].image}
+              alt={product.name}
+              className="w-12 h-12 object-cover rounded-md"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-sm">
+              No Image
+            </div>
+          )}
+
+          {/* Product info */}
+          <div className="flex-1 space-y-2">
+            <p className="font-medium">{product.name}</p>
+            <p className="text-xs text-gray-500">
+              SKU: {product.sku} | ID: {product.prod_id}
+            </p>
+            <p className="text-xs text-gray-500">
+              Price: ৳{Number(product.price1).toLocaleString()} | Stock: {product.stock_quantity}
+            </p>
+            <p className="text-xs text-gray-400 truncate max-w-[250px]">
+              {product.short_description}
+            </p>
+            <p className="text-xs text-gray-400">
+              Vendor: {product.vendor_details.first_name} {product.vendor_details.last_name}
+            </p>
+          </div>
+
+          {/* Selected indicator */}
+          {selectedProducts.some((p) => p.prod_id === product.prod_id) && (
+            <span className="text-green-500 text-sm font-semibold">✓ Selected</span>
+          )}
+        </div>
+      ))
+    ) : (
+      <div className="px-4 py-2 text-gray-500">No products found</div>
+    )}
+  </div>
+)}
+
           </div>
         </div>
 

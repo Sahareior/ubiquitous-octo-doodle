@@ -79,135 +79,137 @@ const ConfirmationPage = () => {
   }
 
   return (
-    <div className='bg-[#FAF8F2] '>
-      <div className='mx-40 pb-10'>
-        <Breadcrumb />
-        <div className='max-w-6xl bg-white mx-auto px-4'>
-          <div ref={pdfRef} className='max-w-3xl mx-auto rounded-2xl p-8 mt-6'>
-            
-            {/* Success Message */}
-            <div className='flex flex-col items-center justify-center gap-3 mb-6'>
-              <span className='h-12 w-12 flex items-center justify-center bg-[#CBA135] rounded-full text-white text-lg'>
-                <MdOutlineDone />
+<div className='bg-[#FAF8F2] py-8'>
+  <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12'>
+    <Breadcrumb />
+    <div className='bg-white mx-auto rounded-2xl p-6 sm:p-8 mt-6'>
+      <div ref={pdfRef} className='max-w-3xl mx-auto'>
+        
+        {/* Success Message */}
+        <div className='flex flex-col items-center justify-center gap-4 mb-8'>
+          <span className='h-16 w-16 flex items-center justify-center bg-[#CBA135] rounded-full text-white text-2xl'>
+            <MdOutlineDone />
+          </span>
+          <div className='space-y-2'>
+            <h3 className='text-3xl sm:text-4xl font-bold text-[#333333] text-center'>
+              Order Placed Successfully!
+            </h3>
+            <p className='text-gray-600 text-xl text-center'>
+              Thank you for your order.
+            </p>
+          </div>
+        </div>
+
+        {/* Order Details */}
+        <div className='mb-8'>
+          <h4 className='text-2xl font-semibold pb-6'>Order Details</h4>
+          <div className='space-y-4'>
+            <div className='flex justify-between items-center text-gray-700'>
+              <span className='text-lg text-[#666666]'>Order ID:</span>
+              <span className='font-medium flex items-center gap-2'>
+                #{orderRecipt.order_id}
+                <BiCopy
+                  onClick={() => handleCopy(orderRecipt.order_id)}
+                  className='cursor-pointer no-print' // Hide from PDF
+                  size={20}
+                />
               </span>
-              <div>
-                <h3 className='text-[32px] font-bold text-[#333333] text-center'>
-                  Order Placed Successfully!
-                </h3>
-                <p className='text-gray-600 text-[20px] text-center'>
-                  Thank you for your order.
-                </p>
-              </div>
             </div>
-
-            {/* Order Details */}
-            <div className='mb-6 w-6/12'>
-              <h4 className='text-[20px] font-semibold py-5'>Order Details</h4>
-              <div className='flex justify-between text-sm text-gray-700 mb-2'>
-                <span className='text-[16px] text-[#666666]'>Order ID:</span>
-                <span className='font-medium flex items-center gap-2'>
-                  #{orderRecipt.order_id}
-                  <BiCopy
-                    onClick={() => handleCopy(orderRecipt.order_id)}
-                    className='cursor-pointer no-print' // Hide from PDF
-                    size={18}
-                  />
-                </span>
-              </div>
-              <div className='flex justify-between text-sm text-gray-700 mb-2'>
-                <span className='text-[16px] text-[#666666]'>Estimated Delivery:</span>
-                <span className='font-medium text-[16px]'>
-                  {orderRecipt.estimated_delivery || "N/A"}
-                </span>
-              </div>
-              <div className='flex justify-between text-sm text-gray-700 mb-2'>
-                <span className='text-[16px] text-[#666666]'>Order Status:</span>
-                <span className='font-medium text-[16px]'>
-                  {orderRecipt.order_status_display}
-                </span>
-              </div>
-              <div className='flex justify-between text-sm text-gray-700 mb-2'>
-                <span className='text-[16px] text-[#666666]'>Payment Status:</span>
-                <span className='font-medium text-[16px]'>
-                  {orderRecipt.payment_status_display}
-                </span>
-              </div>
+            <div className='flex justify-between text-gray-700'>
+              <span className='text-lg text-[#666666]'>Estimated Delivery:</span>
+              <span className='font-medium text-lg'>
+                {orderRecipt.estimated_delivery || "N/A"}
+              </span>
             </div>
-
-            <hr className='my-4' />
-
-            {/* Product List */}
-            <div className='space-y-4'>
-              <h4 className='text-[20px] font-semibold'>Product List</h4>
-              {orderRecipt.items.map((item, index) => (
-                <div key={index} className='flex justify-between items-center p-1 rounded-xl'>
-                  <div>
-                    <p className='font-semibold text-[16px] text-[#333333]'>{item.product_name}</p>
-                    <p className='text-[16px] text-gray-600'>Qty: {item.quantity}</p>
-                  </div>
-                  <p className='text-right font-semibold'>${parseFloat(item.price).toFixed(2)}</p>
-                </div>
-              ))}
+            <div className='flex justify-between text-gray-700'>
+              <span className='text-lg text-[#666666]'>Order Status:</span>
+              <span className='font-medium text-lg'>
+                {orderRecipt.order_status_display}
+              </span>
             </div>
-
-            <hr className='my-6' />
-
-            {/* Price Summary */}
-            <div className='space-y-2 text-[16px] text-[#666666]'>
-              <div className='flex justify-between'>
-                <span>Subtotal ({orderRecipt.items.length} items)</span>
-                <span>${parseFloat(orderRecipt.subtotal).toFixed(2)}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span>Delivery Fee</span>
-                <span>${parseFloat(orderRecipt.delivery_fee).toFixed(2)}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span>Tax</span>
-                <span>${parseFloat(orderRecipt.tax_amount).toFixed(2)}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span>Total Discount</span>
-                <span>-${parseFloat(orderRecipt.discount_amount).toFixed(2)}</span>
-              </div>
-            </div>
-
-            <hr className='my-6' />
-
-            <div className='flex justify-between items-center text-lg font-bold'>
-              <span>Total</span>
-              <span className='text-[#CBA135]'>${parseFloat(orderRecipt.total_amount).toFixed(2)}</span>
-            </div>
-
-            {/* Actions */}
-            <div className='mt-14 flex flex-col justify-center items-center gap-4 no-print'>
-              <p 
-                onClick={downloadPdf}
-                className='flex items-center gap-1 text-[#CBA135] text-[16px] cursor-pointer'
-              >
-                <FaArrowDownLong /> Download
-              </p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className='bg-[#CBA135] rounded-md hover:bg-yellow-600 w-60 h-[46px] text-white px-12 py-2'
-              >
-                Track My Order
-              </button>
-              <Link to='/'>
-                <Button type='default' className='w-60 h-[46px] px-20 py-2'>
-                  Continue Shopping
-                </Button>
-              </Link>
-              <p className='text-[16px]'>
-                “A confirmation has been sent to your email and WhatsApp.”
-              </p>
+            <div className='flex justify-between text-gray-700'>
+              <span className='text-lg text-[#666666]'>Payment Status:</span>
+              <span className='font-medium text-lg'>
+                {orderRecipt.payment_status_display}
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      <CustomModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+        <hr className='my-8 border-gray-200' />
+
+        {/* Product List */}
+        <div className='space-y-6 mb-8'>
+          <h4 className='text-2xl font-semibold'>Product List</h4>
+          {orderRecipt.items.map((item, index) => (
+            <div key={index} className='flex justify-between items-center p-3 rounded-xl'>
+              <div>
+                <p className='font-semibold text-lg text-[#333333]'>{item.product_name}</p>
+                <p className='text-lg text-gray-600'>Qty: {item.quantity}</p>
+              </div>
+              <p className='text-right font-semibold text-lg'>${parseFloat(item.price).toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+
+        <hr className='my-8 border-gray-200' />
+
+        {/* Price Summary */}
+        <div className='space-y-4 text-lg text-[#666666] mb-8'>
+          <div className='flex justify-between'>
+            <span>Subtotal ({orderRecipt.items.length} items)</span>
+            <span>${parseFloat(orderRecipt.subtotal).toFixed(2)}</span>
+          </div>
+          <div className='flex justify-between'>
+            <span>Delivery Fee</span>
+            <span>${parseFloat(orderRecipt.delivery_fee).toFixed(2)}</span>
+          </div>
+          <div className='flex justify-between'>
+            <span>Tax</span>
+            <span>${parseFloat(orderRecipt.tax_amount).toFixed(2)}</span>
+          </div>
+          <div className='flex justify-between'>
+            <span>Total Discount</span>
+            <span>-${parseFloat(orderRecipt.discount_amount).toFixed(2)}</span>
+          </div>
+        </div>
+
+        <hr className='my-8 border-gray-200' />
+
+        <div className='flex justify-between items-center text-xl font-bold mb-12'>
+          <span>Total</span>
+          <span className='text-[#CBA135] text-2xl'>${parseFloat(orderRecipt.total_amount).toFixed(2)}</span>
+        </div>
+
+        {/* Actions */}
+        <div className='mt-12 flex flex-col justify-center items-center gap-6 no-print'>
+          <p 
+            onClick={downloadPdf}
+            className='flex items-center gap-2 text-[#CBA135] text-lg cursor-pointer font-medium'
+          >
+            <FaArrowDownLong /> Download Receipt
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className='bg-[#CBA135] rounded-md hover:bg-yellow-600 w-full max-w-xs h-14 text-white text-lg font-medium'
+          >
+            Track My Order
+          </button>
+          <Link to='/' className='w-full max-w-xs'>
+            <Button type='default' className='w-full h-14 text-lg font-medium border-2 border-gray-300'>
+              Continue Shopping
+            </Button>
+          </Link>
+          <p className='text-lg text-center text-gray-600 mt-4'>
+            "A confirmation has been sent to your email and WhatsApp."
+          </p>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <CustomModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+</div>
   );
 };
 

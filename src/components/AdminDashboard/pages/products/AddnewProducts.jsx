@@ -91,16 +91,15 @@ const [formData, setFormData] = useState({
 
   const handleImageUpload = (files) => {
 
-        if(images.length>4){
-          Swal.fire({
-      icon: "warning",
-      title: "You Cant upload more then 5 images",
-      text: "Please reduce the number.",
+ if (images.length + files.length > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "You can’t upload more than 5 images",
+        text: `You can only add ${5 - images.length} more image(s).`,
       confirmButtonColor: "#3085d6",
     });
-    // setImages([])
-    return
-    }
+    return;
+  }
     
     const newImages = files.map(file => ({
       file,

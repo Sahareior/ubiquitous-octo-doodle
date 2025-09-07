@@ -20,6 +20,8 @@ const ProductsTable = ({ products,path }) => {
   const [selected, setSelected] = useState({});
   const [deleteProduct] = useDeleteProductMutation();
      const {data:categories} = useGetCategoriesQuery()
+     const [bulkAction, setBulkAction] = useState(undefined); // NEW
+
      const [bulkProductStatus] = useBulkProductStatusMutation()
      const [bulkProductDelete] = useBulkProductDeleteMutation()
 
@@ -43,30 +45,33 @@ useEffect(() => {
   // If products is an object with results, use results; otherwise, assume it's an array
   const productArray = products.results ? products.results : products;
 
-  const mappedData = productArray.map((p) => ({
-    key: p.id,
-    productId: p.prod_id,
-    productName: p.name,
-    category: getCategories(p).join(", "),
-    approval: p.is_approve ? 'Approved' : 'Not Approved',
-    price: parseFloat(p.active_price || p.price1 || 0),
-    stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
-    status:
-      p.status === 'approved'
-        ? 'Active'
-        : p.status === 'active'
-        ? 'Active'
-        : p.status === 'draft'
-        ? 'Draft'
-        : 'Pending',
-    fullData: p,
-  }));
+const mappedData = productArray.map((p) => ({
+  key: p.id,
+  productId: p.prod_id,
+  productName: p.name,
+  category: getCategories(p).join(", "),
+  approval: p.is_approve ? 'Approved' : 'Not Approved',
+  price: parseFloat(p.active_price || p.price1 || 0),
+  stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
+  status:
+    p.status === 'approved'
+      ? 'Active'
+      : p.status === 'active'
+      ? 'Active'
+      : p.status === 'draft'
+      ? 'Draft'
+      : 'Pending',
+  fullData: p,
+  productImage: p.images && p.images.length > 0 ? p.images[0].image : null, // ✅ first image
+}));
+
 
   setDataSource(mappedData);
 }, [products, categories]);
 
 
 // 🗑 Bulk delete products
+// Bulk delete
 const handleBulkDelete = async () => {
   Swal.fire({
     title: 'Are you sure?',
@@ -83,18 +88,60 @@ const handleBulkDelete = async () => {
 
         Swal.fire('Deleted!', 'Selected products have been removed.', 'success');
 
-        // update UI locally
+        // update UI
         setDataSource((prev) =>
           prev.filter((item) => !selectedRowKeys.includes(item.key))
         );
         setSelectedRowKeys([]);
+        setBulkAction(undefined); // ✅ reset dropdown
       } catch (error) {
         console.error('Bulk delete failed:', error);
         Swal.fire('Error!', 'Failed to delete selected products.', 'error');
+        setBulkAction(undefined); // ✅ also reset on error
       }
+    } else {
+      setBulkAction(undefined); // ✅ reset if cancelled
     }
   });
 };
+
+const handleBulkAction = async (action) => {
+  if (selectedRowKeys.length === 0) {
+    message.warning('Please select at least one product.');
+    setBulkAction(undefined); // ✅ reset immediately if no selection
+    return;
+  }
+
+  if (action === 'delete') {
+    handleBulkDelete();
+    return;
+  }
+
+  try {
+    await bulkProductStatus({
+      product_ids: selectedRowKeys,
+      status: action,
+    }).unwrap();
+
+    message.success(`Updated ${selectedRowKeys.length} product(s) to "${action}".`);
+
+    setDataSource((prev) =>
+      prev.map((item) =>
+        selectedRowKeys.includes(item.key)
+          ? { ...item, status: action.charAt(0).toUpperCase() + action.slice(1) }
+          : item
+      )
+    );
+
+    setSelectedRowKeys([]);
+    setBulkAction(undefined); // ✅ reset dropdown
+  } catch (error) {
+    console.error("Bulk update failed:", error);
+    message.error("Failed to update products. Try again.");
+    setBulkAction(undefined); // ✅ reset on error
+  }
+};
+
 
 
 
@@ -137,42 +184,6 @@ const handleDelete = async (keys) => {
 };
 
 
-const handleBulkAction = async (action) => {
-  if (selectedRowKeys.length === 0) {
-    message.warning('Please select at least one product.');
-    return;
-  }
-
-  if (action === 'delete') {
-    handleBulkDelete();
-    return;
-  }
-
-  try {
-    const payload = {
-      product_ids: selectedRowKeys,
-      status: action, // e.g. "approved", "draft"
-    };
-
-    await bulkProductStatus(payload).unwrap();
-    message.success(`Successfully updated ${selectedRowKeys.length} product(s) to "${action}".`);
-
-    setDataSource((prev) =>
-      prev.map((item) =>
-        selectedRowKeys.includes(item.key)
-          ? { ...item, status: action.charAt(0).toUpperCase() + action.slice(1) }
-          : item
-      )
-    );
-
-    setSelectedRowKeys([]);
-  } catch (error) {
-    console.error("Bulk update failed:", error);
-    message.error("Failed to update products. Try again.");
-  }
-};
-
-
 
   console.log('selected, ' , selected)
 
@@ -187,16 +198,16 @@ const handleBulkAction = async (action) => {
       title: 'Product Name',
       dataIndex: 'productName',
       key: 'productName',
-      render: (text) => (
-        <span className="flex items-center gap-3 text-sm font-medium">
-          <img
-            className="w-7 h-7 rounded-full object-cover"
-            src="https://plus.unsplash.com/premium_photo-1661964014750-963a28aeddea?q=80&w=1170&auto=format&fit=crop"
-            alt="product"
-          />
-          {text}
-        </span>
-      ),
+      render: (text, record) => (
+    <span className="flex items-center gap-3 text-sm font-medium">
+      <img
+        className="w-11 h-11 rounded-full object-cover"
+        src={record.productImage || "https://plus.unsplash.com/premium_photo-1661964014750-963a28aeddea?q=80&w=1170&auto=format&fit=crop"} // fallback
+        alt={text}
+      />
+      {text}
+    </span>
+  ),
     },
     {
       title: 'Category',
@@ -306,7 +317,11 @@ const handleBulkAction = async (action) => {
   placeholder="Bulk Actions"
   size="small"
   className="min-w-[180px]"
-  onChange={handleBulkAction}
+  value={bulkAction} // ✅ controlled value
+  onChange={(val) => {
+    setBulkAction(val);
+    handleBulkAction(val);
+  }}
   suffixIcon={<RiArrowDropDownLine />}
 >
   <Option value="approved">Mark as Approved</Option>
@@ -366,6 +381,7 @@ const handleBulkAction = async (action) => {
 
 
       <ProductsModal
+      path={path}
         setIsModalOpen={setIsModalOpen}
         isModalOpen={isModalOpen}
         productData={selected}

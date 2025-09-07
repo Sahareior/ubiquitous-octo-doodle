@@ -48,7 +48,7 @@ const Footer = () => {
           <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Categories</h3>
           <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
             <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-white">Track Order</li>
-            <li><Link to="/active" className="hover:text-white">Help Center/Live Chat</Link></li>
+            {/* <li><Link to="/active" className="hover:text-white">Help Center/Live Chat</Link></li> */}
             <li><Link to="/return" className="hover:text-white">Return Request</Link></li>
             <li className='hover:cursor-pointer'><div onClick={()=> handelClick()} className="hover:text-white">Be a Vendor</div></li>
             <li><Link to="/return-policy" className="hover:text-white">Return Policy</Link></li>
