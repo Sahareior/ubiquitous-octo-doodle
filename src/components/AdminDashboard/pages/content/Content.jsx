@@ -1,136 +1,142 @@
 import { useState, useRef } from 'react';
 import { useFormik } from 'formik';
 import { FaCloudUploadAlt, FaTrashAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
-import { useBannerUploadMutation, useDeleteBannerMutation, useGetAllBannersQuery } from '../../../../redux/slices/Apis/dashboardApis';
-import { Link } from 'react-router-dom';
+import { useBannerUploadMutation, useDeleteBannerMutation, useGetAllBannersQuery, useUpdateBannerMutation } from '../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
 
 const Content = () => {
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [bannerUpload] = useBannerUploadMutation()
-  const {data: bannaers, refetch} = useGetAllBannersQuery()
-  const [deleteBanner] = useDeleteBannerMutation()
+  const [bannerUpload] = useBannerUploadMutation();
+  const [updateBanner] = useUpdateBannerMutation();
+  const { data: banners, refetch } = useGetAllBannersQuery();
+  const [deleteBanner] = useDeleteBannerMutation();
+  const [editingBanner, setEditingBanner] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-  console.log(bannaers,'this is banners')
-
-  const [activeBanners, setActiveBanners] = useState([
-    {
-      id: 1,
-      title: "Summer Sale Banner",
-      endDate: "2024-08-31",
-      image: "https://ab465d01af38.ngrok-free.app/media/uploads/common/2676eeb5-b053-4318-a16f-68f97cb898d5.png"
-    }
-  ]);
-
-  // Initialize form with dbData
   const formik = useFormik({
     initialValues: {
-      bannerTitle: "Just Check",
-      subheading: "Just Check",
-      ctaLink: "http://10.10.13.16:2500/api/admin/banners/",
+      bannerTitle: "",
+      subheading: "",
+      ctaLink: "",
       startDate: "",
       endDate: "",
       showBanner: false,
-      image: null // This will store the File object
+      image: null
     },
     
-onSubmit: async (values) => {
-  const formData = new FormData();
+    onSubmit: async (values) => {
+      const formData = new FormData();
 
-  formData.append("id", 1);
-  formData.append("title", values.bannerTitle);
-  formData.append("subtitle", values.subheading);
-  formData.append("link", values.ctaLink);
-  formData.append("startDate", values.startDate);
-  formData.append("endDate", values.endDate);
-  formData.append("is_active", values.showBanner);
-  formData.append("position", 1);
-  formData.append("alt_text", "Nothing");
-  formData.append("created_at", new Date().toISOString());
-  formData.append("updated_at", new Date().toISOString());
-
-  // ✅ attach real file
-  if (values.image instanceof File) {
-    formData.append("image", values.image);
-  }
-
-  console.log("📌 Sending FormData:", [...formData]);
-
-  try {
-    // 🚀 send as multipart/form-data
-    const res = await bannerUpload(formData);
-
-    console.log(res);
-
-    if (res) {
-      Swal.fire({
-        icon: "success",
-        title: "Banner Uploaded!",
-        text: "Your banner has been uploaded successfully.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-
-      if (values.showBanner) {
-        setActiveBanners([
-          ...activeBanners,
-          {
-            id: Date.now(),
-            title: values.bannerTitle,
-            endDate: values.endDate,
-            image: previewUrl,
-          },
-        ]);
+      if (editingBanner) {
+        // Update existing banner
+        formData.append("id", editingBanner.id);
+      } else {
+        // Create new banner
+        formData.append("id", "");
       }
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Upload Failed",
-        text: res.message || "Something went wrong!",
-      });
+      
+      formData.append("title", values.bannerTitle);
+      formData.append("subtitle", values.subheading);
+      formData.append("link", values.ctaLink);
+      formData.append("startDate", values.startDate);
+      formData.append("endDate", values.endDate);
+      formData.append("is_active", values.showBanner);
+      formData.append("position", 1);
+      formData.append("alt_text", "Nothing");
+      formData.append("created_at", new Date().toISOString());
+      formData.append("updated_at", new Date().toISOString());
+
+      if (values.image instanceof File) {
+        formData.append("image", values.image);
+      }
+
+      try {
+        let res;
+        if (editingBanner) {
+          res = await updateBanner(formData);
+        } else {
+          res = await bannerUpload(formData);
+        }
+
+        if (res.data) {
+          Swal.fire({
+            icon: "success",
+            title: editingBanner ? "Banner Updated!" : "Banner Uploaded!",
+            text: editingBanner 
+              ? "Your banner has been updated successfully." 
+              : "Your banner has been uploaded successfully.",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+
+          resetForm();
+          refetch();
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Operation Failed",
+            text: res.error?.data?.message || "Something went wrong!",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "Server Error",
+          text: "Could not complete the operation. Please try again later.",
+        });
+      }
     }
-  } catch (err) {
-    console.error(err);
-    Swal.fire({
-      icon: "error",
-      title: "Server Error",
-      text: "Could not upload banner. Please try again later.",
-    });
-  }
-}
-
-
   });
 
+  const resetForm = () => {
+    formik.resetForm();
+    setPreviewUrl(null);
+    setEditingBanner(null);
+    setIsEditing(false);
+  };
 
+  const handleEditBanner = (banner) => {
+    setEditingBanner(banner);
+    setIsEditing(true);
+    
+    // Pre-fill the form with banner data
+    formik.setValues({
+      bannerTitle: banner.title || "",
+      subheading: banner.subtitle || "",
+      ctaLink: banner.link || "",
+      startDate: banner.startDate || "",
+      endDate: banner.endDate || "",
+      showBanner: banner.is_active || false,
+      image: null
+    });
+    
+    setPreviewUrl(banner.image || null);
+  };
 
+  const handleCancelEdit = () => {
+    resetForm();
+  };
 
-  // Handle file selection
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Check if file is an image
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         return;
       }
       
-      // Create a preview URL
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
-      
-      // Update formik value with the File object
       formik.setFieldValue('image', file);
     }
   };
 
-  // Trigger file input click
   const handleUploadClick = () => {
     fileInputRef.current.click();
   };
 
-  // Handle drag and drop
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -149,47 +155,88 @@ onSubmit: async (values) => {
     }
   };
 
-  // Handle drag over
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  // Remove image
   const removeImage = () => {
     setPreviewUrl(null);
     formik.setFieldValue('image', null);
   };
 
-  // Remove banner
-  const removeBanner = (id) => {
-    setActiveBanners(activeBanners.filter(banner => banner.id !== id));
-  };
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
 
-  const handleDelete= async (id)=>{
-    console.log(id)
-    const res = await deleteBanner(id)
-    refetch()
-  }
+    if (result.isConfirmed) {
+      try {
+        const res = await deleteBanner(id);
+        if (res.data) {
+          Swal.fire(
+            'Deleted!',
+            'Your banner has been deleted.',
+            'success'
+          );
+          refetch();
+        } else {
+          Swal.fire(
+            'Error!',
+            'Failed to delete banner.',
+            'error'
+          );
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        Swal.fire(
+          'Error!',
+          'Failed to delete banner.',
+          'error'
+        );
+      }
+    }
+  };
 
   return (
     <div className="p-6 bg-[#fefcf7] min-h-screen space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-[20px] font-bold">Homepage Banner Manager</h2>
-        <button 
-          type="button"
-          onClick={formik.handleSubmit}
-          className="bg-[#CBA135] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <FaSave /> Save Changes
-        </button>
+        <div className="flex gap-2">
+          {isEditing && (
+            <button 
+              type="button"
+              onClick={handleCancelEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <FaTimes /> Cancel
+            </button>
+          )}
+          <button 
+            type="button"
+            onClick={formik.handleSubmit}
+            className="bg-[#CBA135] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <FaSave /> {isEditing ? 'Update Banner' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Form */}
         <div className="col-span-2 bg-white p-6 rounded-xl shadow space-y-4">
+          <h3 className="text-lg font-semibold">
+            {isEditing ? 'Edit Banner' : 'Add New Banner'}
+          </h3>
+          
           {/* Upload Area */}
           <div 
             className="border-2 border-dashed bg-[#CBA1351A] border-yellow-400 rounded-lg p-12 text-center text-sm text-gray-600 cursor-pointer"
@@ -298,8 +345,8 @@ onSubmit: async (values) => {
             </div>
           </div>
 
-          {/* Show Banner + Button */}
-          <div className="flex items-center justify-between">
+          {/* Show Banner */}
+          <div className="flex items-center">
             <label className="flex items-center gap-2 text-[16px]">
               <input
                 type="checkbox"
@@ -309,12 +356,6 @@ onSubmit: async (values) => {
               />
               Show Banner
             </label>
-            <button 
-              type="button"
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
-            >
-              + Add Banner
-            </button>
           </div>
         </div>
 
@@ -348,8 +389,8 @@ onSubmit: async (values) => {
       <div className="bg-white p-4 rounded-xl shadow">
         <h3 className="text-sm font-semibold mb-2">Active Banners</h3>
         
-        {bannaers?.results?.length > 0 ? (
-          bannaers?.results?.map(banner => (
+        {banners?.results?.length > 0 ? (
+          banners.results.map(banner => (
             <div key={banner.id} className="flex justify-between items-center p-4 bg-gray-100 rounded-md mb-2">
               <div className="flex items-center">
                 <img 
@@ -363,10 +404,10 @@ onSubmit: async (values) => {
                 </div>
               </div>
               <div className="flex gap-3 text-gray-600">
-                <Link to="/admin-dashboard/edit-banner" >
-                <FaEdit className="cursor-pointer text-[#CBA135] hover:text-blue-500" />
-                
-                </Link>
+                <FaEdit 
+                  className="cursor-pointer text-[#CBA135] hover:text-blue-500" 
+                  onClick={() => handleEditBanner(banner)}
+                />
                 <FaTrashAlt 
                   size={16} 
                   className="cursor-pointer text-[#EF4444] hover:text-red-500" 

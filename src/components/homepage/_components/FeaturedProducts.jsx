@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import {
   useAddProductToCartMutation,
+  useGetAllWishListQuery,
   useGetAppCartQuery,
   useGetCustomerProductsQuery,
   useSavetoWishListMutation
@@ -87,6 +88,7 @@ const FeaturedProducts = () => {
   const [savetoWishList] = useSavetoWishListMutation();
   const dispatch = useDispatch();
   const { refetch } = useGetAppCartQuery();
+  const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
   const { data: allProducts, isLoading, isError } = useGetCustomerProductsQuery();
   const location = useLocation();
   const navigate = useNavigate();
@@ -136,7 +138,7 @@ const FeaturedProducts = () => {
 
     try {
       await savetoWishList(payload).unwrap();
-
+      wishListRefetch();
       MySwal.fire({
         position: "top-end",
         icon: "success",

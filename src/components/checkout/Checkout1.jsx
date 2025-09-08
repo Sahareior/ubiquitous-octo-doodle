@@ -5,8 +5,6 @@ import { Link, redirect, useLocation } from "react-router-dom";
 import Breadcrumb from "../others/Breadcrumb";
 import ConfirmOrder from "./ConfirmOrder";
 import {
-
-
   useCreateCheckoutMutation,
   useCreateOrderFromCartMutation,
   useGetAddressQuery,
@@ -17,14 +15,13 @@ import Swal from "sweetalert2";
 const Checkout1 = () => {
   const location = useLocation();
   const { data: address, isLoading: addressLoading, refetch} = useGetAddressQuery();
-const [createOrderFromCart] = useCreateOrderFromCartMutation()
-const [createCheckout] = useCreateCheckoutMutation()
-   const [shippingAddressDelete] = useShippingAddressDeleteMutation()
-const isLoading = false
+  const [createOrderFromCart] = useCreateOrderFromCartMutation()
+  const [createCheckout] = useCreateCheckoutMutation()
+  const [shippingAddressDelete] = useShippingAddressDeleteMutation()
+  const isLoading = false
   const [selectedMethod, setSelectedMethod] = useState("");
   const [selectedAddress, setSelectedAddress] = useState(null);
 
-  console.log(location.state)
   // Extract cart data from location
   const {
     data: cartData = [],
@@ -32,10 +29,42 @@ const isLoading = false
     deliveryFee = 0,
     total = 0,
   } = location.state || {};
+  
+  // Format XAF currency
+  const formatXAF = (amount) => `XAF ${Number(amount).toLocaleString()}`;
+  
+  // Calculate promotional discounts
+  const calculateItemPrice = (item) => {
+    const product = item.product;
+    if (product.promotion_discount_type && product.promotion_discount_value) {
+      return parseFloat(product.new_price);
+    }
+    return parseFloat(item.price_snapshot || 0);
+  };
+
+  const calculateOriginalItemPrice = (item) => {
+    const product = item.product;
+    if (product.promotion_discount_type && product.promotion_discount_value) {
+      return parseFloat(product.old_price);
+    }
+    return parseFloat(item.price_snapshot || 0);
+  };
+
+  // Calculate totals with promotions
+  const subtotalWithPromotions = cartData.reduce(
+    (acc, item) => acc + calculateItemPrice(item) * item.quantity,
+    0
+  );
+
+  const originalSubtotal = cartData.reduce(
+    (acc, item) => acc + calculateOriginalItemPrice(item) * item.quantity,
+    0
+  );
+
+  const totalDiscountFromPromotions = originalSubtotal - subtotalWithPromotions;
 
   // Total items
   const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
-
 
   const handleAddressDelete = async (id) => {
     try {
@@ -58,77 +87,75 @@ const isLoading = false
     }
   };
 
-const handlePlaceOrder = async () => {
-  if (!selectedAddress) {
-    Swal.fire({
-      title: "Address Required",
-      text: "Please select an address before placing the order!",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-
-  if (!selectedMethod) {
-    Swal.fire({
-      title: "Payment Method Required",
-      text: "Please select a payment method before placing the order!",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-
-  try {
-    const vendo = [...new Set(cartData.map(item => item.product.vendor_id))];
-
-    const orderData = {
-      cart: cartData,
-      subtotal,
-      deliveryType: location.state.deliveryType,
-      deliveryFee,
-      total,
-      selected_shipping_address_id: selectedAddress.id, // ✅ use ID here
-      payment_method: selectedMethod,
-      vendors: vendo,
-    };
-    console.log(orderData,'orderData')
-
-    const res = await createOrderFromCart(orderData).unwrap();
-    console.log("Order Response:", res[0].order_id);
-
-    if (res[0].order_id) {
-      const checkoutRes = await createCheckout({
-        order_id: res[0].order_id,
-      }).unwrap();
-
-      console.log("Checkout Response:", checkoutRes.checkout_url);
-
-      if (checkoutRes.checkout_url) {
-        Swal.fire({
-          title: "Redirecting...",
-          text: "You are being redirected to the payment page.",
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-          willClose: () => {
-            window.location.href = checkoutRes.checkout_url;
-          },
-        });
-      }
+  const handlePlaceOrder = async () => {
+    if (!selectedAddress) {
+      Swal.fire({
+        title: "Address Required",
+        text: "Please select an address before placing the order!",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
     }
-  } catch (error) {
-    console.error("Error placing order:", error);
-    Swal.fire({
-      title: "Order Failed",
-      text: "Something went wrong while placing your order. Please try again.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-  }
-};
 
+    if (!selectedMethod) {
+      Swal.fire({
+        title: "Payment Method Required",
+        text: "Please select a payment method before placing the order!",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
 
+    try {
+      const vendo = [...new Set(cartData.map(item => item.product.vendor_id))];
+
+      const orderData = {
+        cart: cartData,
+        subtotal: subtotalWithPromotions,
+        deliveryType: location.state.deliveryType,
+        deliveryFee,
+        total,
+        selected_shipping_address_id: selectedAddress.id,
+        payment_method: selectedMethod,
+        vendors: vendo,
+      };
+      console.log(orderData,'orderData')
+
+      const res = await createOrderFromCart(orderData).unwrap();
+      console.log("Order Response:", res[0].order_id);
+
+      if (res[0].order_id) {
+        const checkoutRes = await createCheckout({
+          order_id: res[0].order_id,
+        }).unwrap();
+
+        console.log("Checkout Response:", checkoutRes.checkout_url);
+
+        if (checkoutRes.checkout_url) {
+          Swal.fire({
+            title: "Redirecting...",
+            text: "You are being redirected to the payment page.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+            willClose: () => {
+              window.location.href = checkoutRes.checkout_url;
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      Swal.fire({
+        title: "Order Failed",
+        text: "Something went wrong while placing your order. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  };
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-16">
@@ -166,21 +193,20 @@ const handlePlaceOrder = async () => {
                       }`}
                     >
                       <div>
-          <div className="flex items-center justify-between mb-3">
-  <h3 className="text-lg font-medium text-gray-900">{item?.full_name}</h3>
-  <div className="flex gap-3">
-    <button
-      className="text-red-400 hover:text-red-600 transition-colors"
-      onClick={(e) => {
-        e.stopPropagation();
-        handleAddressDelete(item.id);
-      }}
-    >
-      <MdDelete size={18} />
-    </button>
-  </div>
-</div>
-
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-lg font-medium text-gray-900">{item?.full_name}</h3>
+                          <div className="flex gap-3">
+                            <button
+                              className="text-red-400 hover:text-red-600 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddressDelete(item.id);
+                              }}
+                            >
+                              <MdDelete size={18} />
+                            </button>
+                          </div>
+                        </div>
 
                         <div className="text-gray-700">
                           <p className="text-md">
@@ -208,11 +234,11 @@ const handlePlaceOrder = async () => {
                   <p className="text-gray-500 mb-4">No saved addresses found.</p>
                 </div>
               )}
-  {/* className="bg-[#CBA135] hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold" */}
+
               {/* Add Address Button */}
               <div className="mt-6">
                 <Link className="flex justify-center" to="/checkout" state={location.state}>
-                  <button className="bg-[#CBA135] mx-auto hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold">
+                  <button className="bg-[#CBA135] mx-auto hover:bg-yellow-600 text-white rounded-md px-16 h-[48px] text-md font-semibold">
                     Add New Address
                   </button>
                 </Link>
@@ -232,33 +258,57 @@ const handlePlaceOrder = async () => {
 
               {/* Cart Items */}
               <div className="space-y-4 max-h-64 overflow-y-auto pr-2 mb-6">
-                {cartData.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-start gap-4 py-2">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={
-                            item.product.images?.[0]?.image || "/placeholder.png"
-                          }
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded-lg shadow-sm"
-                        />
+                {cartData.map((item, idx) => {
+                  const hasPromotion = item.product.promotion_discount_type && item.product.promotion_discount_value;
+                  const itemPrice = calculateItemPrice(item);
+                  const originalPrice = calculateOriginalItemPrice(item);
+                  
+                  return (
+                    <div key={idx} className="flex justify-between items-start gap-4 py-2">
+                      <div className="flex gap-4">
+                        <div className="flex-shrink-0">
+                          <img
+                            src={item.product.images?.[0]?.image || "/placeholder.png"}
+                            alt={item.product.name}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-1">{item.product.name}</h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Qty: {item.quantity}
+                          </p>
+                          {hasPromotion && (
+                            <div className="mt-1">
+                              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                {item.product.promotion_discount_type === 'flat' 
+                                  ? `Save ${formatXAF(item.product.promotion_discount_value)}`
+                                  : `Save ${item.product.promotion_discount_value}%`
+                                }
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-1">{item.product.name}</h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Qty: {item.quantity}
-                        </p>
+                      <div className="text-right">
+                        {hasPromotion ? (
+                          <>
+                            <p className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                              {formatXAF(itemPrice * item.quantity)}
+                            </p>
+                            <p className="text-xs text-gray-500 line-through">
+                              {formatXAF(originalPrice * item.quantity)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                            {formatXAF(itemPrice * item.quantity)}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                      $
-                      {(
-                        parseFloat(item.price_snapshot) * item.quantity
-                      ).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Price Summary */}
@@ -267,11 +317,19 @@ const handlePlaceOrder = async () => {
                   <span className="text-gray-600">
                     Subtotal ({totalItems} {totalItems === 1 ? "item" : "items"})
                   </span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatXAF(subtotalWithPromotions)}</span>
                 </div>
+                
+                {totalDiscountFromPromotions > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="text-gray-600">Promotional Discount</span>
+                    <span className="font-medium">-{formatXAF(totalDiscountFromPromotions)}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery fee</span>
-                  <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                  <span className="font-medium">{formatXAF(deliveryFee)}</span>
                 </div>
               </div>
 
@@ -281,12 +339,11 @@ const handlePlaceOrder = async () => {
               <div className="flex justify-between items-center mb-6">
                 <h4 className="text-lg font-semibold text-gray-900">Total</h4>
                 <h4 className="text-2xl font-bold text-amber-600">
-                  ${total.toFixed(2)}
+                  {formatXAF(total)}
                 </h4>
               </div>
 
               {/* Place Order */}
-              {/* bg-[#CBA135] hover:bg-yellow-600 mx-auto text-white rounded-md px-16 h-[48px] text-md font-semibold */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={isLoading}

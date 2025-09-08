@@ -171,7 +171,7 @@ const VendorDashboard = () => {
          className='bg-white px-9'
         >
        <div className='flex justify-between items-center'>
-        <h5 className='text-[20px] font-semibold'>Vendor Dastboard</h5>
+        <h5 className='text-[20px] font-semibold'>Vendor Dashboard</h5>
         <div className='flex justify-center items-center gap-3'>
 
         <Notification />

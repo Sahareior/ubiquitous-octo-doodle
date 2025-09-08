@@ -188,7 +188,7 @@ const handleReject = async () => {
 
               <div>
                 <p className="popmed text-sm">Price :</p>
-                <p className="text-sm popreg">${productData?.price1}</p>
+                <p className="text-sm popreg">${productData?.price1} XAF</p>
               </div>
 
               <div>
@@ -198,19 +198,73 @@ const handleReject = async () => {
                 </p>
               </div>
 
-              <div>
-                <p className="popmed text-sm mb-1">Options</p>
-                <div className="flex items-center gap-2">
-                  {productData?.option1 && <span className="px-2 py-1 border rounded">{productData?.option1}</span>}
-                  {productData?.option2 && <span className="px-2 py-1 border rounded">{productData?.option2}</span>}
-                  {productData?.option3 && <span className="px-2 py-1 border rounded">{productData?.option3}</span>}
-                  {productData?.option4 && <span className="px-2 py-1 border rounded">{productData?.option4}</span>}
-                </div>
-              </div>
+<div className="col-span-3">
+  <p className="popmed text-sm mb-3">Delivery Options</p>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    { productData?.option1 && (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start">
+        <div className="bg-green-100 p-2 rounded-full mr-3">
+          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </div>
+        <div>
+          <p className="font-medium text-green-800 text-sm">Home Delivery</p>
+          <p className="text-green-600 text-xs mt-1">{productData.option1} XAF</p>
+        </div>
+      </div>
+    )}
+    
+    { productData?.option2 && (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start">
+        <div className="bg-blue-100 p-2 rounded-full mr-3">
+          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div>
+          <p className="font-medium text-blue-800 text-sm">Pickup</p>
+          <p className="text-blue-600 text-xs mt-1">{productData.option2} XAF</p>
+        </div>
+      </div>
+    )}
+    
+    { productData?.option3 && (
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-start">
+        <div className="bg-purple-100 p-2 rounded-full mr-3">
+          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <p className="font-medium text-purple-800 text-sm">Partner Delivery</p>
+          <p className="text-purple-600 text-xs mt-1">{productData.option3} XAF</p>
+        </div>
+      </div>
+    )}
+    
+    {productData?.option4 && (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-start">
+        <div className="bg-gray-100 p-2 rounded-full mr-3">
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div>
+          <p className="font-medium text-gray-800 text-sm">Additional Option</p>
+          <p className="text-gray-600 text-xs mt-1">{productData.option4}</p>
+        </div>
+      </div>
+    )}
+    
+
+  </div>
+</div>
 
               <div>
                 <p className="popmed text-sm">Discount price:</p>
-                <p className="text-sm popreg">${productData?.price2}</p>
+                <p className="text-sm popreg">{productData?.price2} XAF</p>
               </div>
 
               <div>
@@ -219,7 +273,7 @@ const handleReject = async () => {
                   className="text-yellow-600 flex items-center gap-1 underline font-medium"
                   onClick={() => setIsOrderHistoryOpen(true)}
                 >
-                  <LiaStarSolid size={16} /> <span className='text-black text-sm popreg'>2</span>
+                  <LiaStarSolid size={16} /> <span className='text-black text-sm popreg'>{productData?.average_rating}</span>
                 </button>
               </div>
 
