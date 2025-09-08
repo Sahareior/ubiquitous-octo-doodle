@@ -220,7 +220,7 @@ const handleDelete = async (keys) => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      render: (price) => <span className="text-sm font-semibold">${price.toFixed(2)}</span>,
+      render: (price) => <span className="text-sm font-semibold">${price.toFixed(2)} XAF</span>,
     },
     {
       title: 'Availability',

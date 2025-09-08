@@ -85,7 +85,7 @@ const Analytics = () => {
   return (
     <div>
       {/* Date Range Filter */}
-      <div className="flex flex-col md:flex-row justify-between shadow-md items-center gap-4 py-6 mt-9 px-4 bg-white rounded-md ">
+      {/* <div className="flex flex-col md:flex-row justify-between shadow-md items-center gap-4 py-6 mt-9 px-4 bg-white rounded-md ">
         <p className="flex items-center gap-2 text-gray-700 text-[18px] popbold ">
           <FaCalendar className="text-[#CBA135]" />
           Date Range Filter
@@ -101,7 +101,7 @@ const Analytics = () => {
             { value: 'disabled', label: 'Disabled', disabled: true },
           ]}
         />
-      </div>
+      </div> */}
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
@@ -129,7 +129,7 @@ const Analytics = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-[18px] font-semibold popbold text-gray-800">Vendor Performance</h3>
-            <Select
+            {/* <Select
               defaultValue="lucy"
               className="w-[180px] h-10 text-[16px] popreg"
               size="middle"
@@ -139,7 +139,7 @@ const Analytics = () => {
                 { value: 'Yiminghe', label: 'Yiminghe' },
                 { value: 'disabled', label: 'Disabled', disabled: true },
               ]}
-            />
+            /> */}
           </div>
 
           {/* Table Head */}

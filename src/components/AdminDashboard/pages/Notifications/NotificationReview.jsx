@@ -29,7 +29,7 @@ import {
   CalendarOutlined,
   BarChartOutlined
 } from "@ant-design/icons";
-import { useAcceptProductsMutation } from "../../../../redux/slices/Apis/dashboardApis";
+import { useAcceptProductsMutation, useRejectProductsMutation } from "../../../../redux/slices/Apis/dashboardApis";
 import Swal from "sweetalert2";
 import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
@@ -44,6 +44,7 @@ const NotificationReview = ({
   const [activeTab, setActiveTab] = useState("details");
    const [acceptProducts] = useAcceptProductsMutation();
       const { data: products, refetch } = useGetAllProductsQuery();
+        const [rejectProducts] = useRejectProductsMutation()
   
   const handleModalClose = () => {
     setIsModalVisible(false);
@@ -90,6 +91,62 @@ const NotificationReview = ({
     : [{ id: 'default', image: 'https://via.placeholder.com/150?text=No+Image' }];
 
 
+
+    const handleReject = async () => {
+      if (!selectedProduct) return;
+    
+      const payload = {
+        categories: selectedProduct?.categories?.length ? selectedProduct.categories.map(c => c.id) : [0],
+        tags: selectedProduct?.tags?.length ? selectedProduct.tags.map(t => t.id) : [0],
+        seo: selectedProduct?.seo || 0,
+        name: selectedProduct?.name || 'string',
+        sku: selectedProduct?.sku || 'string',
+        short_description: selectedProduct?.short_description || 'string',
+        full_description: selectedProduct?.full_description || 'string',
+        price1: selectedProduct?.price1?.toString() || '0',
+        price2: selectedProduct?.price2?.toString() || '0',
+        price3: selectedProduct?.price3?.toString() || '0',
+        option1: selectedProduct?.option1 || '',
+        option2: selectedProduct?.option2 || '',
+        option3: selectedProduct?.option3 || '',
+        option4: selectedProduct?.option4 || '',
+        is_stock: selectedProduct?.is_stock,
+        stock_quantity: selectedProduct?.stock_quantity || 0,
+        home_delivery: selectedProduct?.home_delivery,
+        pickup: selectedProduct?.pickup,
+        partner_delivery: selectedProduct?.partner_delivery,
+        is_approve: true,
+        estimated_delivery_days: selectedProduct?.estimated_delivery_days || 0,
+      };
+    
+      try {
+        const res = await rejectProducts({ id: selectedProduct?.id, data: payload }).unwrap();
+        console.log('Rejected:', res);
+    
+        // ✅ Success Swal
+        Swal.fire({
+          title: "Rejected!",
+          text: `${selectedProduct?.name} has been rejected successfully.`,
+          icon: "success",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK"
+        });
+        refetch()
+        handleModalClose();
+    
+      } catch (err) {
+        console.error('Error approving product:', err);
+    
+        // ❌ Error Swal
+        Swal.fire({
+          title: "Error!",
+          text: "Something went wrong while approving the product.",
+          icon: "error",
+          confirmButtonColor: "#d33",
+          confirmButtonText: "Close"
+        });
+      }
+    };
     
 const handleApprove = async () => {
   if (!selectedProduct) return;
@@ -212,11 +269,7 @@ const handleApprove = async () => {
         className="reject-btn"
         icon={<CloseCircleOutlined />}
         onClick={() =>
-          Swal.fire(
-            "Rejected!",
-            `${selectedProduct?.name} has been rejected.`,
-            "warning"
-          )
+          handleReject()
         }
       >
         Reject Product

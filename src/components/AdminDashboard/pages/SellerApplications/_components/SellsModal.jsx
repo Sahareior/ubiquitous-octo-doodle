@@ -193,16 +193,17 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            {sellerInfo?.status === "approved" ? (
-              <Button 
+            {
+              sellerInfo?.status !== "approved" && (
+                <div className='flex items-center gap-3'>
+                  <Button 
                 onClick={handleReject} 
                 className="bg-red-100 border-red-300 text-red-600 hover:bg-red-200 flex items-center"
               >
                 <FaTimesCircle className="mr-2" />
                 Reject Application
               </Button>
-            ) : (
-              <Button 
+               <Button 
                 onClick={handleAccept} 
                 className="bg-green-100 border-green-300 text-green-600 hover:bg-green-200 flex items-center"
                 disabled={sellerInfo?.status === "rejected"}
@@ -210,7 +211,9 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
                 <FaCheckCircle className="mr-2" />
                 Approve Seller
               </Button>
-            )}
+                </div>
+              )
+            }
           </div>
         </div>
 

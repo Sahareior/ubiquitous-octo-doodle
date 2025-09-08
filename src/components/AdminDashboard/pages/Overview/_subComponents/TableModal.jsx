@@ -1,11 +1,13 @@
 import React, { useRef } from 'react';
 import { Modal, Button } from 'antd';
-import { FaEdit, FaTrash, FaDownload, FaUser, FaStore, FaMoneyBill, FaTruck, FaCalendar, FaFileInvoice, FaMapMarkerAlt, FaPhone, FaEnvelope, FaHome, FaCity } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaDownload, FaUser, FaStore, FaMoneyBill, FaTruck, FaCalendar, FaFileInvoice, FaMapMarkerAlt, FaPhone, FaEnvelope, FaHome, FaCity, FaRegAddressCard } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
+const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete }) => {
   const invoiceRef = useRef();
+
+  console.log(orderDetails, 'order details in modal');
   
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -79,9 +81,13 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
           <hr />
           
           <div className="space-x-2 flex justify-end">
-            <p className='flex items-center gap-2 p-2 bg-[#F87171] px-2 text-sm rounded-md text-white'>
-              <FaTrash /> Delete
-            </p>
+           {/* <p 
+  onClick={() => handleDelete(orderDetails.id)} 
+  className="flex hover:cursor-pointer hover:bg-[#F87171] hover:bg-opacity-50 items-center gap-2 p-2 bg-[#F87171] px-2 text-sm rounded-md text-white"
+>
+  Delete
+</p> */}
+
           </div>
 
           {/* Order Summary */}
@@ -282,6 +288,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails }) => {
                     </p>
                     {orderDetails.selected_shipping_address.zip_code && (
                       <p className='flex items-center gap-2'>
+                        <FaRegAddressCard size={12} className="text-gray-500" />
                         <span className="font-medium">ZIP Code:</span>
                         {orderDetails.selected_shipping_address.zip_code}
                       </p>

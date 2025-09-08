@@ -104,9 +104,9 @@ const DashHome = () => {
           <div className="bg-white p-6 rounded-xl shadow-md flex-1">
             <div className="flex justify-between items-center mb-4">
               <p className="text-lg font-semibold text-gray-800">Latest Orders</p>
-              <button className="text-[#CBA135] text-sm font-medium hover:underline">
+              {/* <button className="text-[#CBA135] text-sm font-medium hover:underline">
                 View All
-              </button>
+              </button> */}
             </div>
             <DashTable />
           </div>

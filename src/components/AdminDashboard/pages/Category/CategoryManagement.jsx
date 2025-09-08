@@ -18,7 +18,8 @@ import {
   Typography,
   Tooltip,
   Badge,
-  Divider
+  Divider,
+  Select
 } from "antd";
 import {
   EditOutlined,
@@ -33,6 +34,9 @@ import {
   ImportOutlined,
   InfoCircleOutlined
 } from "@ant-design/icons";
+import { IoEyeOutline } from "react-icons/io5";
+import { MdDelete } from "react-icons/md";
+import { RiArrowDropDownLine } from "react-icons/ri";
 import { useDeleteCategoriesMutation, useGetCategoriesQuery } from "../../../../redux/slices/Apis/customersApi";
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -43,6 +47,7 @@ dayjs.extend(advancedFormat);
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 const CategoryManagement = () => {
   const { data: cateGoryData, isLoading, error, refetch } = useGetCategoriesQuery();
@@ -56,6 +61,9 @@ const CategoryManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState(null);
   const [form] = Form.useForm();
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [bulkAction, setBulkAction] = useState(undefined);
 
   const handleDelete = async (id) => {
     Swal.fire({
@@ -72,6 +80,7 @@ const CategoryManagement = () => {
       if (result.isConfirmed) {
         try {
           await deleteCategories(id).unwrap();
+          refetch();
           Swal.fire("Deleted!", "Category has been deleted.", "success");
         } catch (err) {
           console.error("Delete error:", err);
@@ -79,6 +88,46 @@ const CategoryManagement = () => {
         }
       }
     });
+  };
+
+  const handleBulkDelete = async (ids) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: `You are deleting ${ids.length} categories!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete them!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Assuming you have a bulk delete endpoint
+          // await deleteBulkCategories({ category_ids: ids }).unwrap();
+          refetch();
+          setSelectedRowKeys([]);
+          setBulkAction(undefined);
+          Swal.fire("Deleted!", `${ids.length} categories have been deleted.`, "success");
+        } catch (error) {
+          console.error("Bulk delete failed:", error);
+          Swal.fire("Error!", "Failed to delete categories.", "error");
+        }
+      } else {
+        setBulkAction(undefined);
+      }
+    });
+  };
+
+  const handleBulkAction = (action) => {
+    if (selectedRowKeys.length === 0) {
+      message.warning("Please select at least one category.");
+      setBulkAction(undefined);
+      return;
+    }
+
+    if (action === "delete") {
+      handleBulkDelete(selectedRowKeys);
+    }
   };
 
   const handlePreview = (image) => {
@@ -120,20 +169,20 @@ const CategoryManagement = () => {
       key: "id",
       width: 70,
       sorter: (a, b) => a.id - b.id,
-      fixed: 'left',
+      render: (text) => <span className="popreg text-[16px]">{text}</span>,
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span className="font-semibold popreg text-gray-800">{text}</span>,
+      render: (text) => <span className="popreg text-[16px]">{text}</span>,
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
-      render: (text) => <Tag color="blue" className="font-mono popreg">{text}</Tag>,
+      render: (text) => <span className="font-mono popreg text-[16px]">{text}</span>,
     },
     {
       title: "Image",
@@ -198,59 +247,34 @@ const CategoryManagement = () => {
       sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
     },
     {
-      title: "Updated At",
-      dataIndex: "updated_at",
-      key: "updated_at",
-      render: (date) => (
-        <Tooltip title={dayjs(date).format('MMMM Do YYYY, h:mm:ss A')}>
-          <div className="text-xs popreg text-gray-500">
-            {dayjs(date).format("MMM D, YYYY")}
-            <br />
-            {dayjs(date).format("h:mm A")}
-          </div>
-        </Tooltip>
-      ),
-      sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
-    },
-    {
       title: "Status",
       key: "status",
       render: (_, record) => (
-        <Tag color={record.image ? "green" : "orange"}>
+        <span
+          className={`px-3 py-1 popreg rounded-xl text-[16px] font-medium ${
+            record.image ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+          }`}
+        >
           {record.image ? "Complete" : "Needs Image"}
-        </Tag>
+        </span>
       ),
     },
     {
-      title: "Actions",
-      key: "actions",
-      width: 180,
-      fixed: 'right',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit category">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => navigate(`/admin-dashboard/edit-category/${record.id}`)}
-              className="flex items-center"
-            >
-              Edit
-            </Button>
-          </Tooltip>
-          <Tooltip title="Delete category">
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              onClick={() => handleDelete(record.id)}
-              className="flex items-center"
-            >
-              Delete
-            </Button>
-          </Tooltip>
-        </Space>
+        <div className="flex items-center gap-3">
+          <IoEyeOutline
+            onClick={() => navigate(`/admin-dashboard/edit-category/${record.id}`)}
+            className="text-gray-400 cursor-pointer"
+            size={20}
+          />
+          <MdDelete
+            className="text-red-400 cursor-pointer"
+            size={20}
+            onClick={() => handleDelete(record.id)}
+          />
+        </div>
       ),
     },
   ];
@@ -364,19 +388,7 @@ const CategoryManagement = () => {
           />
           
           <div className="flex flex-wrap gap-2">
-            <Button 
-              icon={<FilterOutlined />} 
-              onClick={() => setFilterVisible(!filterVisible)}
-            >
-              Filters
-            </Button>
-            
-            <Button 
-              icon={<ExportOutlined />} 
-              onClick={exportData}
-            >
-              Export
-            </Button>
+
             
             <Link to="/admin-dashboard/create-category">
               <Button
@@ -465,25 +477,46 @@ const CategoryManagement = () => {
       </div>
 
       {/* Categories Table */}
-      <Card className="rounded-lg shadow-sm border-0 overflow-hidden">
+      <div className="bg-white p-4 rounded relative shadow-md">
+        {/* Bulk Actions Header */}
+    
         <Table
+   
           rowKey="id"
           dataSource={filteredData}
           columns={columns}
           pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
+            pageSize,
+            total: filteredData.length,
             showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} items`,
-            pageSizeOptions: ['10', '20', '50'],
-            className: 'px-4'
+              `Showing ${range[0]} to ${range[1]} of ${total} entries`,
+            showSizeChanger: false,
+            itemRender: (current, type, originalElement) => originalElement,
+            position: ['bottomRight'],
           }}
-          scroll={{ x: 1200 }}
-          loading={isLoading}
-          size="middle"
+          footer={() => (
+            <div className="flex justify-between items-center px-2">
+              <div className="flex items-center relative gap-2 text-sm">
+                <span>Show</span>
+                <Select
+                  value={pageSize}
+                  onChange={(value) => setPageSize(value)}
+                  size="small"
+                  style={{ width: 70 }}
+                  suffixIcon={<RiArrowDropDownLine />}
+                >
+                  {[10, 20, 50].map((size) => (
+                    <Option key={size} value={size}>
+                      {size}
+                    </Option>
+                  ))}
+                </Select>
+                <span>entries</span>
+              </div>
+            </div>
+          )}
         />
-      </Card>
+      </div>
 
       {/* Image Preview Modal */}
       <Modal

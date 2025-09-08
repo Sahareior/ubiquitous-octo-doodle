@@ -366,7 +366,7 @@ const EditCategory = () => {
             {/* Buttons */}
             <div style={{ textAlign: "right", marginTop: "8px" }}>
               <Button
-                onClick={() => navigate("/categories")}
+                onClick={() => navigate("/admin-dashboard/category")}
                 style={{
                   marginRight: "12px",
                   borderRadius: "8px",

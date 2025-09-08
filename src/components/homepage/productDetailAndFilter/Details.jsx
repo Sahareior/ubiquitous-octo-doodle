@@ -91,7 +91,7 @@ const Details = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [selectedProduct]);
 
   // Function to handle image click
   const handleImageClick = (image, index) => {
@@ -247,10 +247,10 @@ const Details = () => {
 
         <div className="w-full max-w-7xl mx-auto rounded-lg">
           {/* Order Form Drawer for Mobile */}
-   <Drawer
+<Drawer
   title={
-    <h2 className="text-xl font-bold popmed text-gray-800">
-      Complete Your Order
+    <h2 className="text-xl font-bold popmed text-gray-900 tracking-tight">
+      🛒 Complete Your Order
     </h2>
   }
   placement="bottom"
@@ -260,7 +260,7 @@ const Details = () => {
   className="lg:hidden popmed"
   bodyStyle={{ padding: 0 }}
 >
-  <div className="p-6 h-full overflow-y-auto bg-gray-50 rounded-t-2xl">
+  <div className="p-6 h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white rounded-t-3xl shadow-inner">
     <Form
       form={form}
       layout="vertical"
@@ -271,9 +271,9 @@ const Details = () => {
       }}
     >
       {/* 🏠 Shipping Address */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
-          Shipping Address
+      <div className="mb-8">
+        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
+          📍 Shipping Address
         </h3>
         <Form.Item
           name="selected_shipping_address_id"
@@ -282,8 +282,7 @@ const Details = () => {
           <Select
             placeholder="Select a saved address"
             onChange={handleChange}
-            style={{ width: "100%" }}
-            className="popreg rounded-lg shadow-sm border border-gray-300 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+            className="popreg rounded-xl shadow-sm border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
           >
             {sevedAddress?.results?.map((address) => (
               <Option key={address.id} value={address.id}>
@@ -296,38 +295,37 @@ const Details = () => {
       </div>
 
       {/* 🚚 Delivery Details */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
-          Delivery Details
+      <div className="mb-8">
+        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
+          🚚 Delivery Details
         </h3>
-
-        <Form.Item name="delivery_type" label="Delivery Type">
+        <Form.Item name="delivery_type" label={<span className="text-sm text-gray-600">Delivery Type</span>}>
           <Radio.Group className="flex gap-6">
-            <Radio className="popreg" value="standard">🚚 Standard</Radio>
+            <Radio className="popreg" value="standard">Standard</Radio>
             <Radio className="popreg" value="express">⚡ Express</Radio>
-            <Radio className="popreg" value="pickup">🚚 Pickup</Radio>
+            <Radio className="popreg" value="pickup">Pickup</Radio>
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item name="delivery_date" label="Preferred Delivery Date">
+        <Form.Item name="delivery_date" label={<span className="text-sm text-gray-600">Preferred Delivery Date</span>}>
           <DatePicker
-            className="w-full rounded-lg border border-gray-300 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+            className="w-full rounded-xl border border-gray-200 shadow-sm hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
             disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
           />
         </Form.Item>
       </div>
 
       {/* 💳 Payment */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold popmed mb-3 border-b border-gray-200 pb-2 text-gray-700">
-          Payment Method
+      <div className="mb-8">
+        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
+          💳 Payment Method
         </h3>
         <Form.Item
           name="payment_method"
           rules={[{ required: true, message: "Please select a payment method" }]}
         >
           <Select
-            className="rounded-lg border border-gray-300 shadow-sm focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+            className="rounded-xl border border-gray-200 shadow-sm hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
           >
             <Option value="cash">🏦 Cash</Option>
             <Option value="online">💳 Online</Option>
@@ -336,26 +334,29 @@ const Details = () => {
       </div>
 
       {/* 📝 Delivery Instructions */}
-      <Form.Item name="delivery_instructions" label="Delivery Instructions (Optional)">
+      <Form.Item
+        name="delivery_instructions"
+        label={<span className="text-sm text-gray-600">Delivery Instructions (Optional)</span>}
+      >
         <TextArea
           rows={3}
-          placeholder="Special instructions for delivery"
-          className="rounded-lg border border-gray-300 shadow-sm p-2 focus:border-yellow-500 focus:ring focus:ring-yellow-100"
+          placeholder="Add any notes for the delivery driver"
+          className="rounded-xl border border-gray-200 shadow-sm p-3 hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
         />
       </Form.Item>
 
       {/* Footer Actions */}
-      <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 bg-white p-4 shadow-md rounded-t-lg">
+      <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 backdrop-blur-md bg-white/90 p-4 shadow-lg rounded-t-2xl">
         <Button
           onClick={handleOrderCancel}
-          className="h-10 px-6 border border-gray-300 hover:border-red-400 hover:text-red-500 rounded-lg"
+          className="h-11 px-6 rounded-xl border border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-500 transition-all duration-200"
         >
           Cancel
         </Button>
         <Button
           type="primary"
           htmlType="submit"
-          className="h-10 px-6 bg-yellow-500 hover:bg-yellow-600 border-yellow-500 text-white shadow-lg rounded-lg"
+          className="h-11 px-6 rounded-xl bg-yellow-500 hover:bg-yellow-600 border-none text-white shadow-lg transition-transform transform hover:scale-105"
         >
           Place Order
         </Button>
@@ -363,6 +364,7 @@ const Details = () => {
     </Form>
   </div>
 </Drawer>
+
 
 
 
@@ -408,11 +410,11 @@ const Details = () => {
       {selectedProduct?.name}
     </h2>
     <h3 className="text-sm md:text-base popreg text-gray-500">
-      by Elegant Furniture Co.
+      {/* by Elegant Furniture Co. */}
     </h3>
     <div className="flex items-center mt-4 md:mt-6 gap-2">
       <Rate
-        defaultValue={selectedProduct?.average_rating}
+        value={selectedProduct?.average_rating}
         disabled
         className="text-yellow-500 text-xs md:text-sm"
       />
@@ -426,17 +428,23 @@ const Details = () => {
     const oldPrice = selectedProduct?.price1;
     const newPrice = selectedProduct?.new_price;
     const discount = selectedProduct?.promotion_discount_value;
+
+     const hasDiscount = discount && discount > 0;
     return (
       <div className="flex items-center gap-3">
         <h3 className="text-2xl md:text-3xl lg:text-4xl popbold text-[#CBA135]">
-          XAF {newPrice}
+          XAF {oldPrice}
         </h3>
-        <span className="text-gray-400 line-through popreg text-lg">
+        {hasDiscount && (
+          <>
+                  <span className="text-gray-400 line-through popreg text-lg">
           XAF {oldPrice}
         </span>
         <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
           -{discount} {selectedProduct?.promotion_type === "percentage" ? "%" : "XAF"}
         </span>
+          </>
+        )}
       </div>
     );
   })()}
@@ -528,7 +536,7 @@ const Details = () => {
           </div>
 
           {/* Description Section */}
-          <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
+          <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
             <div className="mb-4 hidden lg:block">
               <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-32 pb-1">
                 Description
@@ -547,7 +555,7 @@ const Details = () => {
           </div>
 
           {/* Specifications Section */}
-          <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'specifications' ? 'lg:block hidden' : 'block'}`}>
+          <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'specifications' ? 'lg:block hidden' : 'block'}`}>
             <div className="mb-4 hidden lg:block">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-36 pb-1">
@@ -590,7 +598,7 @@ const Details = () => {
             <div className="mb-4 hidden lg:block">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-base md:text-lg popmed w-28 md:w-36 pb-1">
-                  Review (127)
+                  Review 
                 </p>
                 <p
                   onClick={() => setIsModalOpen(true)}
@@ -600,7 +608,7 @@ const Details = () => {
                 </p>
               </div>
             </div>
-            <Customers details={true} />
+            <Customers reviews={selectedProduct?.reviews} details={true} />
           </div>
 
           {/* You Also Bought Section */}

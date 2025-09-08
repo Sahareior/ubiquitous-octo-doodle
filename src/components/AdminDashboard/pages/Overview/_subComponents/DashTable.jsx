@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
 import { Table } from 'antd';
 import TableModal from './TableModal';
-import { useGetLatestOrdersQuery, useGetOrdersByIdQuery } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useDeleteOrdersByIdMutation, useGetLatestOrdersQuery, useGetOrdersByIdQuery } from '../../../../../redux/slices/Apis/dashboardApis';
 import dayjs from 'dayjs';
+import Swal from 'sweetalert2';
 
 const DashTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-
-  const { data: latestOrders, isLoading } = useGetLatestOrdersQuery();
+    const [deleteOrdersById ] = useDeleteOrdersByIdMutation()
+  const { data: latestOrders, isLoading,refetch } = useGetLatestOrdersQuery();
 
   // ✅ Fetch order details only when selectedId is set
   const { data: orderDetails, isFetching: isOrderLoading } = useGetOrdersByIdQuery(selectedId, {
     skip: !selectedId,
   });
 
+  const handleDelete = async (keys) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await deleteOrdersById(keys[0]).unwrap();
+      refetch();
+      Swal.fire("Deleted!", "Your order(s) has been deleted.", "success");
+    }
+  });
+};
 
   const handleSelect = (id) => {
     setSelectedId(id);
@@ -93,6 +111,7 @@ const DashTable = () => {
       />
       {/* ✅ Pass order details to modal */}
       <TableModal
+        handleDelete={handleDelete}
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         orderDetails={orderDetails}

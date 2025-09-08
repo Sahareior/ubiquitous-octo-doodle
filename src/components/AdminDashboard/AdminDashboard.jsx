@@ -72,7 +72,7 @@ const items = [
   {
     key: 'messages',
     icon: <LuMessageSquareText size={16}/>,
-    label: <Link className='flex w-full items-center gap-2' to="messages">Message <p className='w-4 h-4 gap-5 flex justify-center items-center rounded-full bg-[#CBA135] text-white'>7</p></Link>,
+    label: <Link className='flex w-full items-center gap-2' to="messages">Message </Link>,
   },
   {
     key: 'analytics',

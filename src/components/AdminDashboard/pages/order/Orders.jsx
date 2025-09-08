@@ -150,7 +150,7 @@ const Orders = () => {
           </div>
 
           {/* Date */}
-          <div className="w-full">
+          {/* <div className="w-full">
             <p className="text-sm font-medium text-gray-700 mb-1">Date Range</p>
             <RangePicker
               value={dateRange}
@@ -158,7 +158,7 @@ const Orders = () => {
               className="w-full h-[45px] rounded-md border popreg border-[#D1D5DB]"
               style={{ height: "45px", width: "100%" }}
             />
-          </div>
+          </div> */}
 
           {/* Reset */}
           <div className="w-full flex items-end">

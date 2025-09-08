@@ -46,7 +46,7 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-const NewVendorAddProducts = () => {
+const AddnewProducts = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const {data:categories} = useGetCategoriesQuery()
@@ -407,39 +407,7 @@ console.log(categories?.results,'thsi is categoried')
       placeholder="0" 
     />
 
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Colors</label>
-      <Select
-        mode="multiple"
-        placeholder="Select colors"
-        value={formData.colors}
-        onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
-        options={[
-          { value: 'red', label: 'Red' },
-          { value: 'blue', label: 'Blue' },
-          { value: 'green', label: 'Green' },
-          { value: 'black', label: 'Black' },
-          { value: 'white', label: 'White' },
-        ]}
-      />
-    </div>
 
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Sizes</label>
-      <Select
-        mode="multiple"
-        placeholder="Select sizes"
-        value={formData.sizes}
-        onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
-        options={[
-          { value: 's', label: 'S' },
-          { value: 'm', label: 'M' },
-          { value: 'l', label: 'L' },
-          { value: 'xl', label: 'XL' },
-          { value: 'xxl', label: 'XXL' },
-        ]}
-      />
-    </div>
   </div>
 
   {/* ✅ Toggle for is_stock */}
@@ -567,4 +535,4 @@ console.log(categories?.results,'thsi is categoried')
   );
 };
 
-export default NewVendorAddProducts;
+export default AddnewProducts;

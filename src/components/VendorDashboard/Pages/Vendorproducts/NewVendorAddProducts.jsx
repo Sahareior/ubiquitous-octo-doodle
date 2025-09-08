@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
-import { useGetAllProductsQuery, useGetCategoriesQuery, useGetTagsQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+
 import Swal from "sweetalert2";
-import ProductSpecificationForm from "./shared/ProductSpecificationForm";
+import { useGetAllProductsQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
+import ProductSpecificationForm from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationForm";
+
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -47,8 +49,8 @@ const Section = ({ title, children }) => (
 const NewVendorAddProducts = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
-   const { data: products,refetch } = useGetAllProductsQuery();
   const {data:categories} = useGetCategoriesQuery()
+  const { data: products,refetch } = useGetAllProductsQuery();
   const [vendorProductCreate] = useVendorProductCreateMutation()
   const { sendNotification } = useNotificationSocket();
   // 🔹 State for all form data
@@ -62,7 +64,9 @@ const [formData, setFormData] = useState({
   price3: "",
   sku: "",
   stock_quantity: "",
-  is_stock: true,   // ✅ toggle for stock
+  colors: [],
+  sizes: [],
+  in_stock: true,
   home_delivery: false,
   pickup: false,
   partner_delivery: false,
@@ -85,9 +89,9 @@ const [formData, setFormData] = useState({
 });
 
 
-
   const handleImageUpload = (files) => {
-    if (images.length + files.length > 5) {
+
+ if (images.length + files.length > 5) {
       Swal.fire({
         icon: "warning",
         title: "You can’t upload more than 5 images",
@@ -96,12 +100,12 @@ const [formData, setFormData] = useState({
     });
     return;
   }
+    
     const newImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }));
     setImages([...images, ...newImages]);
-
   };
 
   const handleImageRemove = (index) => {
@@ -132,7 +136,7 @@ const initialFormData = {
   stock_quantity: "",
   colors: [],
   sizes: [],
-  inStock: true,
+  is_stock: true,
   homeDeliveryEnabled: false,
   option1: "",
   pickUpEnabled: false,
@@ -189,30 +193,17 @@ const handleSubmit = async () => {
   formDataToSend.append("specifications", JSON.stringify(specifications));
 
   // Append other fields
-  // Object.keys(restFormData).forEach((key) => {
-  //   if (Array.isArray(restFormData[key])) {
-  //     restFormData[key].forEach((value) => {
-  //       formDataToSend.append(key, value);
-  //     });
-  //   } else if (typeof restFormData[key] === "boolean") {
-  //     formDataToSend.append(key, restFormData[key].toString());
-  //   } else {
-  //     formDataToSend.append(key, restFormData[key]);
-  //   }
-  // });
-
   Object.keys(restFormData).forEach((key) => {
-  if (Array.isArray(restFormData[key])) {
-    restFormData[key].forEach((value) => {
-      formDataToSend.append(`${key}[]`, value); // append as array
-    });
-  } else if (typeof restFormData[key] === "boolean") {
-    formDataToSend.append(key, restFormData[key].toString());
-  } else {
-    formDataToSend.append(key, restFormData[key]);
-  }
-});
-
+    if (Array.isArray(restFormData[key])) {
+      restFormData[key].forEach((value) => {
+        formDataToSend.append(key, value);
+      });
+    } else if (typeof restFormData[key] === "boolean") {
+      formDataToSend.append(key, restFormData[key].toString());
+    } else {
+      formDataToSend.append(key, restFormData[key]);
+    }
+  });
 
 
   // Append specifications as JSON
@@ -238,9 +229,7 @@ const handleSubmit = async () => {
           confirmButton: "px-4 py-2 rounded-lg",
         },
       });
-
       refetch()
-
       // ✅ Reset all fields & images
       setFormData(initialFormData);
       setImages([]);
@@ -265,7 +254,7 @@ const handleSubmit = async () => {
   }
 };
 
-
+console.log(categories?.results,'thsi is categoried')
 
 // const notyfi =()=>{
 //    sendNotification();
@@ -278,7 +267,7 @@ const handleSubmit = async () => {
         Notify
       </Button> */}
       {/* 🔹 Basic Info */}
-      <Section title="Basissc Information">
+      <Section title="Basic Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <InputField 
             label="Product Name" 
@@ -418,8 +407,6 @@ const handleSubmit = async () => {
       placeholder="0" 
     />
 
-
-
   </div>
 
   {/* ✅ Toggle for is_stock */}
@@ -431,7 +418,6 @@ const handleSubmit = async () => {
     />
   </div>
 </Section>
-
 
       {/* 🔹 Delivery */}
       <Section title="Delivery Options">

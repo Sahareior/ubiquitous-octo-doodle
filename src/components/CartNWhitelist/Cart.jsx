@@ -11,6 +11,8 @@ import {
   useDeleteFromCartMutation,
   useGetAppCartQuery,
 } from "../../redux/slices/Apis/customersApi";
+import { useGetAllProductsQuery } from "../../redux/slices/Apis/vendorsApi";
+import Similar from "../homepage/productDetailAndFilter/_components/Similier";
 
 const products = [
   {
@@ -93,6 +95,7 @@ const Cart = () => {
   const [cartQuantityIncrease] = useCartQuantityIncreaseMutation();
   const { data: cartData, refetch } = useGetAppCartQuery();
   const [deleteFromCart] = useDeleteFromCartMutation()
+  const { data: productsData } = useGetAllProductsQuery();
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
 
@@ -304,46 +307,11 @@ const Cart = () => {
         </div>
 
         {/* The rest of your component remains the same */}
-        <div className="py-9">
-          <div className="flex py-9 justify-between ">
+              <div className="flex py-9 justify-between ">
             <h4 className="popmed text-[30px]">You may also need</h4>
             <h5 className="popbold text-[16px] text-[#CBA135]">View All</h5>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-2xl shadow-md relative"
-              >
-                <img
-                  src={product.img}
-                  alt={product.title}
-                  className="w-full rounded-t-2xl h-64 object-cover mb-4"
-                />
-                <div className="px-4 space-y-2 pb-5">
-                  <h3 className="font-semibold text-lg">{product.title}</h3>
-                  <p className="text-sm text-gray-500 mb-1">{product.brand}</p>
-                  <div className="flex justify-between items-center gap-10">
-                    <p className="text-lg text-[#CBA135] font-bold mb-3">
-                      {product.price}
-                    </p>
-                    <Button
-                      type="primary"
-                      block
-                      className="bg-yellow-600 max-w-[10rem] py-4 hover:bg-yellow-700"
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
-                </div>
-                <div className="absolute top-2 right-2 text-red-600 w-6 h-6 flex items-center justify-center hover:text-red-500 bg-slate-200 rounded-full cursor-pointer text-lg">
-                  ♡
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <Similar component='cart' randomProducts={productsData?.results || []} title="You may also like" />
       </div>
 
       <div className="flex flex-col md:flex-col lg:flex-row justify-between items-center gap-10 bg-[#E6E3DD] px-5 sm:px-10 md:px-10 lg:px-20 xl:px-60 py-12 w-full">

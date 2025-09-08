@@ -62,9 +62,7 @@ const items = [
     label: (
       <Link className="flex w-full items-center gap-7" to="vendor-message">
         Message{' '}
-        <p className="w-4 h-4 gap-5 p-3 flex justify-center text-xs items-center rounded-full bg-[#CBA135] text-white">
-          7
-        </p>
+       
       </Link>
     ),
     path: 'vendor-message',
@@ -132,11 +130,11 @@ const VendorDashboard = () => {
   {/* Top logo and user info */}
   <div className='p-4 flex flex-col gap-10 justify-center items-center'>
     <Link to='/'>
-      <img className='w-[80%]' src="/image/footer.png" alt="" />
+      <img className='w-[80%] mx-auto' src="/image/footer.png" alt="" />
     </Link>
 
     <div className='flex justify-center items-center gap-3 flex-col'>
-      <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
+      <img className='h-[60px] w-[60px] rounded-full ' src="/image/decor.png" alt="" />
     </div>
   </div>
 

@@ -3,9 +3,10 @@ import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 
 import { useLocation } from "react-router-dom";
-import { useGetAllProductsQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import { useGetCategoriesQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
 import Swal from "sweetalert2";
+import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
 // ✅ Reusable Input
@@ -53,6 +54,7 @@ const EditAdminProducts = () => {
   const location = useLocation();
   const productData = location.state?.productData;
   const [vendorEditProduct] = useVendorEditProductMutation()
+  const {data:categories} = useGetCategoriesQuery()
 
   console.log(productData,'this is productData')
 
@@ -63,7 +65,7 @@ const EditAdminProducts = () => {
   // 🔹 State for all form data
   const [formData, setFormData] = useState({
     name: "",
-    category: [],
+    categories: [],
     shortDescription: "",
     fullDescription: "",
     price1: "",
@@ -91,8 +93,11 @@ const EditAdminProducts = () => {
 useEffect(() => {
   if (productData) {
     setFormData({
+      ...formData,
       name: productData.name || "",
-      category: productData.categories || [],
+      categories: productData.categories?.map(cat =>
+        typeof cat === "object" ? cat.id : cat
+      ) || [], // ✅ always IDs
       shortDescription: productData.short_description || "",
       fullDescription: productData.full_description || "",
       price1: productData.price1 || "",
@@ -118,7 +123,6 @@ useEffect(() => {
         url: img.image,
         createdAt: img.created_at
       })) || [],
-
       // ✅ specifications
       dimensions: productData.specifications?.dimensions || "",
       material: productData.specifications?.material || "",
@@ -131,6 +135,8 @@ useEffect(() => {
     });
   }
 }, [productData]);
+
+
 
 
   const handleImageUpload = (files) => {
@@ -188,17 +194,17 @@ const handleSubmit = async () => {
   formDataToSend.append("id", productData.id);
 
   // Append all form fields
-  Object.keys(formData).forEach((key) => {
-    if (key === "images") return; // Skip images as they're handled separately
-
-    if (Array.isArray(formData[key])) {
-      formDataToSend.append(key, JSON.stringify(formData[key]));
-    } else if (typeof formData[key] === "boolean") {
-      formDataToSend.append(key, formData[key].toString());
-    } else {
-      formDataToSend.append(key, formData[key]);
-    }
-  });
+Object.keys(formData).forEach((key) => {
+  if (Array.isArray(formData[key])) {
+    formData[key].forEach((value) => {
+      formDataToSend.append(key, Number(value)); // 👈 force integer
+    });
+  } else if (typeof formData[key] === "boolean") {
+    formDataToSend.append(key, formData[key].toString());
+  } else {
+    formDataToSend.append(key, formData[key]);
+  }
+});
 
   // Append new image files
   newImages.forEach((image) => {
@@ -255,20 +261,23 @@ const handleSubmit = async () => {
             onChange={handleChange} 
             placeholder="Enter product name" 
           />
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Category</label>
-            <Select
-              mode="multiple"
-              placeholder="Select categories"
-              value={formData.category}
-              onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-              options={[
-                { value: 'electronics', label: 'Electronics' },
-                { value: 'clothing', label: 'Clothing' },
-                { value: 'home', label: 'Home & Kitchen' },
-              ]}
-            />
-          </div>
+   <div className="flex flex-col gap-1">
+     <label className="popbold text-[14px] text-gray-700">categories</label>
+   <Select
+     mode="multiple"
+     placeholder="Select categories"
+     value={formData.categories}
+     onChange={(value) =>
+       
+        setFormData((prev) => ({ ...prev, categories: value.map(Number) }))
+     }
+     options={categories?.results?.map((cat) => ({
+       value: cat.id,
+       label: cat.name,
+     }))}
+   />
+   
+   </div>
         </div>
         <TextareaField 
           label="Short Description" 
@@ -383,39 +392,6 @@ const handleSubmit = async () => {
       placeholder="0" 
     />
 
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Colors</label>
-      <Select
-        mode="multiple"
-        placeholder="Select colors"
-        value={formData.colors}
-        onChange={(value) => setFormData(prev => ({ ...prev, colors: value }))}
-        options={[
-          { value: 'red', label: 'Red' },
-          { value: 'blue', label: 'Blue' },
-          { value: 'green', label: 'Green' },
-          { value: 'black', label: 'Black' },
-          { value: 'white', label: 'White' },
-        ]}
-      />
-    </div>
-
-    <div className="flex flex-col gap-1">
-      <label className="popbold text-[14px] text-gray-700">Sizes</label>
-      <Select
-        mode="multiple"
-        placeholder="Select sizes"
-        value={formData.sizes}
-        onChange={(value) => setFormData(prev => ({ ...prev, sizes: value }))}
-        options={[
-          { value: 's', label: 'S' },
-          { value: 'm', label: 'M' },
-          { value: 'l', label: 'L' },
-          { value: 'xl', label: 'XL' },
-          { value: 'xxl', label: 'XXL' },
-        ]}
-      />
-    </div>
   </div>
 
   {/* ✅ Toggle for is_stock */}

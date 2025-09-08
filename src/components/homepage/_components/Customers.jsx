@@ -4,10 +4,10 @@ import DetailsModal from "../productDetailAndFilter/_components/DetailsModal";
 import Sweeper from "../../others/Sweeper";
 import { useGetReviewsQuery } from "../../../redux/slices/Apis/customersApi";
 
-const Customers = ({ details }) => {
+const Customers = ({ details, reviews }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-
+console.log(reviews,'reviewsssss')
     return (
         <section className={`${details ? 'p-0' : 'px-4 py-10'} bg-[#FAF8F2]`}>
             <div className="text-center mb-10">
@@ -28,7 +28,7 @@ const Customers = ({ details }) => {
                 Write a Review
             </p>
 
-            <Sweeper />
+            <Sweeper details={details} reviews={reviews} />
             <DetailsModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
         </section>
     );

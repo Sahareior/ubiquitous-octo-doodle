@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
-import { 
-  useGetAllProductsQuery,
-  useGetCategoriesQuery, 
-  useGetTagsQuery,
-  useVendorEditProductMutation, 
-   
-} from "../../../../redux/slices/Apis/vendorsApi";
+
 import { useLocation } from "react-router-dom";
-import ProductSpecificationFormEdit from "./shared/ProductSpecificationFormEdit";
+import {  useGetCategoriesQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
 import Swal from "sweetalert2";
+import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
+
 
 // ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
@@ -53,19 +50,22 @@ const Section = ({ title, children }) => (
 const VEditProducts = () => {
   const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(false);
-   const { data: products,refetch } = useGetAllProductsQuery();
+  const { data: products, refetch } = useGetAllProductsQuery();
   const location = useLocation();
-  const productData = location.state?.productData?.originalData;
+  const productData = location.state?.productData;
   const [vendorEditProduct] = useVendorEditProductMutation()
+  const {data:categories} = useGetCategoriesQuery()
 
-  console.log(productData,'adadad')
+  console.log(productData,'this is productData')
+
+  // console.log(productData,'adadad')
 
 
 
   // 🔹 State for all form data
   const [formData, setFormData] = useState({
     name: "",
-    category: [],
+    categories: [],
     shortDescription: "",
     fullDescription: "",
     price1: "",
@@ -93,8 +93,11 @@ const VEditProducts = () => {
 useEffect(() => {
   if (productData) {
     setFormData({
+      ...formData,
       name: productData.name || "",
-      category: productData.categories || [],
+      categories: productData.categories?.map(cat =>
+        typeof cat === "object" ? cat.id : cat
+      ) || [], // ✅ always IDs
       shortDescription: productData.short_description || "",
       fullDescription: productData.full_description || "",
       price1: productData.price1 || "",
@@ -120,7 +123,6 @@ useEffect(() => {
         url: img.image,
         createdAt: img.created_at
       })) || [],
-
       // ✅ specifications
       dimensions: productData.specifications?.dimensions || "",
       material: productData.specifications?.material || "",
@@ -135,7 +137,10 @@ useEffect(() => {
 }, [productData]);
 
 
+
+
   const handleImageUpload = (files) => {
+    
  if (newImages.length + files.length > 5) {
       Swal.fire({
         icon: "warning",
@@ -174,57 +179,67 @@ useEffect(() => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (formData.images.length === 0 && newImages.length === 0) {
-      message.error("Please upload at least one product image");
-      return;
-    }
+const handleSubmit = async () => {
+  if (formData.images.length === 0 && newImages.length === 0) {
+    message.error("Please upload at least one product image");
+    return;
+  }
 
-    setLoading(true);
-    
-    // Create FormData object
-    const formDataToSend = new FormData();
-    
-    // Add product ID for update
-    formDataToSend.append('id', productData.id);
-    
-    // Append all form fields
-    Object.keys(formData).forEach(key => {
-      if (key === 'images') return; // Skip images as they're handled separately
-      
-      if (Array.isArray(formData[key])) {
-        // Stringify array fields
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (typeof formData[key] === 'boolean') {
-        // Convert boolean to string
-        formDataToSend.append(key, formData[key].toString());
-      } else {
-        formDataToSend.append(key, formData[key]);
-      }
+  setLoading(true);
+
+  // Create FormData object
+  const formDataToSend = new FormData();
+
+  // Add product ID for update
+  formDataToSend.append("id", productData.id);
+
+  // Append all form fields
+Object.keys(formData).forEach((key) => {
+  if (Array.isArray(formData[key])) {
+    formData[key].forEach((value) => {
+      formDataToSend.append(key, Number(value)); // 👈 force integer
     });
-    
-    // Append new image files
-    newImages.forEach(image => {
-      formDataToSend.append('uploaded_images', image.file);
+  } else if (typeof formData[key] === "boolean") {
+    formDataToSend.append(key, formData[key].toString());
+  } else {
+    formDataToSend.append(key, formData[key]);
+  }
+});
+
+  // Append new image files
+  newImages.forEach((image) => {
+    formDataToSend.append("uploaded_images", image.file);
+  });
+
+  // Append existing image IDs to keep
+  const existingImageIds = formData.images.map((img) => img.id);
+  formDataToSend.append("existing_images", JSON.stringify(existingImageIds));
+
+  try {
+    const res = await vendorEditProduct({ id: productData.id, formDataToSend });
+    refetch()
+    setLoading(false);
+
+    // ✅ Success Swal
+    Swal.fire({
+      icon: "success",
+      title: "Product Updated",
+      text: "Your product has been successfully updated!",
+      timer: 2000,
+      showConfirmButton: false,
     });
-    
-    // Append existing image IDs to keep
-    const existingImageIds = formData.images.map(img => img.id);
-    formDataToSend.append('existing_images', JSON.stringify(existingImageIds));
-    
-    try {
-      // Use update mutation instead of create
-    const res = await vendorEditProduct({id:productData.id, formDataToSend})
-      
-      refetch()
-      
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to update product", error);
-      message.error("Failed to update product");
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error("Failed to update product", error);
+    setLoading(false);
+
+    // ❌ Error Swal
+    Swal.fire({
+      icon: "error",
+      title: "Update Failed",
+      text: "Something went wrong while updating the product.",
+    });
+  }
+};
 
   // Combine existing and new images for display
   const allImages = [
@@ -246,20 +261,23 @@ useEffect(() => {
             onChange={handleChange} 
             placeholder="Enter product name" 
           />
-          <div className="flex flex-col gap-1">
-            <label className="popbold text-[14px] text-gray-700">Category</label>
-            <Select
-              mode="multiple"
-              placeholder="Select categories"
-              value={formData.category}
-              onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-              options={[
-                { value: 'electronics', label: 'Electronics' },
-                { value: 'clothing', label: 'Clothing' },
-                { value: 'home', label: 'Home & Kitchen' },
-              ]}
-            />
-          </div>
+   <div className="flex flex-col gap-1">
+     <label className="popbold text-[14px] text-gray-700">categories</label>
+   <Select
+     mode="multiple"
+     placeholder="Select categories"
+     value={formData.categories}
+     onChange={(value) =>
+       
+        setFormData((prev) => ({ ...prev, categories: value.map(Number) }))
+     }
+     options={categories?.results?.map((cat) => ({
+       value: cat.id,
+       label: cat.name,
+     }))}
+   />
+   
+   </div>
         </div>
         <TextareaField 
           label="Short Description" 
@@ -356,35 +374,35 @@ useEffect(() => {
       </Section>
 
       {/* 🔹 Inventory */}
-      <Section title="Inventory & Variants">
-        <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
-          <InputField 
-            label="SKU" 
-            name="sku" 
-            value={formData.sku} 
-            onChange={handleChange} 
-            placeholder="Product SKU" 
-          />
-          <InputField 
-            label="Stock Quantity" 
-            name="stockQuantity" 
-            value={formData.stockQuantity} 
-            onChange={handleChange} 
-            type="number" 
-            placeholder="0" 
-          />
+<Section title="Inventory & Variants">
+  <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
+    <InputField 
+      label="SKU" 
+      name="sku" 
+      value={formData.sku} 
+      onChange={handleChange} 
+      placeholder="Product SKU" 
+    />
+    <InputField 
+      label="Stock Quantity" 
+      name="stock_quantity" 
+      value={formData.stock_quantity} 
+      onChange={handleChange} 
+      type="number" 
+      placeholder="0" 
+    />
 
-  
-        </div>
+  </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-medium">Active Status:</span>
-          <Switch 
-            checked={formData.is_stock} 
-            onChange={(checked) => setFormData((prev) => ({ ...prev, is_stock: checked }))} 
-          />
-        </div>
-      </Section>
+  {/* ✅ Toggle for is_stock */}
+  <div className="flex items-center gap-2 mt-4">
+    <span className="font-medium">In Stock:</span>
+    <Switch 
+      checked={formData.is_stock} 
+      onChange={(checked) => setFormData((prev) => ({ ...prev, is_stock: checked }))} 
+    />
+  </div>
+</Section>
 
       {/* 🔹 Delivery */}
       <Section title="Delivery Options">

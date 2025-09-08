@@ -49,14 +49,14 @@ const TermsConditions = () => {
       {/* Content */}
       <div className="relative p-5">
         {/* Edit Icon */}
-        <button onClick={()=> setClicked(state => !state)} className="absolute right-0 top-0 text-yellow-600 hover:text-yellow-700">
-          <FaEdit size={17}/>
+        <button onClick={()=> setClicked(state => !state)} className="absolute right-5 -top-3 text-yellow-600 hover:text-yellow-700">
+          <FaEdit size={22}/>
         </button>
 
       {clicked ? (
         <EditSection type='terms' data={privacyContent} />
       ) : (
-        <div className="bg-[#F9FAFB] border rounded p-4">
+        <div className="bg-white border rounded p-4">
           <div className="flex justify-between items-center mb-3">
             <p className="font-medium">Privacy Policy Content</p>
             <p className="text-sm text-gray-500">Last updated: {new Date(lastUpdated).toLocaleDateString()}</p>

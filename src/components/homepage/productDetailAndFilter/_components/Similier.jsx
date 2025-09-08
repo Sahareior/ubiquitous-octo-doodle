@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
-const Similar = ({ randomProducts,setSelectedProduct }) => {
+const Similar = ({ randomProducts,setSelectedProduct,component }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   
