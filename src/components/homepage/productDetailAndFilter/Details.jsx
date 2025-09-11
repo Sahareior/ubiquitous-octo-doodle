@@ -9,8 +9,8 @@ import Breadcrumb from "../../others/Breadcrumb";
 import DetailsModal from "./_components/DetailsModal";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ZoomSection from "./_components/ZoomSection";
-import { useGetAllProductsQuery } from "../../../redux/slices/Apis/dashboardApis";
-import { useAddProductToCartMutation, useCreateCheckoutMutation, useCreateSingleOrderMutation, useGetAddressQuery, useGetAppCartQuery } from "../../../redux/slices/Apis/customersApi";
+import { useGetAllProductsQuery, useLazyGetProductsByIdQuery } from "../../../redux/slices/Apis/dashboardApis";
+import { useAddProductToCartMutation, useCreateCheckoutMutation, useCreateSingleOrderMutation, useGetAddressQuery, useGetAppCartQuery, useLazyGetProductByIdQuery } from "../../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { FiArrowLeft, FiShoppingCart, FiCreditCard } from "react-icons/fi";
@@ -43,10 +43,28 @@ const Details = () => {
      const navigate = useNavigate();
     const location = useLocation();
   const { product } = location.state || {};
-  
+    const searchParams = new URLSearchParams(location.search);
+  const productId = searchParams.get('id');
+  const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
+const [selectedProduct, setSelectedProduct] = useState(product || null);
 
-   const [selectedProduct, setSelectedProduct] = useState(location.state);
+// Trigger API when productId exists
+useEffect(() => {
+  if (!product && productId) {
+    getProductById(productId);
+  }
+}, [productId, product, getProductById]);
+
+// When API returns data, update selectedProduct
+useEffect(() => {
+  if (data) {
+    setSelectedProduct(data);
+  }
+}, [data]);
   console.log('this is selectedProduct', selectedProduct)
+
+
+
   const productSpecs = [
     { label: "Dimensions", value: selectedProduct?.specifications?.dimensions || "Not specified" },
     { label: "Material", value: selectedProduct?.specifications?.material || "Not specified" },
@@ -91,7 +109,7 @@ const Details = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [selectedProduct]);
+  }, [productId]);
 
   // Function to handle image click
   const handleImageClick = (image, index) => {

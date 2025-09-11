@@ -119,6 +119,11 @@ const AdminDashboard = () => {
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
+console.log("User Info:", userInfo.user.profile_image); // Debugging line to check user info
+// 
+const profileImage = userInfo?.user?.profile_image
+  ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`
+  : '/image/decor.png';
 
 
   const handleLogout = () => {
@@ -174,7 +179,7 @@ const AdminDashboard = () => {
          </Link>
 
 <div className='flex justify-center items-center gap-3 flex-col'>
-           <img className='h-[60px] w-[60px] rounded-full' src="/image/decor.png" alt="" />
+           <img className='h-[60px] w-[60px] rounded-full' src={profileImage} alt="" />
 
          <p className='popmed text-lg text-[#666666]'>Hi {userInfo?.user?.first_name}</p>
 </div>

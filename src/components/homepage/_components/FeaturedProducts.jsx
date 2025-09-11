@@ -43,14 +43,24 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
         )}
 
         {/* Image */}
-        <Link to={`/details`} state={item}>
-          <img
-            src={item?.images?.[0]?.image || "https://via.placeholder.com/300x200"}
-            alt={item.name}
-            className="w-full h-[192px] object-cover rounded-md mb-4"
-            loading="lazy"
-          />
-        </Link>
+      <Link to={`/details?id=${item.id}`} state={item}>
+  <img
+    src={item?.images?.[0]?.image || "https://via.placeholder.com/300x200"}
+    alt={item.name}
+    width={300}   // explicit width
+    height={192}  // explicit height to match design
+    loading="lazy"
+    className="w-full h-[192px] object-cover rounded-md mb-4 transition-transform duration-500 hover:scale-105"
+    // Responsive image support
+    srcSet={`
+      ${item?.images?.[0]?.image}?w=300 300w,
+      ${item?.images?.[0]?.image}?w=600 600w,
+      ${item?.images?.[0]?.image}?w=900 900w
+    `}
+    sizes="(max-width: 640px) 300px, 300px"
+  />
+</Link>
+
 
         {/* Info */}
         <div className="p-5">
@@ -285,7 +295,7 @@ const FeaturedProducts = () => {
   if (isError) return <p className="p-20 text-center text-red-500">Failed to load products</p>;
 
   return (
-    <div className="md:p-20 p-3 bg-[#FAF8F2] space-y-6" ref={componentTopRef}>
+    <div className="md:py-20 md:px-10 p-3 bg-[#FAF8F2] space-y-6" ref={componentTopRef}>
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

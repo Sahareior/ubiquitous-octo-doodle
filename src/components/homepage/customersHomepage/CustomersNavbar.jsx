@@ -201,12 +201,12 @@ const CustomersNavbar = ({ cartCount }) => {
                     />
                     <div className="flex-1">
                       <div className="font-medium text-sm truncate">{product.name}</div>
-                      <div className="text-xs text-gray-500 truncate">{product.short_description}</div>
+                      {/* <div className="text-xs text-gray-500 truncate">{product.short_description}</div> */}
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm font-semibold text-[#CBA135]">
-                          ${product.price1}
+                          XAF {product.price1}
                         </span>
-                        <span className="text-xs text-gray-500">{product.vendor_details.first_name}</span>
+                        <span className="text-xs text-gray-500">___by {product.vendor_details.first_name}</span>
                       </div>
                     </div>
                   </div>

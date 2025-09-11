@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const Similar = ({ randomProducts,setSelectedProduct,component }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
-  
+  const navigate = useNavigate()
   // Calculate total pages
   const totalPages = Math.ceil((randomProducts?.length || 0) / productsPerPage);
   
@@ -77,6 +78,12 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
     return pageNumbers;
   };
 
+  const handleSelect = (product) => {
+  // setSelectedProduct(product);
+  navigate(`/details?id=${product.id}`, { replace: false, state: { product } });
+};
+
+
   return (
 <div className="w-full">
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 mt-9 gap-6 py-5">
@@ -88,7 +95,10 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
       return (
         <div
           key={item.id}
-          onClick={() => setSelectedProduct(item)}
+          onClick={() => {
+            // setSelectedProduct(item);
+            handleSelect(item)
+          }}
           className="w-full hover:cursor-pointer bg-white rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
         >
           {/* Discount Badge */}

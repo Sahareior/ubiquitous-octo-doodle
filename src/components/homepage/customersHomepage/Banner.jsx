@@ -1,10 +1,62 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useGetAllBannersQuery } from '../../../redux/slices/Apis/dashboardApis';
 
+// Preload arrow icons as JSX to avoid SVG parsing overhead
+const LeftArrow = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+const RightArrow = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+// Memoized banner content to prevent unnecessary re-renders
+const BannerContent = React.memo(({ banner, isTransitioning }) => {
+  return (
+    <a 
+      href={banner.link} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="block w-full h-full relative"
+    >
+      {/* Use img tag with lazy loading for better performance than background-image */}
+      <img
+        src={banner.image}
+        alt={banner.title}
+        className="w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+        loading="lazy"
+      />
+      
+      {/* Gradient overlay for better text visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/50"></div>
+    </a>
+  );
+});
+
+BannerContent.displayName = 'BannerContent';
+
 const Banner = () => {
   const { data: banners, isLoading, error } = useGetAllBannersQuery();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [loadedImages, setLoadedImages] = useState({});
+
+  // Preload images for smoother transitions
+  useEffect(() => {
+    if (!banners?.results) return;
+    
+    banners.results.forEach((banner, index) => {
+      const img = new Image();
+      img.src = banner.image;
+      img.onload = () => {
+        setLoadedImages(prev => ({ ...prev, [index]: true }));
+      };
+    });
+  }, [banners]);
 
   // Memoize slide navigation functions to prevent unnecessary re-renders
   const goToPrevious = useCallback(() => {
@@ -16,7 +68,7 @@ const Banner = () => {
     setCurrentIndex(newIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 700);
+    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
   }, [banners, currentIndex, isTransitioning]);
 
   const goToNext = useCallback(() => {
@@ -28,7 +80,7 @@ const Banner = () => {
     setCurrentIndex(newIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 700);
+    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
   }, [banners, currentIndex, isTransitioning]);
 
   const goToSlide = useCallback((slideIndex) => {
@@ -38,7 +90,7 @@ const Banner = () => {
     setCurrentIndex(slideIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 700);
+    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
   }, [banners, currentIndex, isTransitioning]);
 
   // Auto-advance the carousel with useCallback to maintain reference
@@ -94,61 +146,40 @@ const Banner = () => {
   const currentBanner = banners.results[currentIndex];
 
   return (
-    <div className="relative w-full h-64 md:h-[30rem]  overflow-hidden  shadow-2xl group">
-      {/* Banner Image with Link - Using fade animation */}
-      <a 
-        href={currentBanner.link} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="block w-full h-full relative"
-      >
-        <div 
-          className="w-full h-full bg-cover bg-center transition-all duration-700 ease-in-out transform"
-          style={{ backgroundImage: `url(${currentBanner.image})` }}
-        ></div>
-        
-        {/* Gradient overlay for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/50"></div>
-      </a>
+    <div className="relative w-full h-64 md:h-[30rem] bg-[#FAF8F2] my-7 overflow-hidden shadow-2xl group">
+      {/* Banner Image with Link */}
+      <BannerContent banner={currentBanner} isTransitioning={isTransitioning} />
       
-      {/* Animated Text Overlay */}
-      <div className="absolute inset-0 flex flex-col justify-center items-start text-left p-8 md:p-16">
-        <div className="max-w-2xl">
-          <h2 
-            className="text-3xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl transform transition-all duration-700 ease-out translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-            style={{ 
-              fontFamily: "'Playfair Display', serif",
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              animation: 'textSlideUp 0.8s forwards',
-              animationDelay: '0.3s'
-            }}
-          >
-            {currentBanner.title}
-          </h2>
-          <p 
-            className="text-lg md:text-2xl text-white mb-8 drop-shadow-md transform transition-all duration-700 ease-out translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-            style={{
-              animation: 'textSlideUp 0.8s forwards',
-              animationDelay: '0.5s'
-            }}
-          >
-            {currentBanner.subtitle}
-          </p>
-          <a 
-            href={currentBanner.link}
-            className="inline-block bg-furniture-primary hover:bg-furniture-dark text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 opacity-0"
-            style={{
-              animation: 'fadeIn 0.8s forwards',
-              animationDelay: '0.7s'
-            }}
-          >
-            Shop Now
-            <svg className="w-5 h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </a>
+      {/* Animated Text Overlay - Only render if image is loaded or transitioning is done */}
+      {(!isTransitioning || loadedImages[currentIndex]) && (
+        <div className="absolute inset-0 flex flex-col justify-center items-start text-left p-8 md:p-16">
+          <div className="max-w-2xl">
+            <h2 
+              className="text-3xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl"
+              style={{ 
+                fontFamily: "'Playfair Display', serif",
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+              }}
+            >
+              {currentBanner.title}
+            </h2>
+            <p 
+              className="text-lg md:text-2xl text-white mb-8 drop-shadow-md"
+            >
+              {currentBanner.subtitle}
+            </p>
+            <a 
+              href={currentBanner.link}
+              className="inline-block bg-furniture-primary hover:bg-furniture-dark text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105"
+            >
+              Shop Now
+              <svg className="w-5 h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Navigation Arrows with furniture-themed styling */}
       {banners.results.length > 1 && (
@@ -159,9 +190,7 @@ const Banner = () => {
             aria-label="Previous banner"
             disabled={isTransitioning}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <LeftArrow />
           </button>
           <button
             onClick={goToNext}
@@ -169,9 +198,7 @@ const Banner = () => {
             aria-label="Next banner"
             disabled={isTransitioning}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <RightArrow />
           </button>
         </>
       )}
@@ -194,36 +221,8 @@ const Banner = () => {
           ))}
         </div>
       )}
-
-      {/* CSS animations for performance - using transform and opacity */}
-      <style jsx>{`
-        @keyframes textSlideUp {
-          from {
-            transform: translateY(30px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        /* Prevent animation on initial load for better performance */
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
 
-export default Banner;
+export default React.memo(Banner);

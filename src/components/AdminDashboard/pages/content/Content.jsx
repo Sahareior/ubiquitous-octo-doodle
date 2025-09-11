@@ -405,6 +405,7 @@ const Content = () => {
               </div>
               <div className="flex gap-3 text-gray-600">
                 <FaEdit 
+                  size={16}
                   className="cursor-pointer text-[#CBA135] hover:text-blue-500" 
                   onClick={() => handleEditBanner(banner)}
                 />

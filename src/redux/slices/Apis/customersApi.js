@@ -233,6 +233,9 @@ export const customersApi = createApi({
       })
     }),
     
+    getProductById: build.query({
+      query: (id) =>  `/products/${id}/`
+    }),
 
     getAddress: build.query({
       query: () => 'shipping-addresses/'
@@ -245,6 +248,7 @@ export const customersApi = createApi({
 
 export const {
   useGetPokemonByNameQuery,
+  useLazyGetProductByIdQuery,
   useSetNewpasswordMutation,
   useShippingAddressDeleteMutation,
   useVerifyOtpMutation,

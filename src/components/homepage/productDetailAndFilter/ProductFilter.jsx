@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin, Drawer } from 'antd';
 import { FaRegHeart, FaFilter } from "react-icons/fa6";
 import Breadcrumb from '../../others/Breadcrumb';
@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import { addToCart, addToWishList } from '../../../redux/slices/customerSlice';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { useGetCategoriesQuery, useGetCustomerProductsQuery } from '../../../redux/slices/Apis/customersApi';
+import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useGetCategoriesQuery, useGetCustomerProductsQuery, useSavetoWishListMutation } from '../../../redux/slices/Apis/customersApi';
 
 const MySwal = withReactContent(Swal);
 
@@ -18,6 +18,10 @@ const ProductFilter = () => {
   const queryParams = new URLSearchParams(location.search);
   const categoryFromUrl = queryParams.get('category'); 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const [addProductToCart] = useAddProductToCartMutation();
+      const { refetch } = useGetAppCartQuery();
+      const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
+    const [savetoWishList] = useSavetoWishListMutation();
   
   // Create a ref for the product list section
   const productListRef = useRef(null);
@@ -25,7 +29,7 @@ const ProductFilter = () => {
   // Filters state
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
-  const [selectedBrand, setSelectedBrand] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [availability, setAvailability] = useState(false);
   const [sort, setSort] = useState('Newest');
@@ -71,11 +75,36 @@ const ProductFilter = () => {
     })).filter(cat => cat.name);
   }, [allProducts, categoryMap]);
 
-  const brands = useMemo(() => {
-    if (!allProducts?.results) return [];
-    const brs = allProducts.results.map(p => p.name);
-    return [...new Set(brs)];
-  }, [allProducts]);
+  // Extract colors from product specifications
+const colors = useMemo(() => {
+  if (!allProducts?.results) return [];
+
+  const colorSet = new Set();
+
+  allProducts.results.forEach(product => {
+    if (product.specifications?.color) {
+      const colorList = product.specifications.color
+        .split(/[,/]/)
+        .map(color => color.trim().toLowerCase()) // normalize
+        .filter(color => color.length > 0);
+
+      colorList.forEach(color => colorSet.add(color));
+    }
+  });
+
+  // Capitalize first letter for display but keep lowercase for filtering
+  return Array.from(colorSet)
+    .sort()
+    .map(color => ({
+      label: color.charAt(0).toUpperCase() + color.slice(1),
+      value: color
+    }));
+}, [allProducts]);
+
+// ✅ Build available colors only from filtered products
+
+
+
 
   // Filtered products
   const filteredProducts = useMemo(() => {
@@ -85,7 +114,18 @@ const ProductFilter = () => {
         const productCategories = p.categories || [];
         return !selectedCategoryIds.length || productCategories.some(c => selectedCategoryIds.includes(c));
       })
-      .filter(p => !selectedBrand.length || selectedBrand.includes(p.name))
+.filter(p => {
+  if (!selectedColors.length) return true;
+  if (!p.specifications?.color) return false;
+
+  const productColors = p.specifications.color
+    .split(/[,/]/)
+    .map(c => c.trim().toLowerCase());
+
+  return productColors.some(c => selectedColors.includes(c));
+})
+
+
       .filter(p => !selectedRating || (p.average_rating || 0) >= selectedRating)
       .filter(p => !availability || p.is_stock)
       .filter(p => {
@@ -99,7 +139,34 @@ const ProductFilter = () => {
         if (sort === 'Price: High to Low') return priceB - priceA;
         return new Date(b.created_at) - new Date(a.created_at);
       });
-  }, [allProducts, selectedCategoryIds, selectedBrand, selectedRating, availability, priceRange, sort]);
+  }, [allProducts, selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
+
+
+
+  const availableColors = useMemo(() => {
+  if (!filteredProducts || filteredProducts.length === 0) return [];
+
+  const colorSet = new Set();
+
+  filteredProducts.forEach(product => {
+    if (product.specifications?.color) {
+      const colorList = product.specifications.color
+        .split(/[,/]/)
+        .map(c => c.trim().toLowerCase())
+        .filter(c => c.length > 0);
+
+      colorList.forEach(c => colorSet.add(c));
+    }
+  });
+
+  // Capitalize for display
+  return Array.from(colorSet)
+    .sort()
+    .map(c => ({
+      label: c.charAt(0).toUpperCase() + c.slice(1),
+      value: c
+    }));
+}, [filteredProducts]); // 👈 depend on filteredProducts
 
   // Paginated products
   const paginatedProducts = useMemo(() => {
@@ -111,19 +178,55 @@ const ProductFilter = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategoryIds, selectedBrand, selectedRating, availability, priceRange, sort]);
+  }, [selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
 
-  const handleCart = (product) => {
-    dispatch(addToCart(product));
+  const handleCart = useCallback(async (product) => {
+    const payload = { ...product, id: product.id, quantity: 1, product_id: product.id };
+    delete payload.prod_id;
+
+    await addProductToCart(payload);
+    refetch();
+    dispatch(addToCart(payload));
+
     MySwal.fire({
       position: 'top-end',
       icon: 'success',
       title: 'Item added to cart!',
-      background: '#FFFFFF',
       showConfirmButton: false,
       timer: 1800,
       toast: true,
     });
+  }, [addProductToCart, dispatch, refetch]);
+
+
+    const handleWishlist = async (item) => {
+    const payload = {
+      item,
+      product_id: item.id,
+    };
+
+    try {
+      await savetoWishList(payload).unwrap();
+      wishListRefetch();
+      MySwal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Item added to wishlist!",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    } catch (error) {
+      console.error("Wishlist error:", error);
+      MySwal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Failed to add to wishlist",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    }
   };
 
   useEffect(() => {
@@ -157,7 +260,7 @@ const ProductFilter = () => {
         <h3 className="text-lg popbold mb-2">Filters</h3>
         <Button className='border-none popmed' onClick={() => {
           setSelectedCategoryIds([]);
-          setSelectedBrand([]);
+          setSelectedColors([]);
           setSelectedRating(null);
           setPriceRange([0, 5000]);
           setAvailability(false);
@@ -205,25 +308,36 @@ const ProductFilter = () => {
         </div>
       </div>
 
-      {/* Brand */}
+      {/* Colors */}
       <div className="my-4">
-        <p className="font-medium popmed mb-2">Brand</p>
+        <p className="font-medium popmed mb-2">Colors</p>
         <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
-          {brands?.map((item) => (
-            <label key={item} className="flex items-center space-x-2 py-1 cursor-pointer popreg">
-              <input
-                type="checkbox"
-                value={item}
-                checked={selectedBrand.includes(item)}
-                onChange={e => {
-                  const val = e.target.value;
-                  setSelectedBrand(prev => prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]);
-                }}
-                className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
-              />
-              <span>{item}</span>
-            </label>
-          ))}
+{availableColors.length > 0 ? (
+  availableColors.map(({ label, value }) => (
+    <label
+      key={value}
+      className="flex items-center space-x-2 py-1 cursor-pointer popreg"
+    >
+      <input
+        type="checkbox"
+        value={value}
+        checked={selectedColors.includes(value)}
+        onChange={e => {
+          const val = e.target.value;
+          setSelectedColors(prev =>
+            prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]
+          );
+        }}
+        className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
+      />
+      <span>{label}</span>
+    </label>
+  ))
+) : (
+  <p className="text-gray-400 text-sm">No color data available</p>
+)}
+
+
         </div>
       </div>
 
@@ -334,7 +448,7 @@ const ProductFilter = () => {
                       className="mt-4" 
                       onClick={() => {
                         setSelectedCategoryIds([]);
-                        setSelectedBrand([]);
+                        setSelectedColors([]);
                         setSelectedRating(null);
                         setPriceRange([0, 5000]);
                         setAvailability(false);
@@ -353,7 +467,7 @@ const ProductFilter = () => {
   key={product.id}
   className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]"
 >
-  <Link to='details' state={product}>
+  <Link to={`/details?id=${product.id}`} state={product}>
     <img
       src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"}
       alt={product.name}
@@ -365,7 +479,7 @@ const ProductFilter = () => {
   <div
     onClick={(e) => {
       e.stopPropagation();
-      dispatch(addToWishList(product));
+      dispatch(handleWishlist(product));
       MySwal.fire({
         position: 'top-end',
         icon: 'success',
@@ -385,6 +499,13 @@ const ProductFilter = () => {
     <div className="flex gap-2">
       <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
     </div>
+
+    {/* Display product colors if available */}
+    {product.specifications?.color && (
+      <div className="text-xs text-gray-500">
+        Colors: {product.specifications.color}
+      </div>
+    )}
 
     {/* Price & Discount */}
     <div className="flex justify-between items-center gap-2">

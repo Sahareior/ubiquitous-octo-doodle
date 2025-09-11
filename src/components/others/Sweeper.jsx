@@ -7,7 +7,7 @@ import { LiaStarSolid } from 'react-icons/lia';
 import { useGetReviewsQuery } from '../../redux/slices/Apis/customersApi';
 
 export default function Sweeper({ details, reviews }) {
-  const { data: apiReviews, isLoading, error } = useGetReviewsQuery();
+  const { data: apiReviews, isLoading, error,refetch } = useGetReviewsQuery();
   
   // Determine which data to use based on the details prop
   const displayData = details ? reviews : apiReviews?.results;

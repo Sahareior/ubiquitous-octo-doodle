@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button, Modal, Rate, message, Select, Spin, Image, Row, Col } from 'antd';
 import { UploadOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import Swal from 'sweetalert2';
-import { useGetCustomerProductsQuery, usePostReviewsMutation } from '../../../../redux/slices/Apis/customersApi';
+import { useGetCustomerProductsQuery, useGetReviewsQuery, usePostReviewsMutation } from '../../../../redux/slices/Apis/customersApi';
 
 const { Option } = Select;
 
@@ -15,7 +15,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const fileInputRef = useRef(null);
-
+  const { data: apiReviews, error, refetch } = useGetReviewsQuery();
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const [postReviews, { isLoading: isPosting }] = usePostReviewsMutation();
 
@@ -91,14 +91,14 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
         formData.append("product_id", id);
      }
      else{
-        formData.append("product", selectedProduct);
+        formData.append("product_id", selectedProduct);
      }
       formData.append("rating", rating);
       formData.append("comment", review);
       uploadedImages.forEach(image => formData.append("uploaded_images", image.file));
 
       await postReviews(formData).unwrap();
-
+      refetch(); // Refresh reviews after successful submission
       Swal.fire("Success!", "Your review has been submitted successfully.", "success").then(resetForm);
     } catch (err) {
       console.error("Error submitting review:", err);

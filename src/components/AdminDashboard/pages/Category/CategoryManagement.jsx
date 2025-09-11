@@ -349,9 +349,7 @@ const CategoryManagement = () => {
           <Text type="secondary">Manage your product categories and organization</Text>
         </div>
         <div>
-          <Button icon={<ReloadOutlined />} onClick={refetch}>
-            Refresh
-          </Button>
+
         </div>
       </div>
 
@@ -378,12 +376,12 @@ const CategoryManagement = () => {
       {/* Action Bar */}
       <Card className="rounded-lg shadow-sm border-0 mb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <Input
+          <input
             placeholder="Search categories by name or description..."
             prefix={<SearchOutlined className="text-gray-400" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="w-full md:w-96 rounded-lg"
+            className="w-[500px] border popreg border-[#D1D5DB] rounded-md px-4 pl-10 h-[45px] placeholder:text-sm focus:outline-none focus:ring-0 focus:border-[#CBA135]"
             allowClear
           />
           
