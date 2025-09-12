@@ -17,7 +17,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 const MySwal = withReactContent(Swal);
 
 // Memoized Product Card
-const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
+const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist,isInCart }) => {
   const newPrice = item?.new_price || item?.price1; // fallback to original price if no discount
   const discount = item?.promotion_discount_value;
 
@@ -32,35 +32,28 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
           onClick={() => handleWishlist(item)}
           className="absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400"
         >
-          <AiFillHeart size={18} />
+          <AiFillHeart 
+            className={isInWishlist ? "text-red-500" : "text-gray-300"} 
+            size={18} 
+          />
         </div>
 
         {/* Discount Badge */}
         {hasDiscount && (
           <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
-            -{discount} {item?.promotion_type === "percentage" ? "%" : "XAF"}
+            -{discount} {item?.promotion_discount_type === "percentage" ? "%" : "XAF"}
           </div>
         )}
 
         {/* Image */}
-      <Link to={`/details?id=${item.id}`} state={item}>
-  <img
-    src={item?.images?.[0]?.image || "https://via.placeholder.com/300x200"}
-    alt={item.name}
-    width={300}   // explicit width
-    height={192}  // explicit height to match design
-    loading="lazy"
-    className="w-full h-[192px] object-cover rounded-md mb-4 transition-transform duration-500 hover:scale-105"
-    // Responsive image support
-    srcSet={`
-      ${item?.images?.[0]?.image}?w=300 300w,
-      ${item?.images?.[0]?.image}?w=600 600w,
-      ${item?.images?.[0]?.image}?w=900 900w
-    `}
-    sizes="(max-width: 640px) 300px, 300px"
-  />
-</Link>
-
+         <Link to={`/details?id=${item.id}`} state={item}>
+          <img
+            src={item?.images?.[0]?.image || "https://via.placeholder.com/300x200"}
+            alt={item.name}
+            className="w-full h-[192px] object-cover rounded-md mb-4"
+            loading="lazy"
+          />
+        </Link>
 
         {/* Info */}
         <div className="p-5">
@@ -79,9 +72,12 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
             </div>
             <button
               onClick={() => handleCart(item)}
-              className="bg-[#CBA135] rounded-md popbold text-white border-none px-4 py-1"
+               className={`rounded-md popbold text-white border-none px-4 py-1 
+    ${isInCart ? "bg-green-500" : "bg-[#CBA135]"}`}
             >
-              Add to Cart
+              {
+                isInCart ? 'Added': 'Add to Cart'
+              }
             </button>
           </div>
         </div>
@@ -90,22 +86,31 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist }) => {
   );
 });
 
-
 ProductCard.displayName = 'ProductCard';
 
 const FeaturedProducts = () => {
   const [addProductToCart] = useAddProductToCartMutation();
   const [savetoWishList] = useSavetoWishListMutation();
   const dispatch = useDispatch();
-  const { refetch } = useGetAppCartQuery();
+  const { data:cartData, refetch } = useGetAppCartQuery();
+
   const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
   const { data: allProducts, isLoading, isError } = useGetCustomerProductsQuery();
   const location = useLocation();
-  const navigate = useNavigate();
   
   // Create refs for scrolling
   const componentTopRef = useRef(null);
   const productsGridRef = useRef(null);
+
+  const checkCartData = useCallback((id) => {
+    return cartData.results.some(items => items.product.id === id)
+  },[cartData])
+
+  // Fixed checkWishList function
+  const checkWishList = useCallback((id) => {
+    if (!wishLists?.results) return false;
+    return wishLists.results.some(item => item.product.id === id || item.id === id);
+  }, [wishLists]);
 
   // Search state
   const queryParams = new URLSearchParams(location.search);
@@ -317,6 +322,8 @@ const FeaturedProducts = () => {
               item={item}
               handleCart={handleCart}
               handleWishlist={handleWishlist}
+              isInWishlist={checkWishList(item.id)}
+              isInCart ={checkCartData(item.id)}
             />
           ))
         )}

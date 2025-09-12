@@ -2,11 +2,12 @@ import React from "react";
 import { Avatar, Badge } from "antd"; // Badge for status indicator
 import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
-const LeftPannel = ({ setSelectedConversation, selectedConversation, connected }) => {
+const LeftPannel = ({ setSelectedConversation, selectedConversation, connected,setTargetedConvo }) => {
   const { data = [] } = useGetAllConversationsidQuery(); // default [] if no data
   const user = JSON.parse(localStorage.getItem('customerId'));
 
   const filtteredData = data.filter(item => item.id !== user.user.id)
+
 
 
   return (
@@ -19,7 +20,14 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, connected }
               className={`p-3 rounded hover:bg-gray-100 cursor-pointer border-b border-slate-100 ${
                 selectedConversation === conversation.id ? "bg-blue-50" : ""
               }`}
-              onClick={() => setSelectedConversation(conversation.id)}
+              onClick={() => {
+                setSelectedConversation(conversation.id);
+                setTargetedConvo({
+                  name: conversation.name,
+                  image: conversation.user_image,
+                  email: conversation.email
+                })
+              }}
             >
               <div className="flex items-center justify-between w-full gap-2">
                 <div className="flex gap-3 items-center">

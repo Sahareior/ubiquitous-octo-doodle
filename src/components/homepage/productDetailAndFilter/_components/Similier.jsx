@@ -79,7 +79,7 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
   };
 
   const handleSelect = (product) => {
-  // setSelectedProduct(product);
+  setSelectedProduct(product);
   navigate(`/details?id=${product.id}`, { replace: false, state: { product } });
 };
 

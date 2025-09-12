@@ -82,7 +82,7 @@ const EditAdminProducts = () => {
     option2: "",
     partnerDeliveryEnabled: false,
     option3: "",
-    deliveryTime: "",
+    estimated_delivery_days: "",
     seoTitle: "",
     metaDescription: "",
     tag: [],
@@ -114,7 +114,7 @@ useEffect(() => {
       option2: productData.option2 || "",
       partnerDeliveryEnabled: productData.partner_delivery || false,
       option3: productData.option3 || "",
-      deliveryTime: productData.estimated_delivery_days || "",
+      estimated_delivery_days: productData.estimated_delivery_days || "",
       seoTitle: productData.seo?.title || "",
       metaDescription: productData.seo?.meta_description || "",
       tag: productData.tags || [],
@@ -463,8 +463,8 @@ Object.keys(formData).forEach((key) => {
         </div>
         <InputField 
           label="Estimated Delivery Time" 
-          name="deliveryTime" 
-          value={formData.deliveryTime} 
+          name="estimated_delivery_days" 
+          value={formData.estimated_delivery_days} 
           onChange={handleChange} 
           placeholder="e.g., 3-5 business days" 
         />

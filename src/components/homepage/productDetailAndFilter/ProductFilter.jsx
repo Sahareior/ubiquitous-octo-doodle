@@ -19,7 +19,7 @@ const ProductFilter = () => {
   const categoryFromUrl = queryParams.get('category'); 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [addProductToCart] = useAddProductToCartMutation();
-      const { refetch } = useGetAppCartQuery();
+      const {data:cartData, refetch } = useGetAppCartQuery();
       const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
     const [savetoWishList] = useSavetoWishListMutation();
   
@@ -54,6 +54,17 @@ const ProductFilter = () => {
       }
     }
   }, [categoryFromUrl, fetchedCategories]);
+
+
+    const checkCartData = useCallback((id) => {
+      return cartData.results.some(items => items.product.id === id)
+    },[cartData])
+  
+    // Fixed checkWishList function
+    const checkWishList = useCallback((id) => {
+      if (!wishLists?.results) return false;
+      return wishLists.results.some(item => item.product.id === id || item.id === id);
+    }, [wishLists]);
 
   // Category map
   const categoryMap = useMemo(() => {
@@ -491,7 +502,7 @@ const colors = useMemo(() => {
     }}
     className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
   >
-    <FaRegHeart size={15} />
+    <FaRegHeart  className={checkWishList(product.id) ? "text-red-500" : "text-gray-300"}  size={15} />
   </div>
 
   <div className="p-4 space-y-2">
@@ -501,11 +512,11 @@ const colors = useMemo(() => {
     </div>
 
     {/* Display product colors if available */}
-    {product.specifications?.color && (
+    {/* {product.specifications?.color && (
       <div className="text-xs text-gray-500">
         Colors: {product.specifications.color}
       </div>
-    )}
+    )} */}
 
     {/* Price & Discount */}
     <div className="flex justify-between items-center gap-2">
@@ -519,21 +530,24 @@ const colors = useMemo(() => {
               XAF {product.new_price}
             </span>
             <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
-              -{product.promotion_discount_value}{product.promotion_type === 'percentage' ? '%' : 'XAF'}
+              -{product.promotion_discount_value}{product.promotion_discount_type === 'percentage' ? ' %' : ' XAF'}
             </span>
           </>
         ) : (
           <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
-            XAF {product.price1}
+            XAF  {product.price1}
           </span>
         )}
       </div>
 
       <Button
         onClick={() => handleCart(product)}
-        className="bg-yellow-600 rounded-xl popreg text-white py-1 md:py-2 px-2 md:px-4 hover:bg-yellow-700 text-xs md:text-sm"
+          className={`rounded-md popbold text-white border-none px-4 py-1 
+    ${checkCartData(product.id) ? "bg-green-500" : "bg-[#CBA135]"}`}
       >
-        Add to Cart
+             {
+                checkCartData(product.id) ? 'Added': 'Add to Cart'
+              }
       </Button>
     </div>
   </div>

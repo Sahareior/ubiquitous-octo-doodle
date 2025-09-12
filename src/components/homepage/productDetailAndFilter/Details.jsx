@@ -1,5 +1,5 @@
 import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import Customers from "../_components/Customers";
 import { LiaStarSolid } from "react-icons/lia";
@@ -25,7 +25,7 @@ const MySwal = withReactContent(Swal);
 const Details = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderFormVisible, setOrderFormVisible] = useState(false);
- 
+//  const {data:cartData, refetch } = useGetAppCartQuery();
   const [randomProducts, setRandomProducts] = useState([]);
   const [mainImage, setMainImage] = useState(null);
   const [mobileOrderDrawer, setMobileOrderDrawer] = useState(false);
@@ -63,6 +63,10 @@ useEffect(() => {
 }, [data]);
   console.log('this is selectedProduct', selectedProduct)
 
+
+      const checkCartData = useCallback((id) => {
+      return cartData?.results?.some(items => items.product.id === id)
+    },[cartData])
 
 
   const productSpecs = [
@@ -516,10 +520,13 @@ useEffect(() => {
   <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
     <button
       onClick={() => handleCart(selectedProduct)}
-      className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 md:px-6 lg:px-8 popbold rounded-xl h-10 md:h-12 w-full sm:w-auto flex items-center justify-center gap-2"
+       className={`  text-white px-4 md:px-6 lg:px-8 popbold rounded-xl h-10 md:h-12 w-full sm:w-auto flex items-center justify-center gap-2
+    ${checkCartData(selectedProduct?.id) ? "bg-green-500" : "bg-[#CBA135] hover:bg-yellow-700"}`}
     >
       <FiShoppingCart size={16} />
-      Add to Cart
+      {
+        checkCartData(selectedProduct?.id) ? "Added" : "Add to Cart"
+      }
     </button>
     <button
       onClick={() => handleOrder(selectedProduct)}

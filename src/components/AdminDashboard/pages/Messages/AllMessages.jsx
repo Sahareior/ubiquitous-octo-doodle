@@ -11,6 +11,7 @@ const AllMessages = () => {
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   const { messages, sendMessage, connected } = useWebSocket(customerId);
+  const [targetedConvo,setTargetedConvo] = useState({})
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
   
   const [newMessage, setNewMessage] = useState("");
@@ -29,6 +30,7 @@ const AllMessages = () => {
       if (!selectedConversation) return;
       try {
         const userRes = await getMessagesById(selectedConversation).unwrap();
+        // setTargetedConvo(userRes)
         setPreviousMessages(userRes.results || []);
         
         // Set conversation info if available in response
@@ -93,16 +95,17 @@ const AllMessages = () => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  console.log(targetedConvo,'this is convo')
   return (
     <div>
       <div className='bg-white p-6 mt-2'> 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Input className='w-[30%]' placeholder="Search messages..." />
           <Select defaultValue="Role" className="w-[120px]">
             <Option value="Customer">Customer</Option>
             <Option value="Seller">Seller</Option>
           </Select>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Chat Area */}
@@ -112,6 +115,7 @@ const AllMessages = () => {
           <LeftPannel 
             setSelectedConversation={setSelectedConversation} 
             setConversationInfo={setConversationInfo}
+            setTargetedConvo={setTargetedConvo}
             connected={connected}
           />
         </div>
@@ -123,20 +127,20 @@ const AllMessages = () => {
               {/* Header */}
               <div className="flex items-center justify-between border-b px-5 py-3 bg-white shadow-sm">
                 <div className="flex items-center gap-3">
-                  <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
+                  <Avatar src={targetedConvo?.image} />
                   <div>
-                    <div className="text-[16px] font-semibold">{conversationInfo.name}</div>
-                    <div className="text-xs text-gray-500">{conversationInfo.email || "N/A"}</div>
+                    <div className="text-[16px] font-semibold">{targetedConvo.name}</div>
+                    <div className="text-xs text-gray-500">{targetedConvo.email || "N/A"}</div>
                   </div>
                 </div>
                 <span className="text-xs text-gray-400">{conversationInfo.time}</span>
               </div>
 
               {/* Subject */}
-              <div className="px-5 py-3 border-b">
+              {/* <div className="px-5 py-3 border-b">
                 <div className="text-[18px] font-bold">{conversationInfo.subject}</div>
                 <p className="text-xs text-[#666666] mt-1">Conversation started at {conversationInfo.time}</p>
-              </div>
+              </div> */}
 
               {/* Conversation */}
               <div className="flex-1 flex flex-col gap-4 overflow-y-auto px-5 py-4 bg-[#F7F7F7]">

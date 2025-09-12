@@ -14,8 +14,40 @@ const RightArrow = () => (
   </svg>
 );
 
+// Optimized image component with lazy loading and placeholder
+const OptimizedBannerImage = ({ src, alt, className, onLoad, onError }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const handleLoad = () => {
+    setIsLoaded(true);
+    onLoad && onLoad();
+  };
+
+  const handleError = () => {
+    setHasError(true);
+    onError && onError();
+  };
+
+  return (
+    <>
+      {!isLoaded && !hasError && (
+        <div className={`${className} bg-gray-200 animate-pulse`} />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} ${isLoaded ? 'block' : 'hidden'} object-cover`}
+        loading="lazy"
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </>
+  );
+};
+
 // Memoized banner content to prevent unnecessary re-renders
-const BannerContent = React.memo(({ banner, isTransitioning }) => {
+const BannerContent = React.memo(({ banner, isTransitioning, onImageLoad, onImageError }) => {
   return (
     <a 
       href={banner.link} 
@@ -23,12 +55,13 @@ const BannerContent = React.memo(({ banner, isTransitioning }) => {
       rel="noopener noreferrer"
       className="block w-full h-full relative"
     >
-      {/* Use img tag with lazy loading for better performance than background-image */}
-      <img
+      {/* Use optimized image component */}
+      <OptimizedBannerImage
         src={banner.image}
         alt={banner.title}
-        className="w-full h-full object-cover transition-opacity duration-700 ease-in-out"
-        loading="lazy"
+        className="w-full h-full transition-opacity duration-700 ease-in-out"
+        onLoad={onImageLoad}
+        onError={onImageError}
       />
       
       {/* Gradient overlay for better text visibility */}
@@ -44,19 +77,34 @@ const Banner = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [loadedImages, setLoadedImages] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
 
-  // Preload images for smoother transitions
+  // Handle image load events
+  const handleImageLoad = useCallback((index) => {
+    setLoadedImages(prev => ({ ...prev, [index]: true }));
+  }, []);
+
+  const handleImageError = useCallback((index) => {
+    setImageErrors(prev => ({ ...prev, [index]: true }));
+  }, []);
+
+  // Preload next images for smoother transitions
   useEffect(() => {
     if (!banners?.results) return;
     
-    banners.results.forEach((banner, index) => {
-      const img = new Image();
-      img.src = banner.image;
-      img.onload = () => {
-        setLoadedImages(prev => ({ ...prev, [index]: true }));
-      };
+    // Preload next and previous images
+    const nextIndex = (currentIndex + 1) % banners.results.length;
+    const prevIndex = (currentIndex - 1 + banners.results.length) % banners.results.length;
+    
+    [currentIndex, nextIndex, prevIndex].forEach(index => {
+      if (!loadedImages[index] && !imageErrors[index]) {
+        const img = new Image();
+        img.src = banners.results[index].image;
+        img.onload = () => handleImageLoad(index);
+        img.onerror = () => handleImageError(index);
+      }
     });
-  }, [banners]);
+  }, [banners, currentIndex, loadedImages, imageErrors, handleImageLoad, handleImageError]);
 
   // Memoize slide navigation functions to prevent unnecessary re-renders
   const goToPrevious = useCallback(() => {
@@ -68,7 +116,7 @@ const Banner = () => {
     setCurrentIndex(newIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
+    setTimeout(() => setIsTransitioning(false), 500);
   }, [banners, currentIndex, isTransitioning]);
 
   const goToNext = useCallback(() => {
@@ -80,7 +128,7 @@ const Banner = () => {
     setCurrentIndex(newIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
+    setTimeout(() => setIsTransitioning(false), 500);
   }, [banners, currentIndex, isTransitioning]);
 
   const goToSlide = useCallback((slideIndex) => {
@@ -90,7 +138,7 @@ const Banner = () => {
     setCurrentIndex(slideIndex);
     
     // Reset transitioning state after animation completes
-    setTimeout(() => setIsTransitioning(false), 500); // Reduced duration
+    setTimeout(() => setIsTransitioning(false), 500);
   }, [banners, currentIndex, isTransitioning]);
 
   // Auto-advance the carousel with useCallback to maintain reference
@@ -106,7 +154,7 @@ const Banner = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full h-64 md:h-[40rem] my-5 bg-gray-100 rounded-lg flex items-center justify-center">
+      <div className="w-full h-64 md:h-[60rem] bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-furniture-dark border-r-furniture-primary border-b-furniture-accent border-l-furniture-light rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">Loading beautiful furniture...</p>
@@ -117,7 +165,7 @@ const Banner = () => {
 
   if (error) {
     return (
-      <div className="w-full h-64 md:h-[40rem] my-5 bg-red-50 rounded-lg flex items-center justify-center">
+      <div className="w-full h-64 md:h-[60rem] bg-red-50 rounded-lg flex items-center justify-center">
         <div className="text-center p-6">
           <svg className="w-16 h-16 mx-auto text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -146,12 +194,17 @@ const Banner = () => {
   const currentBanner = banners.results[currentIndex];
 
   return (
-    <div className="relative w-full h-64 md:h-[30rem] bg-[#FAF8F2] my-7 overflow-hidden shadow-2xl group">
+    <div className="relative w-full h-64 md:h-[30rem] bg-[#FAF8F2] overflow-hidden shadow-2xl group">
       {/* Banner Image with Link */}
-      <BannerContent banner={currentBanner} isTransitioning={isTransitioning} />
+      <BannerContent 
+        banner={currentBanner} 
+        isTransitioning={isTransitioning}
+        onImageLoad={() => handleImageLoad(currentIndex)}
+        onImageError={() => handleImageError(currentIndex)}
+      />
       
       {/* Animated Text Overlay - Only render if image is loaded or transitioning is done */}
-      {(!isTransitioning || loadedImages[currentIndex]) && (
+      {(!isTransitioning || loadedImages[currentIndex]) && !imageErrors[currentIndex] && (
         <div className="absolute inset-0 flex flex-col justify-center items-start text-left p-8 md:p-16">
           <div className="max-w-2xl">
             <h2 

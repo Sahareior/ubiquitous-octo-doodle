@@ -346,7 +346,7 @@ const Content = () => {
           </div>
 
           {/* Show Banner */}
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <label className="flex items-center gap-2 text-[16px]">
               <input
                 type="checkbox"
@@ -356,7 +356,7 @@ const Content = () => {
               />
               Show Banner
             </label>
-          </div>
+          </div> */}
         </div>
 
         {/* Preview */}
