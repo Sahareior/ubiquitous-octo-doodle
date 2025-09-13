@@ -14,6 +14,8 @@ const ReturnExchangeForm = () => {
   const [returnProduct] = useReturnProductMutation();
   const { data: getDeleveryedProduct, isLoading } = useGetDeleveredOrdersQuery();
 
+  console.log(getDeleveryedProduct,'getdProductaas')
+
   // Handle image upload
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);

@@ -8,6 +8,7 @@ import VendorModal from "./VendorModal/VendorModal";
 import {
   useDeleteBulkUsersMutation,
   useDeleteUsersMutation,
+  useGetAllVendorsQuery,
 } from "../../../../redux/slices/Apis/dashboardApis";
 import Swal from "sweetalert2";
 
@@ -21,19 +22,25 @@ const VendorTable = ({ vendors }) => {
   const [deleteBulkUsers] = useDeleteBulkUsersMutation();
   const [bulkAction, setBulkAction] = useState(undefined); // ✅ NEW
   const [deleteUsers] = useDeleteUsersMutation();
+    const { data,refetch } = useGetAllVendorsQuery();
 
   // Transform API data for table
-  const dataSource =
-    vendors?.map((v, index) => ({
-      key: v.user_id, // use actual id instead of index
-      id: v.user_id,
+ const dataSource =
+  vendors?.map((v) => {
+    const deleteId = v.actions?.delete_url?.split("/")[3]; // "25"
+    return {
+      key: v.user_id,       // keep key as unique
+      id: v.user_id,        // "Wrioko1025"
+      deleteId,             // numeric id from URL
       vendor: v.vendor_name,
       status: v.approval_status,
       products: v.products_count,
       orders: v.orders_count,
       rating: v.ratings,
       actions: v.actions,
-    })) || [];
+    };
+  }) || [];
+
 
   const columns = [
     {
@@ -137,6 +144,7 @@ const VendorTable = ({ vendors }) => {
       if (result.isConfirmed) {
         try {
           const res = await deleteUsers(id);
+          refetch()
           console.log("Deleted:", id, res);
           Swal.fire("Deleted!", "The vendor has been deleted.", "success");
         } catch (error) {
@@ -148,37 +156,45 @@ const VendorTable = ({ vendors }) => {
   };
 
   // Bulk delete
-  const handleBulkDelete = async () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: `Delete ${selectedRowKeys.length} selected vendors?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete them!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const res = await deleteBulkUsers({ user_ids: selectedRowKeys });
-          console.log("Bulk delete response:", res);
-          Swal.fire(
-            "Deleted!",
-            `${selectedRowKeys.length} vendors have been deleted.`,
-            "success"
-          );
-          setSelectedRowKeys([]);
-          setBulkAction(undefined); // ✅ reset dropdown
-        } catch (error) {
-          console.error("Bulk delete failed:", error);
-          Swal.fire("Error!", "Failed to delete vendors.", "error");
-          setBulkAction(undefined); // also reset on error
-        }
-      } else {
-        setBulkAction(undefined); // reset if cancelled
+const handleBulkDelete = async () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: `Delete ${selectedRowKeys.length} selected vendors?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete them!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        // Map selectedRowKeys (user_id) to their deleteId
+        const idsToDelete = dataSource
+          .filter((row) => selectedRowKeys.includes(row.key))
+          .map((row) => row.deleteId);
+
+        const res = await deleteBulkUsers({ user_ids: idsToDelete });
+        refetch()
+        console.log("Bulk delete response:", res);
+
+        Swal.fire(
+          "Deleted!",
+          `${idsToDelete.length} vendors have been deleted.`,
+          "success"
+        );
+        setSelectedRowKeys([]);
+        setBulkAction(undefined);
+      } catch (error) {
+        console.error("Bulk delete failed:", error);
+        Swal.fire("Error!", "Failed to delete vendors.", "error");
+        setBulkAction(undefined);
       }
-    });
-  };
+    } else {
+      setBulkAction(undefined);
+    }
+  });
+};
+
 
   // Handle dropdown action
   const handleBulkAction = (action) => {

@@ -3,7 +3,10 @@ import { Modal, Button } from 'antd';
 import { FaEdit, FaTrash, FaWallet } from 'react-icons/fa';
 import { FiBell } from 'react-icons/fi';
 import { useGetTotalEarningsQuery, usePostPayoutsMutation } from '../../../../../redux/slices/Apis/vendorsApi';
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
+const MySwal = withReactContent(Swal);
 
 const notifications = [
   {
@@ -29,7 +32,7 @@ const notifications = [
 const VendorOverViewModal = ({ isModalOpen, setIsModalOpen,location }) => {
       const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('');
-  const {data:PayOuts} =useGetTotalEarningsQuery()
+  const {data:PayOuts,refetch} =useGetTotalEarningsQuery()
   const [postPayouts] = usePostPayoutsMutation()
   // console.log(payouts)
   const [note, setNote] = useState('');
@@ -44,20 +47,50 @@ const VendorOverViewModal = ({ isModalOpen, setIsModalOpen,location }) => {
 
 
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
   const payload = {
     amount: amount,
     payment_method: method,
-    note: note
+    note: note,
   };
-const res = await postPayouts(payload)
-  console.log(payload)
-  // You can then send it to your API if needed:
-  // fetch('/your-api-endpoint', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(payload)
-  // });
+
+  try {
+    const res = await postPayouts(payload);
+    refetch();
+
+    if (res?.data) {
+      MySwal.fire({
+        title: "🎉 Payout Request Sent!",
+        text: `You’ve successfully requested $${amount} via ${method.toUpperCase()}.`,
+        icon: "success",
+        confirmButtonText: "Okay",
+        confirmButtonColor: "#C29D2A",
+        background: "#fff",
+        color: "#1E1E1E",
+        showClass: {
+          popup: "animate__animated animate__fadeInDown",
+        },
+        hideClass: {
+          popup: "animate__animated animate__fadeOutUp",
+        },
+      }).then(() => {
+        // ✅ Close modal after user clicks "Okay"
+        setIsModalOpen(false);
+        setAmount("");
+        setMethod("");
+        setNote("");
+      });
+    } else {
+      throw new Error("Failed to request payout");
+    }
+  } catch (error) {
+    MySwal.fire({
+      title: "❌ Request Failed",
+      text: error.message || "Something went wrong. Please try again.",
+      icon: "error",
+      confirmButtonColor: "#d33",
+    });
+  }
 };
 
 

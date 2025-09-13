@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
 import CustomModal from '../../checkout/modal/CustomModal';
 import { useDispatch } from 'react-redux';
@@ -8,9 +8,11 @@ import { selectedLocation } from '../../../redux/slices/customerSlice';
 const Footer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const handelClick=()=>{
-    dispatch(selectedLocation('vendor'));
+    // dispatch(selectedLocation('vendor'));
+    navigate('/regester-seller')
   }
 
   return (

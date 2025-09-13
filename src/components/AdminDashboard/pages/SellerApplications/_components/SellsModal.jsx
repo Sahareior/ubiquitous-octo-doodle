@@ -180,10 +180,11 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
       onOk={handleOk}
       onCancel={handleCancel}
       footer={null}
+      style={{ top: 20 }}
       width={1000}
-      className="seller-application-modal"
+      className="seller-application-modal "
     >
-      <div className="bg-white rounded-lg">
+      <div className="bg-white h-[85vh] overflow-y-auto rounded-lg">
         {/* Header with status and action buttons */}
         <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
           <div>

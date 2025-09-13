@@ -55,9 +55,7 @@ const cards = [
 
   return (
 <div className="bg-[#FAF8F2] min-h-screen p-4">
-  <p className="text-3xl popbold">
-    Welcome back, <span className="text-[#CBA135] text-2xl popmed">Home Decor Masters</span>
-  </p>
+
 
   {/* === Top Cards === */}
 <div className="grid grid-cols-1 sm:grid-cols-2 mt-5 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
@@ -89,14 +87,14 @@ const cards = [
           <p className="text-[20px] popbold text-gray-800 pb-1">Sales Performance</p>
           <p className="text-[15px] popreg text-gray-600">Track your sales trends over time</p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        {/* <div className="flex flex-wrap gap-3">
           <Button className="bg-white border border-gray-300 flex items-center gap-2 text-gray-700 hover:!border-gray-400 hover:!text-black px-4">
            Export CSV <FaAngleDown />
           </Button>
           <Button className="bg-white border flex items-center gap-2 border-gray-300 text-gray-700 hover:!border-gray-400 hover:!text-black px-4">
           Download PDF <FaAngleDown /> 
           </Button>
-        </div>
+        </div> */}
       </div>
         <PaymentGraph />
       </div>
@@ -107,14 +105,7 @@ const cards = [
           <p className="text-[20px] popbold text-gray-800 pb-1">Recent Notifications</p>
           <p className="text-[15px] popreg text-gray-600">View all your payout transactions</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Button className="bg-white border border-gray-300 flex items-center gap-2 text-gray-700 hover:!border-gray-400 hover:!text-black px-4">
-           <FaDownload /> Export CSV
-          </Button>
-          <Button className="bg-white border flex items-center gap-2 border-gray-300 text-gray-700 hover:!border-gray-400 hover:!text-black px-4">
-           <FaFilePdf /> Download PDF
-          </Button>
-        </div>
+
       </div>
       <VendorTable />
     </div>

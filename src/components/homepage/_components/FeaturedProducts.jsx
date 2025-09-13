@@ -103,13 +103,13 @@ const FeaturedProducts = () => {
   const productsGridRef = useRef(null);
 
   const checkCartData = useCallback((id) => {
-    return cartData.results.some(items => items.product.id === id)
+    return cartData?.results?.some(items => items.product.id === id)
   },[cartData])
 
   // Fixed checkWishList function
   const checkWishList = useCallback((id) => {
     if (!wishLists?.results) return false;
-    return wishLists.results.some(item => item.product.id === id || item.id === id);
+    return wishLists?.results?.some(item => item.product.id === id || item.id === id);
   }, [wishLists]);
 
   // Search state

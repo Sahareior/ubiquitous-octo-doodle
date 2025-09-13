@@ -155,7 +155,7 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
               ? 'bg-[#CBA135] text-white font-medium'
               : pageNumber === '...'
               ? 'bg-transparent text-gray-500 cursor-default'
-              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              : 'bg-slate-300 text-gray-700 hover:bg-gray-100 border border-gray-300'
           }`}
         >
           {pageNumber}
@@ -168,7 +168,7 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
         className={`flex items-center justify-center w-10 h-10 rounded-full ${
           currentPage === totalPages
             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            : 'bg-white text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
+            : ' text-gray-700 bg-slate-300 hover:bg-[#CBA135] opacity-55 hover:opacity-100 hover:text-white border border-gray-300'
         }`}
       >
         <RightOutlined />

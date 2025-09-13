@@ -6,7 +6,7 @@ import { MdDelete } from 'react-icons/md';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import OrderModal from './OrderModal/OrderModal';
 import Swal from 'sweetalert2';
-import { useBulkOrderStatusMutation, useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQuery, useGetAllVendorsQuery, useVendorOrderNameDetailsQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useBulkOrderDeleteMutation, useBulkOrderStatusMutation, useDeleteOrdersByIdMutation, useGetAllCustomersQuery, useGetAllOrdersQuery, useGetAllVendorsQuery, useVendorOrderNameDetailsQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 
@@ -25,6 +25,9 @@ const OrdersTable = ({orders}) => {
   const [fullOrderData, setFullOrderData] = useState({}); // New state to store full order data
 const [bulkAction, setBulkAction] = useState(null);
   const [bulkOrderStatus] = useBulkOrderStatusMutation()
+  const [bulkOrderDelete] = useBulkOrderDeleteMutation()
+
+  console.log(orders,'this is orders')
   // Map API data to table format
 useEffect(() => {
   if (orders?.length) {
@@ -148,16 +151,42 @@ useEffect(() => {
 const handleBulkAction = async (action) => {
   if (selectedRowKeys.length === 0) {
     message.warning("Please select at least one row.");
-    setBulkAction(null); // reset select value
+    setBulkAction(null);
     return;
   }
 
   if (action === "delete") {
-    await handleDelete(selectedRowKeys);
-    setBulkAction(null); // reset select after delete
+    Swal.fire({
+      title: "Are you sure?",
+      text: `You are about to delete ${selectedRowKeys.length} order(s).`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete them!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // bulk delete expects array of IDs
+          await bulkOrderDelete({ order_ids: selectedRowKeys }).unwrap();
+          message.success(`${selectedRowKeys.length} order(s) deleted.`);
+          refetch();
+          setSelectedRowKeys([]);
+          setBulkAction(null);
+          Swal.fire("Deleted!", "Your selected orders have been deleted.", "success");
+        } catch (error) {
+          console.error("Bulk delete failed:", error);
+          message.error("Failed to delete orders. Try again.");
+          setBulkAction(null);
+        }
+      } else {
+        setBulkAction(null); // reset if cancelled
+      }
+    });
     return;
   }
 
+  // For status updates
   try {
     const payload = {
       order_ids: selectedRowKeys,
@@ -170,13 +199,15 @@ const handleBulkAction = async (action) => {
     );
     refetch();
     setSelectedRowKeys([]);
-    setBulkAction(null); // reset select
+    setBulkAction(null);
   } catch (error) {
     console.error("Bulk update failed:", error);
     message.error("Failed to update orders. Try again.");
     setBulkAction(null);
   }
 };
+
+
 
 const handleDelete = async (keys) => {
   Swal.fire({

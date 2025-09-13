@@ -292,6 +292,14 @@ export const dashboardApis = createApi({
       })
     }),
 
+    bulkOrderDelete: build.mutation({
+      query: (data) =>({
+        url: 'bulk/orders/status/delete-orders/',
+        method: 'DELETE',
+        body:data
+      })
+    }),
+
     notificationSeen: build.mutation({
       query: ({id,data}) => ({
         url: `/${id}/seen/`,
@@ -345,6 +353,7 @@ export const {
   useGetAllUsersQuery,
   useGetAllCustomersQuery,
   useViewVendorsQuery,
+  useBulkOrderDeleteMutation,
   useGetLowStacksQuery,
   useGetCategorySellsQuery,
   useDeleteCustomersMutation,

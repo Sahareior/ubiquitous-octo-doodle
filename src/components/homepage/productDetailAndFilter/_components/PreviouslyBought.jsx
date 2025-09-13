@@ -101,7 +101,7 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
             // setSelectedProduct(item);
             handleSelect(item)
           }}
-              className="w-full hover:cursor-pointer bg-white rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
+              className="w-full hover:cursor-pointer bg-slate-300 rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
             >
               {/* Discount Badge */}
           {hasDiscount && (
@@ -129,7 +129,7 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
         })}
       </div>
 
-      {/* Pagination Controls */}
+     
       {totalPages > 1 && (
         <div className="flex justify-center items-center mt-8 space-x-2">
           <button
@@ -138,7 +138,7 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
             className={`flex items-center justify-center w-10 h-10 rounded-full ${
               currentPage === 1
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
+                : 'bg-slate-300 text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
             }`}
           >
             <LeftOutlined />
@@ -153,24 +153,25 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
                   ? 'bg-[#CBA135] text-white font-medium'
                   : pageNumber === '...'
                   ? 'bg-transparent text-gray-500 cursor-default'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  : 'bg-slate-300 text-gray-700 hover:bg-gray-100 border border-gray-300'
               }`}
             >
               {pageNumber}
             </button>
           ))}
 
-          <button
-            onClick={nextPage}
-            disabled={currentPage === totalPages}
-            className={`flex items-center justify-center w-10 h-10 rounded-full ${
-              currentPage === totalPages
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
-            }`}
-          >
-            <RightOutlined />
-          </button>
+<button
+  onClick={nextPage}
+  disabled={currentPage === totalPages}
+  className={`flex items-center justify-center w-10 h-10 rounded-full ${
+    currentPage === totalPages
+      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+      : 'bg-slate-300 text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
+  }`}
+>
+  <RightOutlined />
+</button>
+
         </div>
       )}
     </div>

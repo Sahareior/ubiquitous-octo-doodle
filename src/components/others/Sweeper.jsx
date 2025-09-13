@@ -114,11 +114,12 @@ export default function Sweeper({ details, reviews }) {
                 </div>
 
                 {/* Product info - Only show if we have product data */}
-                {item.product?.name && (
-                  <div className="mb-2 text-sm font-medium text-gray-600">
-                    Product: {item.product.name}
-                  </div>
-                )}
+{item.product?.name && (
+  <div className={`mb-2 text-sm font-medium text-gray-600 ${details ? 'hidden' : 'block'}`}>
+    {item.product.name}
+  </div>
+)}
+
 
                 {/* Review Images - Only show if we have images */}
                 {item.images && item.images.length > 0 && (

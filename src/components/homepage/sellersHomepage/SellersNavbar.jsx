@@ -40,7 +40,9 @@ const SellersNavbar = () => {
     <div className="w-full md:px-20 py-3 shadow-md flex justify-between items-center bg-white">
       {/* Left Section: Logo */}
       <div className="flex justify-between w-2/6 items-center gap-6">
+      <Link to='/'>
         <img src="/image/logo.png" alt="Logo" className="h-[32px] w-auto object-contain" />
+      </Link>
       </div>
 
       {/* Right Section: Actions */}

@@ -19,6 +19,7 @@ import {
 import { useAcceptProductsMutation, useGetAllProductsQuery, useRejectProductsMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
 import { FaShoppingBag } from 'react-icons/fa';
+import { FaCar } from 'react-icons/fa6';
 
 const { TabPane } = Tabs;
 
@@ -239,7 +240,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
         >
           <TabPane 
             tab={
-              <span className="flex items-center gap-2">
+              <span className="flex items-center popmed gap-2">
                 <EyeOutlined />
                 Overview
               </span>
@@ -412,7 +413,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
           
           <TabPane 
             tab={
-              <span className="flex items-center gap-2">
+              <span className="flex items-center popmed gap-2">
                 <FileTextOutlined />
                 Specifications
               </span>
@@ -428,7 +429,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                       value && (
                         <Col xs={24} sm={12} md={8} key={key}>
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div className="text-sm font-medium text-gray-500 capitalize mb-1">
+                            <div className="text-sm popbold text-emerald-500 capitalize mb-1">
                               {key.replace(/_/g, ' ')}
                             </div>
                             <div className="text-gray-800 font-semibold">
@@ -450,7 +451,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
           
           <TabPane 
             tab={
-              <span className="flex items-center gap-2">
+              <span className="flex items-center popmed gap-2">
                 <CarOutlined />
                 Delivery Options
               </span>
@@ -472,7 +473,11 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                         <DeliveryOptionCard
                           title="Home Delivery"
                           price={productData.option1}
-                          icon={<CarOutlined />}
+                          icon={<CarOutlined 
+                          style={{
+                            color: 'red'
+                          }}
+                          />}
                           color="green"
                         />
                       </Col>
@@ -483,7 +488,11 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                         <DeliveryOptionCard
                           title="Store Pickup"
                           price={productData.option2}
-                          icon={<ShopOutlined />}
+                          icon={<ShopOutlined 
+                          style={{
+                            color: 'red'
+                          }}
+                          />}
                           color="blue"
                         />
                       </Col>
@@ -494,7 +503,11 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                         <DeliveryOptionCard
                           title="Partner Delivery"
                           price={productData.option3}
-                          icon={<TeamOutlined />}
+                          icon={<TeamOutlined 
+                          style={{
+                            color: 'red'
+                          }}
+                          />}
                           color="purple"
                         />
                       </Col>
@@ -505,8 +518,8 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                         <DeliveryOptionCard
                           title="Additional Option"
                           price={productData.option4}
-                          icon={<FileTextOutlined />}
-                          color="gray"
+                          icon={<FaCar className='text-red-600' />}
+                          color="red"
                         />
                       </Col>
                     )}
@@ -530,7 +543,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
         open={imagePreviewVisible}
         onCancel={() => setImagePreviewVisible(false)}
         footer={null}
-        width="60vw"
+        width="30vw"
         bodyStyle={{ padding: 0 }}
         className="image-preview-modal"
       >
