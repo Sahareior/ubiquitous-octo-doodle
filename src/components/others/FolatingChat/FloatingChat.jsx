@@ -123,22 +123,25 @@ const FloatingChat = ({ targetedId }) => {
       {/* Chat Window */}
       <div className={`floating-chat-window ${isOpen ? '' : 'hidden'}`}>
         {/* Header */}
-        <div className="chat-header flex justify-between items-center px-4 py-2 bg-gray-100">
+        <div className="chat-header flex justify-between items-center px-4 py-3 bg-gray-900 border-b border-[#CBA135]/30">
           <div className="flex items-center gap-2">
             <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
-            <span>Support</span>
+            <span className="text-[#CBA135] font-medium">Support</span>
           </div>
-          <FaTimes onClick={() => setIsOpen(false)} style={{ cursor: 'pointer' }} />
+          <FaTimes 
+            onClick={() => setIsOpen(false)} 
+            className="text-gray-400 hover:text-[#CBA135] transition-colors cursor-pointer" 
+          />
         </div>
 
         {/* Receiver Tabs */}
-    <div className="receiver-tabs border-b border-gray-700 bg-gray-900 px-2">
+        <div className="receiver-tabs bg-gray-900 px-2 pt-3">
           <Tabs
             activeKey={activeReceiver === 1 ? "support" : activeReceiver?.toString()}
             onChange={handleTabChange}
             type="card"
             size="small"
-            className="custom-dark-tabs"
+            className="custom-tabs"
             tabBarStyle={{
               marginBottom: 0,
               border: 'none',
@@ -146,10 +149,12 @@ const FloatingChat = ({ targetedId }) => {
           >
             <TabPane 
               tab={
-                <span className="flex items-center text-gray-200">
-                  <FaRobot className="mr-1" size={14} />
-                  Support
-                </span>
+                <Tooltip title="Chat with Support">
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-md transition-all">
+                    <FaRobot className="text-[#CBA135]" size={14} />
+                    <span className="text-gray-200">Support</span>
+                  </span>
+                </Tooltip>
               } 
               key="support" 
             />
@@ -158,10 +163,12 @@ const FloatingChat = ({ targetedId }) => {
                 receiverId !== 1 && (
                   <TabPane 
                     tab={
-                      <span className="flex items-center text-gray-100">
-                        <FaUser className="mr-1" size={14} />
-                        Vendor
-                      </span>
+                      <Tooltip title="Chat with Vendor">
+                        <span className="flex items-center gap-1 px-2 py-1 rounded-md transition-all">
+                          <FaUser className="text-[#00ffff]" size={14} />
+                          <span className="text-gray-200">Chat with Vendor</span>
+                        </span>
+                      </Tooltip>
                     } 
                     key={receiverId.toString()} 
                   />
@@ -172,8 +179,14 @@ const FloatingChat = ({ targetedId }) => {
         </div>
 
         {/* Chat Body */}
-        <div className="chat-body flex flex-col gap-2 overflow-y-auto p-3 max-h-[300px]">
-          {allMessages.length === 0 && <p className="text-gray-400 text-center">No messages yet</p>}
+        <div className="chat-body flex flex-col gap-3 overflow-y-auto p-4 h-[400px] bg-gray-900/50">
+          {allMessages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+              <FaPaperPlane size={24} className="mb-2 opacity-50" />
+              <p>No messages yet</p>
+              <p className="text-xs mt-1">Start a conversation!</p>
+            </div>
+          )}
           {allMessages.map(msg => {
             const isMe = msg.sender === customerId;
             return (
@@ -181,17 +194,29 @@ const FloatingChat = ({ targetedId }) => {
                 key={`${msg.id}-${msg.isFromApi ? 'api' : 'ws'}`}
                 className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
               >
-                {!isMe && <Avatar size={30} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />}
-                <div className="max-w-[70%]">
-                  <div className={`px-4 py-2 rounded-2xl shadow-sm ${isMe ? "bg-[#CBA135] text-white rounded-br-none" : "bg-white text-[#0F0F0F] rounded-bl-none"}`}>
+                {!isMe && (
+                  <Avatar 
+                    size={32} 
+                    src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" 
+                    className="border border-[#CBA135]/30"
+                  />
+                )}
+                <div className="max-w-[75%]">
+                  <div className={`px-4 py-2 rounded-2xl shadow-sm ${isMe ? "bg-gradient-to-r from-[#CBA135] to-[#d4b65e] text-white rounded-br-none" : "bg-gray-800 text-white rounded-bl-none border border-gray-700"}`}>
                     {msg.text}
                   </div>
-                  <div className={`text-[11px] mt-1 ${isMe ? "text-right text-gray-400" : "text-left text-gray-400"}`}>
+                  <div className={`text-xs mt-1 ${isMe ? "text-right text-gray-400" : "text-left text-gray-400"}`}>
                     {msg.timestamp && new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     {isMe && <span className="ml-1 text-blue-400">✓✓</span>}
                   </div>
                 </div>
-                {isMe && <Avatar size={30} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />}
+                {isMe && (
+                  <Avatar 
+                    size={32} 
+                    src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" 
+                    className="border border-[#CBA135]/30"
+                  />
+                )}
               </div>
             );
           })}
@@ -199,21 +224,21 @@ const FloatingChat = ({ targetedId }) => {
         </div>
 
         {/* Chat Footer */}
-        <div className="chat-footer flex gap-2 items-center p-2 border-t">
+        <div className="chat-footer flex gap-2 items-center p-3 border-t border-gray-700 bg-gray-900">
           <textarea
             rows={1}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="chat-input flex-1 border rounded px-2 py-1 resize-none"
+            className="chat-input flex-1 border rounded-lg px-3 py-2 resize-none bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#CBA135]/50 focus:border-[#CBA135]/50"
             disabled={!connected || !activeReceiver}
           />
           <Button
             type="primary"
-            icon={<FaPaperPlane size={19} />}
+            icon={<FaPaperPlane size={16} />}
             onClick={handleSend}
-            className="bg-pink-500 hover:bg-yellow-600 flex justify-center items-center border-none"
+            className="bg-gradient-to-r from-[#CBA135] to-[#d4b65e] hover:from-[#b8912e] hover:to-[#c9a74d] flex justify-center items-center border-none h-10 w-10 rounded-lg transition-all shadow-md hover:shadow-lg"
             disabled={!newMessage.trim() || !connected || !activeReceiver}
           />
         </div>

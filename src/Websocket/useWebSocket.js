@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 const useWebSocket = (userId) => {
   const socketRef = useRef(null);
   const [messages, setMessages] = useState([]);
+  const [lastSeen, setLastSeen] = useState({}); // { userId: timestamp }
   const [connected, setConnected] = useState(false);
   const token = localStorage.getItem("access_token");
 
@@ -17,53 +18,36 @@ const useWebSocket = (userId) => {
       socketRef.current = socket;
     };
 
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+  socket.onmessage = (event) => {
+  try {
+    const data = JSON.parse(event.data);
 
-        setMessages((prev) => {
-          // ✅ If message already exists (by message_id), skip
-          if (data.message_id && prev.some((m) => m.data?.message_id === data.message_id)) {
-            return prev;
-          }
+    if (data.sender) {
+      // record when this user was last active
+      setLastSeen(prev => ({ ...prev, [data.sender]: Date.now() }));
+    }
 
-          // ✅ If server sent back a message that matches a tempId → update instead of adding
-          if (data.tempId) {
-            const updated = prev.map((msg) =>
-              msg.tempId === data.tempId
-                ? {
-                    ...msg,
-                    sender: data.sender === userId ? "me" : "server",
-                    data,
-                    status: "sent",
-                    id: data.message_id || msg.id
-                  }
-                : msg
-            );
-            
-            // Check if we actually updated a message
-            if (updated.some(msg => msg.tempId === data.tempId && msg.status === "sent")) {
-              return updated;
-            }
-          }
-
-          // ✅ Otherwise, it's a new message
-          return [
-            ...prev,
-            {
-              text: data.message,
-              sender: data.sender == userId ? "me" : "server", // Use == for loose comparison
-              data,
-              id: data.message_id || Date.now(), // stable ID from server or fallback
-              tempId: data.tempId || null
-            },
-          ];
-        });
-      } catch (err) {
-        console.error("📩 Failed parsing message:", err, event.data);
+    // ✅ existing message handling code...
+    setMessages((prev) => {
+      if (data.message_id && prev.some((m) => m.data?.message_id === data.message_id)) {
+        return prev;
       }
-    };
 
+      return [
+        ...prev,
+        {
+          text: data.message,
+          sender: data.sender == userId ? "me" : "server",
+          data,
+          id: data.message_id || Date.now(),
+          tempId: data.tempId || null
+        },
+      ];
+    });
+  } catch (err) {
+    console.error("📩 Failed parsing message:", err, event.data);
+  }
+};
     socket.onerror = (err) => console.error("⚠️ WebSocket error:", err);
 
     socket.onclose = (e) => {
@@ -107,7 +91,8 @@ const useWebSocket = (userId) => {
     }
   };
 
-  return { messages, sendMessage, connected };
+  return { messages, sendMessage, connected, lastSeen };
+
 };
 
 export default useWebSocket;

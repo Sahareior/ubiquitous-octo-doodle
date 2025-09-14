@@ -1,4 +1,3 @@
-
 // NotificationBell.jsx
 import React, { useEffect, useState } from "react";
 import {
@@ -23,7 +22,7 @@ import {
 import { useGetAllNotificationQuery, useLazyGetProductsByIdQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 import { FaBell } from "react-icons/fa";
-import "../Notifications/NotificationBell.css"; // We'll create this CSS file
+import "../Notifications/NotificationBell.css";
 import NotificationModal from "./NotificationReview";
 
 const { Text, Title } = Typography;
@@ -43,7 +42,6 @@ const timeAgo = (iso) => {
   return `${d}d ago`;
 };
 
-// Function to generate avatar color based on name
 const stringToColor = (string) => {
   let hash = 0;
   for (let i = 0; i < string.length; i++) {
@@ -59,44 +57,80 @@ const stringToColor = (string) => {
 
 export default function Notification({ onMarkSeen, onClear }) {
   const { token } = useToken();
-  const { data, isLoading,refetch } = useGetAllNotificationQuery();
+  const { data, isLoading, refetch } = useGetAllNotificationQuery();
   const { notifications } = useNotificationSocket();
-  const [notify,setNotify] = useState([])
+  const [localNotifications, setLocalNotifications] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [open, setOpen] = useState(false);
-const [triggerGetProductsById, { data: productData, isLoading: productLoading }] = useLazyGetProductsByIdQuery();
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [triggerGetProductsById, { data: productData, isLoading: productLoading }] = useLazyGetProductsByIdQuery();
 
-  useEffect(()=> {
-  refetch()
-  }, [notifications])
+  // Get notifications from localStorage on initial load
+  useEffect(() => {
+    const notificationFromLocalStorage = localStorage.getItem('notify');
+    if (notificationFromLocalStorage) {
+      try {
+        const parsedNotifications = JSON.parse(notificationFromLocalStorage);
+        setLocalNotifications(Array.isArray(parsedNotifications) ? parsedNotifications : []);
+      } catch (error) {
+        console.error('Error parsing notifications from localStorage:', error);
+        setLocalNotifications([]);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-  if (notifications && Array.isArray(notifications)) {
-    setNotify(notifications);
-  }
-}, [notifications]);
+    refetch();
+  }, [notifications]);
 
-  const newNotifications = localStorage.removeItem('notifications')
-  console.log(newNotifications,'ads')
-
-
-const handleMarkSeen = async (notification) => {
-  // onMarkSeen(notification); // Your existing mark seen logic
-  
-  if (notification?.meta_data?.product_id) {
-    try {
-      const product = await triggerGetProductsById(notification.meta_data.product_id).unwrap();
-      setSelectedProduct(product);
-      setIsModalVisible(true);
-    } catch (error) {
-      console.error('Failed to fetch product:', error);
+  // Update local notifications when new ones come from the socket
+  useEffect(() => {
+    if (notifications && Array.isArray(notifications)) {
+      // Add new notifications to localStorage
+      const updatedNotifications = [...localNotifications, ...notifications];
+      setLocalNotifications(updatedNotifications);
+      localStorage.setItem('notify', JSON.stringify(updatedNotifications));
     }
-  }
-};
+  }, [notifications]);
 
-  // fallback to [] if API hasn't loaded yet
-  const items = data || [];
+  const handleMarkSeen = async (notification) => {
+    if (notification?.meta_data?.product_id) {
+      try {
+        const product = await triggerGetProductsById(notification.meta_data.product_id).unwrap();
+        setSelectedProduct(product);
+        setIsModalVisible(true);
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+      }
+    }
+  };
+
+  // Function to handle "View All" button click
+  const handleViewAll = () => {
+    setShowAllNotifications(true);
+    refetch(); // Fetch all notifications from API
+  };
+
+  // Handle dropdown open/close
+  const handleOpenChange = (isOpen) => {
+    setOpen(isOpen);
+    
+    // When closing the dropdown, clear localStorage notifications
+    if (!isOpen && localNotifications.length > 0) {
+      localStorage.removeItem('notify');
+      setLocalNotifications([]);
+    }
+  };
+
+  // Determine which notifications to display
+  const hasLocalNotifications = localNotifications.length > 0;
+  const displayItems = showAllNotifications || !hasLocalNotifications 
+    ? (data || []) 
+    : localNotifications;
+
+  // Get the count for the badge - show local notification count if available
+  const badgeCount = localNotifications.length
 
   const menu = (
     <Card
@@ -112,7 +146,11 @@ const handleMarkSeen = async (notification) => {
       {/* Header */}
       <div className="notification-header" style={{ 
         background: token.colorBgContainer, 
-        borderBottom: `1px solid ${token.colorBorderSecondary}` 
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        padding: '12px 16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <Title level={5} style={{ margin: 0 }}>
           Notifications
@@ -122,9 +160,8 @@ const handleMarkSeen = async (notification) => {
             type="text" 
             icon={<EyeOutlined />} 
             size="small"
-            onClick={() => items.forEach((i) => handleMarkSeen(i))}
-
-            disabled={!items.length}
+            onClick={() => displayItems.forEach((i) => handleMarkSeen(i))}
+            disabled={!displayItems.length}
             title="Mark all as read"
           />
           <Button 
@@ -132,7 +169,7 @@ const handleMarkSeen = async (notification) => {
             icon={<DeleteOutlined />} 
             size="small"
             onClick={onClear}
-            disabled={!items.length}
+            disabled={!displayItems.length}
             title="Clear all"
           />
         </Space>
@@ -141,7 +178,7 @@ const handleMarkSeen = async (notification) => {
       {/* List */}
       <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
         <List
-          loading={isLoading}
+          loading={isLoading && showAllNotifications}
           locale={{
             emptyText: (
               <Empty
@@ -151,7 +188,7 @@ const handleMarkSeen = async (notification) => {
               />
             ),
           }}
-          dataSource={items}
+          dataSource={displayItems}
           renderItem={(n) => (
             <List.Item
               className="notification-item"
@@ -162,88 +199,98 @@ const handleMarkSeen = async (notification) => {
                 borderBottom: `1px solid ${token.colorBorderSecondary}`
               }}
               onClick={() => handleMarkSeen(n)}
-
             >
-              <div className="notification-content">
+              <div className="notification-content" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 {/* Avatar with user initial */}
                 <Avatar 
                   size="default" 
                   style={{ 
-                    backgroundColor: stringToColor(n.full_name || 'User'),
+                    backgroundColor: stringToColor(n.data?.full_name || n.full_name || 'User'),
                     flexShrink: 0
                   }}
                 >
-                  {n.full_name ? n.full_name.charAt(0).toUpperCase() : 'U'}
+                  {(n.data?.full_name || n.full_name || 'U').charAt(0).toUpperCase()}
                 </Avatar>
 
                 {/* Content */}
-                <div className="notification-details">
+                <div className="notification-details" style={{ flex: 1 }}>
                   <div className="notification-message">
                     <Text strong className="notification-sender">
-                      {n.full_name}
+                      {n.data?.full_name || n.full_name}
                     </Text>
                     <Text className="notification-text">
-                      {n.message}
+                      {n.data?.message || n.message}
                     </Text>
                   </div>
                   <Text type="secondary" className="notification-time">
-                    {timeAgo(n.event_time)}
+                    {timeAgo(n.data?.event_time || n.event_time)}
                   </Text>
                 </div>
                 
                 {/* Status indicator */}
-                <div className={`status-indicator ${n.seen ? 'seen' : 'unseen'}`} />
+                <div 
+                  className={`status-indicator ${(n.data?.seen || n.seen) ? 'seen' : 'unseen'}`} 
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: (n.data?.seen || n.seen) ? token.colorTextSecondary : token.colorPrimary,
+                    flexShrink: 0,
+                    marginTop: '8px'
+                  }}
+                />
               </div>
             </List.Item>
           )}
         />
       </div>
       
-      {/* Footer */}
-      {items.length > 0 && (
+      {/* Footer - Show View All button only if we're showing local notifications */}
+      {hasLocalNotifications && !showAllNotifications && (
         <div className="notification-footer" style={{ 
           background: token.colorBgContainer, 
-          borderTop: `1px solid ${token.colorBorderSecondary}` 
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
+          padding: '12px 16px',
+          textAlign: 'center'
         }}>
-          {/* <Button type="link" size="small">
+          <Button type="primary" size="small" onClick={handleViewAll}>
             View all notifications
-          </Button> */}
+          </Button>
         </div>
       )}
     </Card>
   );
 
   return (
-<div>
+    <div>
       <Dropdown
-      dropdownRender={() => menu}
-      trigger={["click"]}
-      open={open}
-      onOpenChange={setOpen}
-      placement="bottomRight"
-      overlayClassName="notification-dropdown"
-    >
-      <Badge
-        count={notify.length}
-        size="small"
-        overflowCount={99}
-        offset={[-2, 24]}
-        style={{ 
-          boxShadow: `0 0 0 2px ${token.colorBgContainer}`,
-        }}
+        dropdownRender={() => menu}
+        trigger={["click"]}
+        open={open}
+        onOpenChange={handleOpenChange}
+        placement="bottomRight"
+        overlayClassName="notification-dropdown"
       >
-        <div className="-mt-">
-          <FaBell onClick={()=>setNotify([])} className="bell-icon hover:cursor-pointer mt-7" />
-        </div>
-      </Badge>
-    </Dropdown>
-    <NotificationModal
-    setIsModalVisible={setIsModalVisible}
-    
-    isModalVisible={isModalVisible}
-    selectedProduct={selectedProduct}
-    setSelectedProduct={selectedProduct}
-    />
-</div>
+        <Badge
+          count={badgeCount}
+          size="small"
+          overflowCount={99}
+          offset={[-2, 24]}
+          style={{ 
+            boxShadow: `0 0 0 2px ${token.colorBgContainer}`,
+          }}
+        >
+          <div className="-mt-">
+            <FaBell onClick={() => setOpen(!open)} className="bell-icon hover:cursor-pointer mt-7" />
+          </div>
+        </Badge>
+      </Dropdown>
+      <NotificationModal
+        setIsModalVisible={setIsModalVisible}
+        isModalVisible={isModalVisible}
+        selectedProduct={selectedProduct}
+        setSelectedProduct={setSelectedProduct}
+      />
+    </div>
   );
 }

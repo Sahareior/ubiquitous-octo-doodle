@@ -30,9 +30,10 @@ const useNotificationSocket = () => {
         const data = JSON.parse(event.data);
         console.log("New notification received:", data);
 
+
         setNotifications((prev) => {
           const updated = [...prev, data];
-          localStorage.setItem("notifications", JSON.stringify(updated)); // persist
+          localStorage.setItem("notify",updated);
           return updated;
         });
       } catch (err) {

@@ -200,7 +200,7 @@ const profileImage = userInfo?.user?.profile_image
 
       <Layout>
         <Layout.Header className="bg-white px-3">
-          <div className="flex justify-between items-center">
+          <div className="flex px-3 justify-between items-center">
             <h5 className="text-[20px] font-semibold">Admin Dashboard</h5>
             <div className="flex items-center gap-3">
     

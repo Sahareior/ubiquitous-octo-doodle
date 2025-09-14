@@ -82,7 +82,7 @@ useEffect(() => {
 
   const vendorId = selectedProduct?.vendor_id
 
-
+console.log(product, 'this is peoduct')
 
   const filteredProducts = productsData?.results?.filter((product) =>
     product?.categories.some((cat) => selectedProduct?.categories?.includes(cat))
@@ -455,7 +455,7 @@ useEffect(() => {
     return (
       <div className="flex items-center gap-3">
         <h3 className="text-2xl md:text-3xl lg:text-4xl popbold text-[#CBA135]">
-          XAF {oldPrice}
+          XAF {newPrice? newPrice : oldPrice}
         </h3>
         {hasDiscount && (
           <>
@@ -463,7 +463,7 @@ useEffect(() => {
           XAF {oldPrice}
         </span>
         <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
-          -{discount} {selectedProduct?.promotion_type === "percentage" ? "%" : "XAF"}
+          -{discount} {selectedProduct?.promotion_discount_type === "percentage" ? "%" : "XAF"}
         </span>
           </>
         )}

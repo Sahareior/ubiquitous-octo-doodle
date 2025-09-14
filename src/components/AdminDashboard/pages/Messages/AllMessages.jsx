@@ -10,7 +10,7 @@ const { Option } = Select;
 const AllMessages = () => {
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
-  const { messages, sendMessage, connected } = useWebSocket(customerId);
+  const { messages, sendMessage, connected,lastSeen } = useWebSocket(customerId);
   const [targetedConvo,setTargetedConvo] = useState({})
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
   
@@ -25,24 +25,25 @@ const AllMessages = () => {
     time: ""
   });
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!selectedConversation) return;
-      try {
-        const userRes = await getMessagesById(selectedConversation).unwrap();
-        // setTargetedConvo(userRes)
-        setPreviousMessages(userRes.results || []);
-        
-        // Set conversation info if available in response
-        if (userRes.conversationInfo) {
-          setConversationInfo(userRes.conversationInfo);
-        }
-      } catch (err) {
-        console.error("Error fetching messages:", err);
-      }
-    };
-    fetchMessages();
-  }, [selectedConversation, getMessagesById]);
+useEffect(() => {
+  if (!selectedConversation) return;
+
+  messages.forEach(msg => {
+    if ((msg.data.sender === selectedConversation || msg.data.receiver === selectedConversation)) {
+      msg.data.seen = true; // mark messages as read
+    }
+  });
+}, [selectedConversation, messages]);
+
+const unreadCounts = messages.reduce((acc, msg) => {
+  const convId = msg.data.sender === customerId ? msg.data.receiver : msg.data.sender;
+  if (convId !== selectedConversation && !msg.data.seen) {
+    acc[convId] = (acc[convId] || 0) + 1;
+  }
+  return acc;
+}, {});
+
+
 
   // Filter and merge API + WebSocket messages
   const allConversationMessages = selectedConversation
@@ -112,12 +113,14 @@ const AllMessages = () => {
       <div className="flex h-[80vh] bg-white rounded-md border overflow-hidden">
         {/* Left Panel - Conversations */}
         <div className="w-[30%] border-r border-gray-300">
-          <LeftPannel 
-            setSelectedConversation={setSelectedConversation} 
-            setConversationInfo={setConversationInfo}
-            setTargetedConvo={setTargetedConvo}
-            connected={connected}
-          />
+         <LeftPannel 
+  setSelectedConversation={setSelectedConversation} 
+  setConversationInfo={setConversationInfo}
+  setTargetedConvo={setTargetedConvo}
+  lastSeen={lastSeen}
+  unreadCounts={unreadCounts}
+/>
+
         </div>
 
         {/* Right Panel - Chat Detail */}
