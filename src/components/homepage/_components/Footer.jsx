@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
+import { FaEnvelope, FaFacebookF, FaInstagram, FaPhone, FaTwitter } from 'react-icons/fa';
 import CustomModal from '../../checkout/modal/CustomModal';
 import { useDispatch } from 'react-redux';
 import { selectedLocation } from '../../../redux/slices/customerSlice';
@@ -25,6 +25,16 @@ const Footer = () => {
           <p className="text-[#E5E7EB] popreg mb-4">
             Premium luxury furniture marketplace connecting you with the finest furniture makers.
           </p>
+           <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FaPhone className="text-[#CBA135]" />
+              <span className="text-[#E5E7EB] popreg">+237696745108</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaEnvelope className="text-[#CBA135]" />
+              <span className="text-[#E5E7EB] popreg">exchange.xw24@yahoo.com</span>
+            </div>
+          </div>
           <p className="mb-2 text-[16px] popbold text-[#E5E7EB]">Follow Us</p>
           <div className="flex gap-4 text-[#CBA135]">
             <a href="#"><FaFacebookF className="hover:text-white" /></a>
@@ -61,7 +71,7 @@ const Footer = () => {
         <div>
           <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Categories</h3>
          <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
-            <li><Link to="/" className="hover:text-white">About Us</Link></li>
+            <li><Link to="/aboutUs" className="hover:text-white">About Us</Link></li>
          
           </ul>
         </div>

@@ -24,19 +24,26 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist
   // Determine if there is a discount
   const hasDiscount = discount && discount > 0;
 
+
+      const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+
+      console.log(storedRole)
+
   return (
     <div className="shadow-md">
       <div className="bg-white rounded-xl h-full transition relative">
         {/* Wishlist Icon */}
-        <div
-          onClick={() => handleWishlist(item)}
-          className="absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400"
-        >
-          <AiFillHeart 
-            className={isInWishlist ? "text-red-500" : "text-gray-300"} 
-            size={18} 
-          />
-        </div>
+<div
+  onClick={() => handleWishlist(item)}
+  className={`absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400 
+    ${storedRole === 'admin' ? 'hidden' : ''}`}
+>
+  <AiFillHeart 
+    className={isInWishlist ? "text-red-500" : "text-gray-300"} 
+    size={18} 
+  />
+</div>
+
 
         {/* Discount Badge */}
         {hasDiscount && (
@@ -70,15 +77,15 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist
               )}
               <span className="text-[#CBA135] popbold text-[16px]">XAF {newPrice}</span>
             </div>
-            <button
-              onClick={() => handleCart(item)}
-               className={`rounded-md popbold text-white border-none px-4 py-1 
-    ${isInCart ? "bg-green-500" : "bg-[#CBA135]"}`}
-            >
-              {
-                isInCart ? 'Added': 'Add to Cart'
-              }
-            </button>
+<button
+  onClick={() => handleCart(item)}
+  className={`rounded-md popbold text-white border-none px-4 py-1 
+    ${isInCart ? "bg-green-500" : "bg-[#CBA135]"} 
+    ${storedRole === 'admin' ? 'hidden' : ''}`}
+>
+  {isInCart ? 'Added' : 'Add to Cart'}
+</button>
+
           </div>
         </div>
       </div>
@@ -119,7 +126,7 @@ const FeaturedProducts = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 8;
 
   // Update search when URL changes
   useEffect(() => {
@@ -217,7 +224,7 @@ const FeaturedProducts = () => {
       <button
         key={1}
         onClick={() => handlePageChange(1)}
-        className={`px-4 py-2 rounded-md border ${
+        className={`px-4 py-2 rounded-full border ${
           currentPage === 1
             ? 'bg-[#CBA135] text-white border-[#CBA135]'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
@@ -256,7 +263,7 @@ const FeaturedProducts = () => {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-4 py-2 rounded-md border ${
+          className={`px-4 py-2 rounded-full border ${
             currentPage === i
               ? 'bg-[#CBA135] text-white border-[#CBA135]'
               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
@@ -282,7 +289,7 @@ const FeaturedProducts = () => {
         <button
           key={totalPages}
           onClick={() => handlePageChange(totalPages)}
-          className={`px-4 py-2 rounded-md border ${
+          className={`px-4 py-2 rounded-full border ${
             currentPage === totalPages
               ? 'bg-[#CBA135] text-white border-[#CBA135]'
               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
@@ -336,10 +343,10 @@ const FeaturedProducts = () => {
           <button
             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-md border ${
+            className={` ${
               currentPage === 1
-                ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                ? 'hover:text-red-500 hover:cursor-pointer'
+                : ''
             }`}
           >
             <ArrowLeft />
@@ -351,13 +358,13 @@ const FeaturedProducts = () => {
           <button
             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-md border ${
+            className={` ${
               currentPage === totalPages
-                ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                ? 'hover:text-red-500 hover:cursor-pointer'
+                : 'hover:text-red-500 hover:cursor-pointer'
             }`}
           >
-            <ArrowRight />
+            <ArrowRight className='' />
           </button>
         </div>
       )}

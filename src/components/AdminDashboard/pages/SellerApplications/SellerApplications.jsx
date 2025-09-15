@@ -54,7 +54,7 @@ const SellerApplications = () => {
         </div>
 
         {/* Job Title */}
-        <div>
+        {/* <div>
           <Select
             placeholder="Select Job Title"
             className="w-full"
@@ -66,7 +66,7 @@ const SellerApplications = () => {
             <Option value="manager">Manager</Option>
             <Option value="designer">Designer</Option>
           </Select>
-        </div>
+        </div> */}
 
         {/* Status */}
         <div>

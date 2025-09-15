@@ -383,6 +383,8 @@ const colors = useMemo(() => {
     </div>
   );
 
+       const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+
   return (
     <div className='bg-[#FAF8F2] min-h-screen'>
       <div className='flex p-4 md:p-6 gap-2 md:px-6 lg:px-20 pb-6 pt-1'>
@@ -541,14 +543,14 @@ const colors = useMemo(() => {
       </div>
 
       <Button
-        onClick={() => handleCart(product)}
-          className={`rounded-md popbold text-white border-none px-4 py-1 
-    ${checkCartData(product.id) ? "bg-green-500" : "bg-[#CBA135]"}`}
-      >
-             {
-                checkCartData(product.id) ? 'Added': 'Add to Cart'
-              }
-      </Button>
+  onClick={() => handleCart(product)}
+  className={`rounded-md popbold text-white border-none px-4 py-1 
+    ${checkCartData(product.id) ? "bg-green-500" : "bg-[#CBA135]"} 
+    ${storedRole === 'admin' ? 'hidden' : ''}`}
+>
+  {checkCartData(product.id) ? 'Added' : 'Add to Cart'}
+</Button>
+
     </div>
   </div>
 </div>

@@ -157,8 +157,8 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="flex justify-between mb-1">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(orderDetails?.subtotal)}</span>
+                  <span className='popreg'>Subtotal:</span>
+                  <span className='popreg'>{formatCurrency(orderDetails?.subtotal)}</span>
                 </p>
                 {orderDetails.discount_amount !== "0.00" && (
                   <p className="flex justify-between mb-1 text-red-500">
@@ -167,12 +167,12 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
                   </p>
                 )}
                 <p className="flex justify-between mb-1">
-                  <span>Tax:</span>
-                  <span>{formatCurrency(orderDetails?.tax_amount)}</span>
+                  <span className='popreg'>Tax:</span>
+                  <span className='popreg'>{formatCurrency(orderDetails?.tax_amount)}</span>
                 </p>
                 <p className="flex justify-between mb-1">
-                  <span>Delivery Fee:</span>
-                  <span>{formatCurrency(orderDetails.delivery_fee)}</span>
+                  <span className='popreg'>Delivery Fee:</span>
+                  <span className='popreg'>{formatCurrency(orderDetails.delivery_fee)}</span>
                 </p>
               </div>
               <div className="text-right flex flex-col justify-end">
@@ -220,13 +220,13 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
             <h3 className="text-[18px] popbold mb-3">Shipping Information</h3>
             <div className="grid grid-cols-2 gap-y-5 text-sm">
               <p className='flex flex-col text-[16px] text-[#2B2B2B]'>
-                <span className="text-[#555555] text-[14px] flex items-center gap-1">
+                <span className="text-[#555555] text-[14px] popreg flex items-center gap-1">
                   <FaTruck size={12} /> Delivery Type:
                 </span>
                 {orderDetails.delivery_type_display}
               </p>
               <p className='flex flex-col text-[16px] text-[#2B2B2B]'>
-                <span className="text-[#555555] text-[14px]">Delivery Instructions:</span>
+                <span className="text-[#555555] popreg text-[14px]">Delivery Instructions:</span>
                 {orderDetails.delivery_instructions || "No special instructions"}
               </p>
               {orderDetails.delivery_date && (
@@ -252,24 +252,24 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="space-y-2">
-                    <p className='flex items-center gap-2'>
+                    <p className='flex items-center popreg gap-2'>
                       <FaUser size={12} className="text-gray-500" />
                       <span className="font-medium">Full Name:</span>
                       {orderDetails.selected_shipping_address.full_name}
                     </p>
-                    <p className='flex items-center gap-2'>
+                    <p className='flex items-center popreg gap-2'>
                       <FaPhone size={12} className="text-gray-500" />
                       <span className="font-medium">Phone:</span>
                       {orderDetails.selected_shipping_address.phone_number}
                     </p>
-                    <p className='flex items-center gap-2'>
+                    <p className='flex items-center popreg gap-2'>
                       <FaEnvelope size={12} className="text-gray-500" />
                       <span className="font-medium">Email:</span>
                       {orderDetails.selected_shipping_address.email}
                     </p>
                   </div>
-                  <div className="space-y-2">
-                    <p className='flex items-center gap-2'>
+                  <div className="space-y-2 popreg">
+                    <p className='flex items-center popreg gap-2'>
                       <FaHome size={12} className="text-gray-500" />
                       <span className="font-medium">Address:</span>
                       {orderDetails.selected_shipping_address.street_address}
@@ -298,7 +298,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
                 {(orderDetails.selected_shipping_address.apartment_name || 
                   orderDetails.selected_shipping_address.floor_number || 
                   orderDetails.selected_shipping_address.flat_number) && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="mt-3 pt-3 popreg border-t border-gray-200">
                     <h5 className="text-sm font-medium mb-2">Additional Details:</h5>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       {orderDetails.selected_shipping_address.apartment_name && (

@@ -27,9 +27,11 @@ const Checkout1 = () => {
     data: cartData = [],
     subtotal = 0,
     deliveryFee = 0,
+    delivery_instructions,
     total = 0,
   } = location.state || {};
   
+  console.log(delivery_instructions,'this is cartdata')
   // Format XAF currency
   const formatXAF = (amount) => `XAF ${Number(amount).toLocaleString()}`;
   
@@ -120,6 +122,8 @@ const Checkout1 = () => {
         selected_shipping_address_id: selectedAddress.id,
         payment_method: selectedMethod,
         vendors: vendo,
+        delivery_instructions
+
       };
       console.log(orderData,'orderData')
 

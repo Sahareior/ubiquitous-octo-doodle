@@ -290,7 +290,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                               className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden cursor-pointer border border-gray-200 hover:border-blue-400 transition-all"
                               onClick={() => openImagePreview(index)}
                             >
-                              <img 
+                              <Image 
                                 src={img.image} 
                                 alt={`${productData.name} ${index + 1}`}
                                 className="w-full h-full object-cover"

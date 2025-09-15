@@ -46,10 +46,10 @@ import VendorOverview from './components/VendorDashboard/Pages/VendorsOverview/V
 import VOrders from './components/VendorDashboard/Pages/VendorsOrder/VOrders.jsx';
 import VendorPayment from './components/VendorDashboard/Pages/VendorPayment/VendorPayment.jsx';
 import PromotionsList from './components/VendorDashboard/Pages/Promotion/PromotionsList.jsx';
-import CreatePromotion from './components/VendorDashboard/Pages/Promotion/CreatePromotion .jsx';
+import CreatePromotion from './components/VendorDashboard/Pages/Promotion/CreatePromotion.jsx';
 import VendorMessages from './components/VendorDashboard/Pages/VendorMessages/VendorMessages.jsx';
 import TermsConditions from './components/AdminDashboard/pages/Settings/TermsConditions.jsx';
-import PrivacyPolicySettings from './components/AdminDashboard/pages/Settings/PrivacyPolicySettings .jsx';
+import PrivacyPolicySettings from './components/AdminDashboard/pages/Settings/PrivacyPolicySettings.jsx';
 import ReturnPolicyOverview from './components/homepage/customersHomepage/ReturnPolicyOverview.jsx';
 import { store } from './redux/store.js';
 import VendorProfile from './components/VendorDashboard/Pages/Profile/VendorProfile.jsx';
@@ -69,6 +69,7 @@ import EditCategory from './components/AdminDashboard/pages/Category/Page/EditCa
 import CreateCategory from './components/AdminDashboard/pages/Category/CreateCategory.jsx';
 import Payouts from './components/AdminDashboard/pages/payouts/Payouts.jsx';
 import ReturnReq from './components/AdminDashboard/pages/return_req/ReturnReq.jsx';
+import AboutUs from './components/homepage/_components/AboutUs.jsx';
 
 const router = createBrowserRouter([
   {
@@ -89,6 +90,7 @@ const router = createBrowserRouter([
         },
       ],
     },
+    {path:"aboutUs", element: <AboutUs />},
           { path: "wishlist", element: <WhiteList /> },
           { path: "cart", element: <Cart /> },
           { path: "checkout", element: <Checkout /> },

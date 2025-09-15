@@ -1,5 +1,5 @@
 import { Button, DatePicker, Select, Steps, message } from 'antd';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -51,6 +51,8 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
     setPreviews([]);
     onChange(name, multiple ? [] : null);
   }, [name, multiple, onChange]);
+
+
 
   return (
     <div className="mt-7">
@@ -168,6 +170,11 @@ const SellerReg = () => {
   const prevStep = useCallback(() => {
     setCurrentStep(currentStep - 1);
   }, [currentStep]);
+
+      useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
+
 
   const validateStep = useCallback((step) => {
     switch (step) {

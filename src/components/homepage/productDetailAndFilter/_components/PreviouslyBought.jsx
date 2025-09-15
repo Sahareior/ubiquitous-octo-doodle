@@ -101,7 +101,7 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
             // setSelectedProduct(item);
             handleSelect(item)
           }}
-              className="w-full hover:cursor-pointer bg-slate-300 rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
+              className="w-full hover:cursor-pointer  rounded-xl shadow-md transition-transform hover:scale-105 hover:shadow-lg relative"
             >
               {/* Discount Badge */}
           {hasDiscount && (

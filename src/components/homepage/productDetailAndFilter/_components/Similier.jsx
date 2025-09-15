@@ -140,7 +140,7 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
         className={`flex items-center justify-center w-10 h-10 rounded-full ${
           currentPage === 1
             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            : 'bg-white text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
+            : 'bg-slate-300 text-gray-700 hover:bg-[#CBA135] hover:text-white border border-gray-300'
         }`}
       >
         <LeftOutlined />

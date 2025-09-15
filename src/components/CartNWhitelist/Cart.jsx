@@ -14,15 +14,6 @@ import {
 import { useGetAllProductsQuery } from "../../redux/slices/Apis/vendorsApi";
 import Similar from "../homepage/productDetailAndFilter/_components/Similier";
 
-const products = [
-  {
-    id: 1,
-    title: "Luxury Velvet Sectional Sofa",
-    brand: "Elegant Furniture Co.",
-    price: 3000,
-    img: "https://images.unsplash.com/photo-1577977404260-4bf12328b122?q=80&w=1169&auto=format&fit=crop",
-  },
-];
 
 const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   const hasPromotion = item.promotion_discount_type && item.promotion_discount_value;
@@ -196,13 +187,13 @@ const Cart = () => {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const payLoad= {
-    total, subtotal, deliveryFee, data: cartData?.results, deliveryType
+    total, subtotal, deliveryFee, data: cartData?.results, deliveryType, delivery_instructions:deliveryInstructions
   }
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-10">
       <div className="m"></div>
-      <div className="mx-auto md:px-40">
+      <div className="mx-auto pt-5 md:px-40">
         <Breadcrumb />
         <h2 className="text-3xl font-bold mb-6">My Cart</h2>
 

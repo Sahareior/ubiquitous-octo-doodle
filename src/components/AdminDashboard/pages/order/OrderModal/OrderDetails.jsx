@@ -1,6 +1,9 @@
 import { Avatar, Button, Popover } from "antd";
 import React, { useState, useMemo } from "react";
+import { CiLocationArrow1 } from "react-icons/ci";
 import { FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaHome, FaCity } from "react-icons/fa";
+import { FaLocationArrow } from "react-icons/fa6";
+import { IoPerson } from "react-icons/io5";
 
 const OrderDetails = ({ tableData }) => {
   const [open, setOpen] = useState(false);
@@ -41,7 +44,7 @@ const OrderDetails = ({ tableData }) => {
         <h3 className="text-lg font-semibold text-black mb-4">
           Order Summary
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 popreg sm:grid-cols-3 gap-4">
           <div>
             <p className="text-gray-500 mb-1">Order ID</p>
             <p className="font-medium">{order?.order_id}</p>
@@ -110,12 +113,12 @@ const OrderDetails = ({ tableData }) => {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-5 pt-3 border-t">
+        {/* <div className="flex justify-between items-center mt-5 pt-3 border-t">
           <h4 className="text-base font-semibold">Total</h4>
           <h5 className="text-lg font-bold text-yellow-600">
             ${total.toFixed(2)}
           </h5>
-        </div>
+        </div> */}
       </div>
 
       {/* Product Summary */}
@@ -155,7 +158,7 @@ const OrderDetails = ({ tableData }) => {
         })}
         
         {/* Order Totals */}
-        <div className="mt-6 pt-4 border-t">
+        <div className="mt-6 pt-4 popreg border-t">
           <div className="flex justify-between py-1">
             <span>Subtotal:</span>
             <span>${subtotal.toFixed(2)}</span>
@@ -180,7 +183,7 @@ const OrderDetails = ({ tableData }) => {
           )}
           <div className="flex justify-between py-1 font-bold text-lg mt-2 pt-2 border-t">
             <span>Total:</span>
-            <span>${total.toFixed(2)}</span>
+            <span className="popbold text-yellow-500">${total.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -223,12 +226,13 @@ const OrderDetails = ({ tableData }) => {
         {shippingAddress && (
           <>
             <div className="mt-6 pt-4 border-t">
-              <h4 className="text-md font-semibold text-black mb-3 flex items-center gap-2">
+              <h4 className="text-md popmed text-black mb-3 flex items-center gap-2">
                 <FaMapMarkerAlt className="text-red-500" /> Shipping Address
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 popreg sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="flex items-center gap-2">
+                    <IoPerson />
                     <span className="text-gray-500 w-24 flex-shrink-0">Full Name:</span>
                     <span className="font-medium">{shippingAddress.full_name}</span>
                   </p>
@@ -263,6 +267,7 @@ const OrderDetails = ({ tableData }) => {
                   </p>
                   {shippingAddress.zip_code && (
                     <p className="flex items-center gap-2">
+                      <FaLocationArrow  className="text-gray-500" size={12} />
                       <span className="text-gray-500 w-24 flex-shrink-0">ZIP Code:</span>
                       <span className="font-medium">{shippingAddress.zip_code}</span>
                     </p>
@@ -274,8 +279,8 @@ const OrderDetails = ({ tableData }) => {
               {(shippingAddress.apartment_name || 
                 shippingAddress.floor_number || 
                 shippingAddress.flat_number) && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h5 className="text-sm font-medium mb-2 text-gray-700">Additional Details:</h5>
+                <div className="mt-4 pt-4 border-t popreg border-gray-200">
+                  <h5 className="text-sm  popmed mb-2 text-gray-700">Additional Details:</h5>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {shippingAddress.apartment_name && (
                       <p>

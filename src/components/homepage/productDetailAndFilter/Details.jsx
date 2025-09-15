@@ -1,4 +1,4 @@
-import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer } from "antd";
+import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import Customers from "../_components/Customers";
@@ -16,6 +16,22 @@ import withReactContent from "sweetalert2-react-content";
 import { FiArrowLeft, FiShoppingCart, FiCreditCard } from "react-icons/fi";
 import FloatingChat from "../../others/FolatingChat/FloatingChat";
 import jsPDF from "jspdf";
+import { 
+  FaShoppingCart, 
+  FaMapMarkerAlt, 
+  FaTruck, 
+  FaCreditCard,
+  FaFileAlt,
+  FaDollarSign,
+  FaGlobe,
+  FaCalendarAlt,
+  FaEdit,
+  FaCheck,
+  FaTimes,
+  FaPlus,
+  FaChevronDown,
+  FaBolt
+} from 'react-icons/fa';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -30,6 +46,7 @@ const Details = () => {
   const [mainImage, setMainImage] = useState(null);
   const [mobileOrderDrawer, setMobileOrderDrawer] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [deliveryCharge, setDeliveryCharge] = useState(50);
   const [currentSection, setCurrentSection] = useState("description");
   const form = Form.useForm()[0];
 
@@ -245,12 +262,42 @@ console.log(product, 'this is peoduct')
     form.resetFields();
   };
 
+const handleDeliveryTypeChange = (e) => {
+  const deliveryType = e.target.value;
+  let charge = 0;
+  
+  switch (deliveryType) {
+    case "standard":
+      charge = 50;
+      break;
+    case "express":
+      charge = 100;
+      break;
+    case "pickup":
+      charge = 0;
+      break;
+   
+  }
+  
+  setDeliveryCharge(charge);
+};
+
+// Calculate total price
+const calculateTotal = () => {
+  const productPrice = selectedProduct?.new_price || selectedProduct?.price1 || 0;
+  return productPrice + deliveryCharge;
+};
+
+
   // Navigation tabs for mobile
   const sectionTabs = [
     { id: "description", label: "Description" },
     { id: "specifications", label: "Specifications" },
     { id: "reviews", label: "Reviews" },
   ];
+
+
+     const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
 
   return (
     <div className="bg-[#FAF8F2] overflow-hidden min-h-screen">
@@ -271,125 +318,194 @@ console.log(product, 'this is peoduct')
           {/* Order Form Drawer for Mobile */}
 <Drawer
   title={
-    <h2 className="text-xl font-bold popmed text-gray-900 tracking-tight">
-      🛒 Complete Your Order
+    <h2 className="text-2xl font-bold text-[#5D4037] tracking-tight flex items-center gap-2">
+      <FaShoppingCart className="text-[#8D6E63]" />
+      Complete Your Order
     </h2>
   }
   placement="bottom"
-  height="80%"
+  height="85%"
   onClose={() => setMobileOrderDrawer(false)}
   open={mobileOrderDrawer}
-  className="lg:hidden popmed"
+  className="lg:hidden"
   bodyStyle={{ padding: 0 }}
+  headerStyle={{
+    background: "linear-gradient(to right, #F8F4EF, #EFEBE9)",
+    borderBottom: "1px solid #D7CCC8",
+    borderRadius: "16px 16px 0 0",
+    padding: "16px 20px",
+  }}
 >
-  <div className="p-6 h-full overflow-y-auto bg-gradient-to-b from-gray-50 to-white rounded-t-3xl shadow-inner">
+  <div className="p-6 h-full overflow-y-auto bg-gradient-to-b from-[#F8F4EF] to-[#EFEBE9] rounded-t-3xl flex justify-center">
     <Form
       form={form}
       layout="vertical"
       onFinish={handleOrderSubmit}
-      initialValues={{
-        delivery_type: "express",
-        payment_method: "bank",
-      }}
+     initialValues={{
+    delivery_type: "standard",  // 👈 set standard as default
+    payment_method: "cash",
+  }}
+      className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto"
     >
       {/* 🏠 Shipping Address */}
-      <div className="mb-8">
-        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
-          📍 Shipping Address
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
+          <FaMapMarkerAlt className="text-[#8D6E63]" />
+          Shipping Address
         </h3>
         <Form.Item
           name="selected_shipping_address_id"
           rules={[{ required: true, message: "Please select a shipping address" }]}
+          className="mb-0"
         >
           <Select
             placeholder="Select a saved address"
             onChange={handleChange}
-            className="popreg rounded-xl shadow-sm border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
+            className="w-full rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
+            suffixIcon={<FaChevronDown className="text-[#8D6E63]" />}
           >
             {sevedAddress?.results?.map((address) => (
               <Option key={address.id} value={address.id}>
                 {`${address.street_address}, ${address.city}, ${address.zip_code}`}
               </Option>
             ))}
-            <Option value="new">➕ Add new address</Option>
+            <Option value="new" className="text-[#8D6E63] font-medium">
+              <FaPlus className="inline mr-2" />
+              Add new address
+            </Option>
           </Select>
         </Form.Item>
       </div>
 
       {/* 🚚 Delivery Details */}
-      <div className="mb-8">
-        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
-          🚚 Delivery Details
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
+          <FaTruck className="text-[#8D6E63]" />
+          Delivery Details
         </h3>
-        <Form.Item name="delivery_type" label={<span className="text-sm text-gray-600">Delivery Type</span>}>
-          <Radio.Group className="flex gap-6">
-            <Radio className="popreg" value="standard">Standard</Radio>
-            <Radio className="popreg" value="express">⚡ Express</Radio>
-            <Radio className="popreg" value="pickup">Pickup</Radio>
+        <Form.Item
+          name="delivery_type"
+          label={<span className="text-sm text-[#795548] font-medium">Delivery Type</span>}
+          className="mb-5"
+        >
+          <Radio.Group 
+            className="flex gap-4 flex-wrap"
+            onChange={handleDeliveryTypeChange}
+          >
+            <Radio value="standard" className="custom-radio">
+              <span className="text-[#5D4037]">Standard (XAF 50)</span>
+            </Radio>
+            <Radio value="express" className="custom-radio">
+              <span className="text-[#5D4037] flex items-center">
+                <FaBolt className="mr-1 text-[#A67B5B]" />
+                Express (XAF 100)
+              </span>
+            </Radio>
+            <Radio value="pickup" className="custom-radio">
+              <span className="text-[#5D4037]">Pickup (Free)</span>
+            </Radio>
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item name="delivery_date" label={<span className="text-sm text-gray-600">Preferred Delivery Date</span>}>
+        <Form.Item
+          name="delivery_date"
+          label={<span className="text-sm text-[#795548] font-medium">Preferred Delivery Date</span>}
+          className="mb-0"
+        >
           <DatePicker
-            className="w-full rounded-xl border border-gray-200 shadow-sm hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
+            className="w-full rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
             disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
+            suffixIcon={<FaCalendarAlt className="text-[#8D6E63]" />}
           />
         </Form.Item>
       </div>
 
       {/* 💳 Payment */}
-      <div className="mb-8">
-        <h3 className="text-base font-semibold popmed mb-3 flex items-center gap-2 text-gray-700">
-          💳 Payment Method
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
+          <FaCreditCard className="text-[#8D6E63]" />
+          Payment Method
         </h3>
         <Form.Item
           name="payment_method"
           rules={[{ required: true, message: "Please select a payment method" }]}
+          className="mb-0"
         >
           <Select
-            className="rounded-xl border border-gray-200 shadow-sm hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
+            className="w-full rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
+            suffixIcon={<FaChevronDown className="text-[#8D6E63]" />}
           >
-            <Option value="cash">🏦 Cash</Option>
-            <Option value="online">💳 Online</Option>
+            <Option value="cash" className="flex items-center">
+              <span>Cash on Delivery</span>
+            </Option>
+            <Option value="online" className="flex items-center">
+              <span>Online Payment</span>
+            </Option>
           </Select>
         </Form.Item>
       </div>
 
       {/* 📝 Delivery Instructions */}
-      <Form.Item
-        name="delivery_instructions"
-        label={<span className="text-sm text-gray-600">Delivery Instructions (Optional)</span>}
-      >
-        <TextArea
-          rows={3}
-          placeholder="Add any notes for the delivery driver"
-          className="rounded-xl border border-gray-200 shadow-sm p-3 hover:border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100 transition-all duration-200"
-        />
-      </Form.Item>
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
+        <Form.Item
+          name="delivery_instructions"
+          label={
+            <span className="text-sm text-[#795548] font-medium flex items-center gap-2">
+              <FaEdit className="text-[#8D6E63]" />
+              Delivery Instructions (Optional)
+            </span>
+          }
+          className="mb-0"
+        >
+          <TextArea
+            rows={3}
+            placeholder="Add any notes for the delivery driver..."
+            className="rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
+          />
+        </Form.Item>
+      </div>
+
+      {/* Order Summary */}
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all md:col-span-2">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
+          <FaFileAlt className="text-[#8D6E63] popmed" />
+          Order Summary
+        </h3>
+        <div className="flex justify-between popreg text-[#5D4037] py-1">
+          <span>Subtotal</span>
+          <span>XAF {selectedProduct?.new_price || selectedProduct?.price1 || 0}</span>
+        </div>
+        <div className="flex justify-between popreg text-[#5D4037] py-1">
+          <span>Shipping</span>
+          <span>XAF {deliveryCharge}</span>
+        </div>
+        <div className="flex justify-between text-[#5D4037] py-1 border-t border-[#D7CCC8] mt-3 pt-2 font-semibold">
+          <span>Total</span>
+          <span className="text-[#8D6E63] popbold text-xl">XAF {calculateTotal()}</span>
+        </div>
+      </div>
 
       {/* Footer Actions */}
-      <div className="flex justify-end gap-3 pt-4 border-t mt-6 sticky bottom-0 backdrop-blur-md bg-white/90 p-4 shadow-lg rounded-t-2xl">
+      <div className="flex justify-between gap-3 pt-5 mt-6 sticky bottom-0 backdrop-blur-lg bg-gradient-to-r from-[#F8F4EF]/95 to-[#EFEBE9]/95 p-4 rounded-t-2xl border-t border-[#D7CCC8] shadow-lg md:col-span-2">
         <Button
           onClick={handleOrderCancel}
-          className="h-11 px-6 rounded-xl border border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-500 transition-all duration-200"
+          className="h-12 flex-1 rounded-xl border border-[#D7CCC8] text-[#5D4037] hover:border-[#A67B5B] hover:text-[#8D6E63] transition-all duration-200 flex items-center justify-center"
         >
+          <FaTimes className="mr-2" />
           Cancel
         </Button>
         <Button
           type="primary"
           htmlType="submit"
-          className="h-11 px-6 rounded-xl bg-yellow-500 hover:bg-yellow-600 border-none text-white shadow-lg transition-transform transform hover:scale-105"
+          className="h-12 flex-1 rounded-xl bg-[#8D6E63] hover:bg-[#6D4C41] border-none text-white shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center"
         >
+          <FaCheck className="mr-2" />
           Place Order
         </Button>
       </div>
     </Form>
   </div>
 </Drawer>
-
-
-
-
           {/* Main Product Section */}
           <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 lg:p-8 mb-6 md:mb-8">
             <div className="flex flex-col lg:flex-row items-start justify-center gap-6 md:gap-8 lg:gap-9">
@@ -409,11 +525,13 @@ console.log(product, 'this is peoduct')
                       }`}
                       onClick={() => handleImageClick(image, index)}
                     >
-                      <img
-                        className="w-full h-full object-cover"
-                        src={image.image}
-                        alt={`Product view ${index + 1}`}
-                      />
+                     <Image
+  className="w-full h-full object-cover"
+  src={image.image}
+  alt={`Product view ${index + 1}`}
+  preview={false} // Disable image preview
+/>
+
                     </div>
                   ))}
                 </div>
@@ -517,7 +635,9 @@ console.log(product, 'this is peoduct')
   </div>
 
   {/* Action Buttons */}
-  <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
+  <div
+  className={`flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6 ${storedRole === 'admin' ? 'hidden' : ''}`}
+>
     <button
       onClick={() => handleCart(selectedProduct)}
        className={`  text-white px-4 md:px-6 lg:px-8 popbold rounded-xl h-10 md:h-12 w-full sm:w-auto flex items-center justify-center gap-2
