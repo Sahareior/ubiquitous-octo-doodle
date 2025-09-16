@@ -145,7 +145,7 @@ const WhiteList = () => {
           <div className="flex justify-between items-center gap-10">
             <div className="flex flex-col">
               {hasDiscount && (
-                <span className="text-gray-400 line-through text-sm">
+                <span className="text-red-400 popreg line-through text-sm">
                   XAF {product.old_price}
                 </span>
               )}

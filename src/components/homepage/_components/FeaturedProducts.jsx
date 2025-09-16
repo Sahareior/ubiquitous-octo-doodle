@@ -35,11 +35,11 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist
         {/* Wishlist Icon */}
 <div
   onClick={() => handleWishlist(item)}
-  className={`absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/10 backdrop-blur-md hover:text-red-400 
+  className={`absolute top-3 right-3 rounded-full p-2 shadow-sm cursor-pointer transition text-white bg-white/50 backdrop-blur-md hover:text-red-400 
     ${storedRole === 'admin' ? 'hidden' : ''}`}
 >
   <AiFillHeart 
-    className={isInWishlist ? "text-red-500" : "text-gray-300"} 
+    className={isInWishlist ? "text-red-500" : "text-white"} 
     size={18} 
   />
 </div>
@@ -71,7 +71,7 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
               {hasDiscount && (
-                <span className="text-gray-400 line-through text-[16px]">
+                <span className="text-red-400 popreg line-through text-[14px]">
                   XAF {item.price1}
                 </span>
               )}
