@@ -60,7 +60,7 @@ const ReturnExchangeForm = () => {
 
     try {
       const res = await returnProduct(formData);
-      console.log("Response:", res);
+      // console.log("Response:", res);
 
       if (res?.error) {
         Swal.fire("Error!", res?.error?.data?.message || "Something went wrong.", "error");

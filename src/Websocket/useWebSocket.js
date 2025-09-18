@@ -51,7 +51,7 @@ const useWebSocket = (userId) => {
     socket.onerror = (err) => console.error("⚠️ WebSocket error:", err);
 
     socket.onclose = (e) => {
-      console.log(`❌ WebSocket disconnected: ${e.reason}. Retrying in 3s...`);
+      // console.log(`❌ WebSocket disconnected: ${e.reason}. Retrying in 3s...`);
       setConnected(false);
       setTimeout(connectWebSocket, 3000);
     };

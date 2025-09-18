@@ -7,7 +7,7 @@ import html2canvas from 'html2canvas';
 const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete }) => {
   const invoiceRef = useRef();
 
-  console.log(orderDetails, 'order details in modal');
+  // console.log(orderDetails, 'order details in modal');
   
   const handleCancel = () => {
     setIsModalOpen(false);

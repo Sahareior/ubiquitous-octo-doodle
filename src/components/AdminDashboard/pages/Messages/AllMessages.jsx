@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import useWebSocket from "../../../../Websocket/useWebSocket";
-import { Input, Select, Avatar, Button } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import { Input, Select, Avatar, Button } from "antd";
+import { SendOutlined } from "@ant-design/icons";
 import LeftPannel from "./LeftPannel";
 import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
 
@@ -10,10 +10,11 @@ const { Option } = Select;
 const AllMessages = () => {
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
-  const { messages, sendMessage, connected,lastSeen } = useWebSocket(customerId);
-  const [targetedConvo,setTargetedConvo] = useState({})
+
+  const { messages, sendMessage, connected, lastSeen } = useWebSocket(customerId);
+  const [targetedConvo, setTargetedConvo] = useState({});
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
-  
+
   const [newMessage, setNewMessage] = useState("");
   const [previousMessages, setPreviousMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -25,27 +26,44 @@ const AllMessages = () => {
     time: ""
   });
 
-useEffect(() => {
-  if (!selectedConversation) return;
+  // Fetch previous messages when selecting a conversation
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversation) return;
+      try {
+        const userRes = await getMessagesById(selectedConversation).unwrap();
+        setPreviousMessages(userRes.results || []);
 
-  messages.forEach(msg => {
-    if ((msg.data.sender === selectedConversation || msg.data.receiver === selectedConversation)) {
-      msg.data.seen = true; // mark messages as read
+        if (userRes.conversationInfo) {
+          setConversationInfo(userRes.conversationInfo);
+        }
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+      }
+    };
+    fetchMessages();
+  }, [selectedConversation, getMessagesById]);
+
+  // Mark WebSocket messages as seen
+  useEffect(() => {
+    if (!selectedConversation) return;
+    messages.forEach(msg => {
+      if (msg.data && (msg.data.sender === selectedConversation || msg.data.receiver === selectedConversation)) {
+        msg.data.seen = true;
+      }
+    });
+  }, [selectedConversation, messages]);
+
+  // Compute unread counts
+  const unreadCounts = messages.reduce((acc, msg) => {
+    const convId = msg.data.sender === customerId ? msg.data.receiver : msg.data.sender;
+    if (convId !== selectedConversation && !msg.data.seen) {
+      acc[convId] = (acc[convId] || 0) + 1;
     }
-  });
-}, [selectedConversation, messages]);
+    return acc;
+  }, {});
 
-const unreadCounts = messages.reduce((acc, msg) => {
-  const convId = msg.data.sender === customerId ? msg.data.receiver : msg.data.sender;
-  if (convId !== selectedConversation && !msg.data.seen) {
-    acc[convId] = (acc[convId] || 0) + 1;
-  }
-  return acc;
-}, {});
-
-
-
-  // Filter and merge API + WebSocket messages
+  // Merge previous + WebSocket messages for display
   const allConversationMessages = selectedConversation
     ? [
         ...previousMessages.map(msg => ({
@@ -56,13 +74,12 @@ const unreadCounts = messages.reduce((acc, msg) => {
           timestamp: msg.timestamp
         })),
         ...messages
-          .filter(msg => 
-            msg.data && 
-            (msg.data.sender === selectedConversation || 
-             msg.data.receiver === selectedConversation)
+          .filter(msg =>
+            msg.data &&
+            (msg.data.sender === selectedConversation || msg.data.receiver === selectedConversation)
           )
           .map(msg => ({
-            id: msg.id || Date.now(), // temporary ID for WebSocket messages
+            id: msg.id || Date.now(),
             sender: msg.data.sender,
             receiver: msg.data.receiver,
             message: msg.data.message,
@@ -83,47 +100,35 @@ const unreadCounts = messages.reduce((acc, msg) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  // Format time for display
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  console.log(targetedConvo,'this is convo')
   return (
     <div>
-      <div className='bg-white p-6 mt-2'> 
-        {/* <div className="flex items-center gap-2">
-          <Input className='w-[30%]' placeholder="Search messages..." />
-          <Select defaultValue="Role" className="w-[120px]">
-            <Option value="Customer">Customer</Option>
-            <Option value="Seller">Seller</Option>
-          </Select>
-        </div> */}
-      </div>
+      <div className="bg-white p-6 mt-2"></div>
 
-      {/* Main Chat Area */}
       <div className="flex h-[80vh] bg-white rounded-md border overflow-hidden">
-        {/* Left Panel - Conversations */}
+        {/* Left Panel */}
         <div className="w-[30%] border-r border-gray-300">
-         <LeftPannel 
-  setSelectedConversation={setSelectedConversation} 
-  setConversationInfo={setConversationInfo}
-  setTargetedConvo={setTargetedConvo}
-  lastSeen={lastSeen}
-  unreadCounts={unreadCounts}
-/>
-
+          <LeftPannel
+            setSelectedConversation={setSelectedConversation}
+            setConversationInfo={setConversationInfo}
+            setTargetedConvo={setTargetedConvo}
+            lastSeen={lastSeen}
+            unreadCounts={unreadCounts}
+          />
         </div>
 
-        {/* Right Panel - Chat Detail */}
+        {/* Right Panel */}
         <div className="w-[70%] flex flex-col bg-[#FAFAFA]">
           {selectedConversation ? (
             <>
@@ -139,13 +144,7 @@ const unreadCounts = messages.reduce((acc, msg) => {
                 <span className="text-xs text-gray-400">{conversationInfo.time}</span>
               </div>
 
-              {/* Subject */}
-              {/* <div className="px-5 py-3 border-b">
-                <div className="text-[18px] font-bold">{conversationInfo.subject}</div>
-                <p className="text-xs text-[#666666] mt-1">Conversation started at {conversationInfo.time}</p>
-              </div> */}
-
-              {/* Conversation */}
+              {/* Conversation Messages */}
               <div className="flex-1 flex flex-col gap-4 overflow-y-auto px-5 py-4 bg-[#F7F7F7]">
                 {allConversationMessages.map(msg => {
                   const isMe = msg.sender === customerId;
@@ -154,9 +153,7 @@ const unreadCounts = messages.reduce((acc, msg) => {
                       key={msg.id}
                       className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
                     >
-                      {!isMe && (
-                        <Avatar size={35} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
-                      )}
+                      {!isMe && <Avatar size={35} src={targetedConvo?.image || "https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg"} />}
                       <div className={`max-w-[70%] ${isMe ? "text-right" : "text-left"}`}>
                         <div
                           className={`px-4 py-2 rounded-2xl shadow-sm relative ${
@@ -169,14 +166,10 @@ const unreadCounts = messages.reduce((acc, msg) => {
                         </div>
                         <div className={`text-[11px] mt-1 ${isMe ? "text-right text-gray-400" : "text-left text-gray-400"}`}>
                           {formatTime(msg.timestamp)}
-                          {isMe && (
-                            <span className="ml-2 text-blue-400">✓✓</span> // seen indicator
-                          )}
+                          {isMe && <span className="ml-2 text-blue-400">✓✓</span>}
                         </div>
                       </div>
-                      {isMe && (
-                        <Avatar size={35} src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
-                      )}
+                      {isMe && <Avatar size={35} src={targetedConvo?.image || "https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg"} />}
                     </div>
                   );
                 })}

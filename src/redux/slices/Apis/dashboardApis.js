@@ -74,7 +74,7 @@ export const dashboardApis = createApi({
 
     acceptSeller: build.mutation({
       query: ({ id, payload }) =>
-        // console.log(id)
+        // // console.log(id)
         ({
           url: `seller/applications/${id}/approve/`,
           method: "POST",
@@ -83,7 +83,7 @@ export const dashboardApis = createApi({
     }),
     rejectSeller: build.mutation({
       query: ({ id, payload }) =>
-        // console.log(id)
+        // // console.log(id)
         ({
           url: `seller/applications/${id}/cancel/`,
           method: "POST",
@@ -93,7 +93,7 @@ export const dashboardApis = createApi({
 
     acceptProducts: build.mutation({
       query: ({ id, data }) => {
-        console.log(data);
+        // console.log(data);
         return {
           url: `products/${id}/accept/`,
           method: "POST",
@@ -103,7 +103,7 @@ export const dashboardApis = createApi({
     }),
     rejectProducts: build.mutation({
       query: ({ id, data }) => {
-        console.log(data);
+        // console.log(data);
         return {
           url: `products/${id}/reject/`,
           method: "POST",

@@ -34,12 +34,12 @@ const VendorOverViewModal = ({ isModalOpen, setIsModalOpen,location }) => {
   const [method, setMethod] = useState('');
   const {data:PayOuts,refetch} =useGetTotalEarningsQuery()
   const [postPayouts] = usePostPayoutsMutation()
-  // console.log(payouts)
+  // // console.log(payouts)
   const [note, setNote] = useState('');
   const handleCancel = () => {
     setIsModalOpen(false);
   };
-  console.log("Payload for DB:", PayOuts);
+  // console.log("Payload for DB:", PayOuts);
 
   // Calculate total payout (convert string to float first)
 

@@ -12,12 +12,12 @@ import { useReturnApproveMutation } from '../../../../../redux/slices/Apis/dashb
 
 const ReturnRequestModal = ({ isModalOpen, handleCancel, selectedRequest }) => {
 
-  console.log(selectedRequest,'this is selected req')
+  // console.log(selectedRequest,'this is selected req')
 
   const [returnApprove] = useReturnApproveMutation()
 
   const handleApprove = async (data)=> {
-    console.log(data,"a")
+    // console.log(data,"a")
     // const res = await returnApprove({id: data.id, data})
   }
 
@@ -212,7 +212,7 @@ const ReturnRequestModal = ({ isModalOpen, handleCancel, selectedRequest }) => {
                 </Button>
 <Button 
   onClick={() => {
-    console.log("clicked approve");
+    // console.log("clicked approve");
     handleApprove(selectedRequest);
   }}
   type="primary" 

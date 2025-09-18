@@ -78,7 +78,7 @@ useEffect(() => {
     setSelectedProduct(data);
   }
 }, [data]);
-  console.log('this is selectedProduct', selectedProduct)
+  // console.log('this is selectedProduct', selectedProduct)
 
 
       const checkCartData = useCallback((id) => {
@@ -99,7 +99,7 @@ useEffect(() => {
 
   const vendorId = selectedProduct?.vendor_id
 
-console.log(product, 'this is peoduct')
+// console.log(product, 'this is peoduct')
 
   const filteredProducts = productsData?.results?.filter((product) =>
     product?.categories.some((cat) => selectedProduct?.categories?.includes(cat))

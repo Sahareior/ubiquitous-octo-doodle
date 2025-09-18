@@ -13,7 +13,7 @@ const ReturnReqTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const { data: returnReq, isLoading,refetch } = useGetRequestReturnsQuery();
-console.log(returnReq,'aaaaaaaaaaaaa')
+// console.log(returnReq,'aaaaaaaaaaaaa')
 
   const [returnApprove] = useReturnApproveMutation()
   const [returnDelete] = useReturnDeleteMutation()
@@ -46,7 +46,7 @@ const handleApprove = async (data) => {
           confirmButtonColor: "#16a34a"
         });
 
-        console.log("Approve response:", res);
+        // console.log("Approve response:", res);
       } catch (error) {
         console.error("Approve failed:", error);
 
@@ -166,7 +166,7 @@ const handleDelete = (data) => {
     if (result.isConfirmed) {
       try {
         const res = await returnDelete(data.id).unwrap();
-        console.log("this is deleted res", res);
+        // console.log("this is deleted res", res);
         refetch();
 
         Swal.fire("Deleted!", "The item has been deleted.", "success");

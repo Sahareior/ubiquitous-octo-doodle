@@ -22,7 +22,7 @@ export const vendorsApi = createApi({
 
     vendorProductCreate: build.mutation({
       query: (data) => {
-        console.log(data);
+        // console.log(data);
         return {
           url: "products/",
           method: "POST",
@@ -68,7 +68,7 @@ export const vendorsApi = createApi({
 
     createPromotion: build.mutation({
       query: (data) => {
-        console.log(data);
+        // console.log(data);
         return {
           url: "promotions/",
           method: "POST",
@@ -78,7 +78,7 @@ export const vendorsApi = createApi({
     }),
     editPromotion: build.mutation({
       query: ({ id, payload }) => {
-        console.log({ id, payload });
+        // console.log({ id, payload });
         return {
           url: `promotions/${id}/`,
           method: "PATCH",

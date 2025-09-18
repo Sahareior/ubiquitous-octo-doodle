@@ -62,7 +62,7 @@ const CustomModal = ({ isModalOpen, setIsModalOpen }) => {
             size='large'
             onClick={() => {
               // Add tracking logic here
-              console.log('Tracking Order:', orderId);
+              // console.log('Tracking Order:', orderId);
               handleOk();
             }}
           >

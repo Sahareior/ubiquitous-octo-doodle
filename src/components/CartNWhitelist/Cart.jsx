@@ -119,7 +119,7 @@ const Cart = () => {
   }, [cartData]);
 
 
-if (!cartData?.result) {
+if (!cartData?.results || cartData?.results?.length === 0) {
   return (
     <div className="flex flex-col items-center h-screen justify-center py-10 px-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
       <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />

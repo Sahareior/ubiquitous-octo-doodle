@@ -5,7 +5,7 @@ const { Option } = Select;
 
 const EditOrder = ({tableData}) => {
 
-  console.log(tableData,'tableData')
+  // console.log(tableData,'tableData')
   const [form, setForm] = useState({
     customerName: 'Fatiha jahan',
     categoryName: 'Living Room',
@@ -27,7 +27,7 @@ const EditOrder = ({tableData}) => {
   };
 
   const handleSubmit = () => {
-    console.log('Saved Data:', form);
+    // console.log('Saved Data:', form);
   };
 
   return (

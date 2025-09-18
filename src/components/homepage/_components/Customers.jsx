@@ -7,7 +7,7 @@ import { useGetReviewsQuery } from "../../../redux/slices/Apis/customersApi";
 const Customers = ({ details, reviews }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-console.log(reviews,'reviewsssss')
+// console.log(reviews,'reviewsssss')
     return (
         <section className={`${details ? 'p-0' : 'px-4 py-10'} bg-[#FAF8F2]`}>
             <div className="text-center mb-10">

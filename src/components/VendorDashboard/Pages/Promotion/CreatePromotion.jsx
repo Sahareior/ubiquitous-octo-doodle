@@ -70,7 +70,7 @@ const CreatePromotion = () => {
       p.prod_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  console.log("Selected Products:", filteredProducts);
+  // console.log("Selected Products:", filteredProducts);
 
   const handleProductSelect = (product) => {
     if (!selectedProducts.some((p) => p.prod_id === product.prod_id)) {

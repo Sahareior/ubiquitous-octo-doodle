@@ -176,7 +176,7 @@ const handleSubmit = async () => {
 
     // Debug: check FormData content
     for (let pair of formDataToSend.entries()) {
-      console.log(pair[0], pair[1]);
+      // console.log(pair[0], pair[1]);
     }
 
     // Send to API
@@ -187,7 +187,7 @@ const handleSubmit = async () => {
       console.error('API Error:', res.error);
     } else {
       message.success('Product created successfully!');
-      console.log('Response:', res.data);
+      // console.log('Response:', res.data);
     }
 
   } catch (error) {

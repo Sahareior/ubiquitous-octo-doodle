@@ -51,7 +51,7 @@ const NotificationReview = ({
 
   };
 
-  console.log(selectedProduct, 'this si selected Preoducts')
+  // console.log(selectedProduct, 'this si selected Preoducts')
 
   if (!selectedProduct) return null;
 
@@ -121,7 +121,7 @@ const NotificationReview = ({
     
       try {
         const res = await rejectProducts({ id: selectedProduct?.id, data: payload }).unwrap();
-        console.log('Rejected:', res);
+        // console.log('Rejected:', res);
     
         // ✅ Success Swal
         Swal.fire({
@@ -188,7 +188,7 @@ const handleApprove = async () => {
 
     // Check if the response has data (success case)
     if (response.data) {
-      console.log("✅ Approved:", response.data);
+      // console.log("✅ Approved:", response.data);
 
       Swal.fire({
         title: "Approved!",

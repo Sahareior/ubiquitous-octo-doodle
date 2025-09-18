@@ -119,7 +119,7 @@ const AdminDashboard = () => {
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
-console.log("User Info:", userInfo.user.profile_image); // Debugging line to check user info
+// console.log("User Info:", userInfo.user.profile_image); // Debugging line to check user info
 // 
 const profileImage = userInfo?.user?.profile_image
   ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`

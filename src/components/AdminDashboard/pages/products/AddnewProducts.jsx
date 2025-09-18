@@ -216,7 +216,7 @@ const handleSubmit = async () => {
 
   try {
     const res = await vendorProductCreate(formDataToSend);
-    console.log("this is res", res);
+    // console.log("this is res", res);
 
     if (res?.data?.id) {
       Swal.fire({
@@ -254,7 +254,7 @@ const handleSubmit = async () => {
   }
 };
 
-console.log(categories?.results,'thsi is categoried')
+// console.log(categories?.results,'thsi is categoried')
 
 // const notyfi =()=>{
 //    sendNotification();

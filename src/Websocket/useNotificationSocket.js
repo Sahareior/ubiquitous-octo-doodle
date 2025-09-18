@@ -28,7 +28,7 @@ const useNotificationSocket = () => {
     socketRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("New notification received:", data);
+        // console.log("New notification received:", data);
 
 
         setNotifications((prev) => {
@@ -42,7 +42,7 @@ const useNotificationSocket = () => {
     };
 
     socketRef.current.onclose = () => {
-      console.log("WebSocket disconnected");
+      // console.log("WebSocket disconnected");
       setConnected(false);
     };
 

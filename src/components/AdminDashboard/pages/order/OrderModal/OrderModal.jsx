@@ -7,7 +7,7 @@ const OrderModal = ({ isModalOpen, setIsModalOpen,target,orderDetails }) => {
   const showModal = () => {
     setIsModalOpen(true);
   };
-console.log(orderDetails,'t')
+// console.log(orderDetails,'t')
   const handleOk = () => {
     setIsModalOpen(false);
   };

@@ -195,7 +195,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
   };
 
 
-  console.log(productData,'this is productData')
+  // console.log(productData,'this is productData')
 
   return (
     <Modal

@@ -4,7 +4,7 @@ import { LiaStarSolid } from "react-icons/lia";
 
 const VendorModal = ({ isModalOpen, setIsModalOpen, vendorsData }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-  console.log('this is ven', vendorsData)
+  // console.log('this is ven', vendorsData)
   
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);

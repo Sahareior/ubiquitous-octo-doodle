@@ -10,7 +10,7 @@ const ApproveSellers = () => {
     }
 
     const handleApprove = (vendorId, userId) => {
-        console.log("Vendor ID:", vendorId, "User ID:", userId);
+        // console.log("Vendor ID:", vendorId, "User ID:", userId);
         // Later you can call an API to approve here
         sellerApprove(vendorId)
     };

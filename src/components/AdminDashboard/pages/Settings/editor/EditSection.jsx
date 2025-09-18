@@ -40,7 +40,7 @@ const EditSection = ({ data,type }) => {
 
       try {
         const res = await updatePolices(payload).unwrap();
-        console.log("✅ Updated successfully:", res);
+        // console.log("✅ Updated successfully:", res);
         refetch()
         Swal.fire("Success!", "Policy updated successfully", "success");
         setPreviewHTML(html); // Show preview after success

@@ -36,7 +36,7 @@ const handleSubmit = async (values) => {
 
   try {
     const res = await postCategories(formData).unwrap();
-    console.log("Response:", res);
+    // console.log("Response:", res);
 
     Swal.fire({
       icon: "success",

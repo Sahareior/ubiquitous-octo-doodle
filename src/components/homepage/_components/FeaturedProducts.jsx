@@ -27,7 +27,7 @@ const ProductCard = React.memo(({ item, handleCart, handleWishlist, isInWishlist
 
       const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
 
-      console.log(storedRole)
+      // console.log(storedRole)
 
   return (
     <div className="shadow-md">

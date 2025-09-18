@@ -28,8 +28,8 @@ const VProductsTable = () => {
 
     const {data:categories} = useGetCategoriesQuery()
 
-  console.log("allProducts", data?.results);
-  console.log("allCategories", categories?.results);
+  // console.log("allProducts", data?.results);
+  // console.log("allCategories", categories?.results);
 
 const getCategories = (product) => {
   if (!product?.categories || !categories?.results) return [];

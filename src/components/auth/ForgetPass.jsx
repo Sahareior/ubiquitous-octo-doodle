@@ -33,7 +33,7 @@ const ForgetPass = () => {
       navigate('/verify',{
         state: {email}
       });  // ✅ fixed the missing quote
-      console.log("ForgetPass Response:", res);
+      // console.log("ForgetPass Response:", res);
 
     } catch (error) {
       Swal.fire({

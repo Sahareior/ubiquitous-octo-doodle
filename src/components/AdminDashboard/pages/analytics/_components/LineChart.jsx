@@ -11,7 +11,7 @@ import { useGetFurnitureSellsQuery } from '../../../../../redux/slices/Apis/dash
 
 const LineCharts = () => {
   const { data, isLoading, error } = useGetFurnitureSellsQuery();
-  console.log(data, 'furniture overview');
+  // console.log(data, 'furniture overview');
 
   // ✅ transform API response
   const chartData =

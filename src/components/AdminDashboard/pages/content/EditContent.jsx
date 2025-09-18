@@ -51,7 +51,7 @@ const EditContent = ({ bannerData }) => {
           res = await bannerUpload(formData);
         }
         
-        console.log(res);
+        // console.log(res);
         
         if (res.data || res.error === undefined) {
           // Reset form after successful submission

@@ -66,7 +66,7 @@ export const customersApi = createApi({
 
     postReviews: build.mutation({
       query: (data) => {
-        console.log(data)
+        // console.log(data)
         return{
           url:'product-reviews/',
           method:"POST",
@@ -103,7 +103,7 @@ export const customersApi = createApi({
 
     cartQuantityIncrease: build.mutation({
       query: ({id, cartData}) => {
-        console.log(id,cartData)
+        // console.log(id,cartData)
         return {
           url: `cart/${id}/increment/`,
           method: "POST",
@@ -114,7 +114,7 @@ export const customersApi = createApi({
     
     cartQuantityDecrement: build.mutation({
       query: ({id, cartData}) => {
-        console.log(id,cartData)
+        // console.log(id,cartData)
         return {
           url: `cart/${id}/decrement/`,
           method: "POST",

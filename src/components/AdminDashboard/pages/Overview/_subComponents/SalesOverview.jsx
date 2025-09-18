@@ -7,7 +7,7 @@ import { useVendorSellsPerfomenceQuery } from '../../../../../redux/slices/Apis/
 const SalesOverview = () => {
   const { data, isLoading, error } = useVendorSellsPerfomenceQuery();
 
-  console.log("this is graph data", data?.sales_performance);
+  // console.log("this is graph data", data?.sales_performance);
 
   // Check if all values are zero or if data is empty
   const allZero = data?.sales_performance?.every(item => item.value === 0) || !data?.sales_performance;

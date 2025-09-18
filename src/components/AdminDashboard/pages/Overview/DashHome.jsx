@@ -19,7 +19,7 @@ const DashHome = () => {
   const {data} = useAdminOverViewQuery()
   const {data:notifications} = useGetAllNotificationQuery()
 
-  console.log(notifications,'notify')
+  // console.log(notifications,'notify')
 
 
   const cards = [

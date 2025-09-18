@@ -93,9 +93,9 @@ const handleGoogleLogin = async () => {
       if (user) {
         // Only maintain Firebase state if needed for other purposes
         // Your actual authentication is now handled by your backend
-        console.log("Firebase user logged in:", user);
+        // console.log("Firebase user logged in:", user);
       } else {
-        console.log("Firebase user logged out");
+        // console.log("Firebase user logged out");
       }
     });
 

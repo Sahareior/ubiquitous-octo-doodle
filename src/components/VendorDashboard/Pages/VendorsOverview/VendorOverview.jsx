@@ -26,7 +26,7 @@ const VendorOverview = () => {
   const {data:topProduct} = useGetTopSellsQuery()
   const {data:notifications} = useGetAllNotificationQuery()
 
-console.log(notifications,'allNio')
+// console.log(notifications,'allNio')
 
 const cards = [
   {
@@ -68,7 +68,7 @@ const cards = [
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
-  console.log(userInfo.user.first_name)
+  // console.log(userInfo.user.first_name)
 
   return (
 <div className="bg-[#FAF8F2] min-h-screen p-4">

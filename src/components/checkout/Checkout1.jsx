@@ -31,7 +31,7 @@ const Checkout1 = () => {
     total = 0,
   } = location.state || {};
   
-  console.log(delivery_instructions,'this is cartdata')
+  // console.log(delivery_instructions,'this is cartdata')
   // Format XAF currency
   const formatXAF = (amount) => `XAF ${Number(amount).toLocaleString()}`;
   
@@ -125,17 +125,17 @@ const Checkout1 = () => {
         delivery_instructions
 
       };
-      console.log(orderData,'orderData')
+      // console.log(orderData,'orderData')
 
       const res = await createOrderFromCart(orderData).unwrap();
-      console.log("Order Response:", res[0].order_id);
+      // console.log("Order Response:", res[0].order_id);
 
       if (res[0].order_id) {
         const checkoutRes = await createCheckout({
           order_id: res[0].order_id,
         }).unwrap();
 
-        console.log("Checkout Response:", checkoutRes.checkout_url);
+        // console.log("Checkout Response:", checkoutRes.checkout_url);
 
         if (checkoutRes.checkout_url) {
           Swal.fire({

@@ -16,10 +16,10 @@ const PrivacyPolicySettings = () => {
   const privacyContent = IsPrivacy?.[0]?.content || '';
   const lastUpdated = IsPrivacy?.[0]?.updated_at || 'N/A';
 
-  console.log(privacyContent,'asdsa')
+  // console.log(privacyContent,'asdsa')
 
   const onChange = (checked) => {
-    console.log(`switch to ${checked}`);
+    // console.log(`switch to ${checked}`);
   };
 
   return (

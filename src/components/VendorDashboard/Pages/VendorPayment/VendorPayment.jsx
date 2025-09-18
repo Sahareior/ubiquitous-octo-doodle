@@ -15,7 +15,7 @@ import { useGetVendorPaymentStatQuery } from "../../../../redux/slices/Apis/vend
 const VendorPayment = () => {
 const {data:paymentState} = useGetVendorPaymentStatQuery()
 
-console.log(paymentState)
+// console.log(paymentState)
 
 const cards = [
   {

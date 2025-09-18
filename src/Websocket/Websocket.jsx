@@ -14,7 +14,7 @@ const useWebSocket = (url) => {
       ws.current = new WebSocket(url);
 
       ws.current.onopen = () => {
-        console.log("✅ WebSocket connected");
+        // console.log("✅ WebSocket connected");
         setIsConnected(true);
         reconnectAttempts.current = 0;
       };
@@ -22,7 +22,7 @@ const useWebSocket = (url) => {
       ws.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log("📩 Received:", data);
+          // console.log("📩 Received:", data);
           setMessages((prev) => [...prev, data]);
         } catch (error) {
           console.error("Error parsing message:", error);
@@ -30,7 +30,7 @@ const useWebSocket = (url) => {
       };
 
       ws.current.onclose = (event) => {
-        console.log("❌ WebSocket closed", event.code, event.reason);
+        // console.log("❌ WebSocket closed", event.code, event.reason);
         setIsConnected(false);
         
         // Attempt to reconnect with exponential backoff
@@ -38,7 +38,7 @@ const useWebSocket = (url) => {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
           reconnectAttempts.current += 1;
           setTimeout(() => {
-            console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})`);
+            // console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})`);
             connect();
           }, delay);
         }
@@ -61,7 +61,7 @@ const useWebSocket = (url) => {
     return () => {
       if (ws.current) {
         ws.current.close();
-        console.log("WebSocket connection cleaned up");
+        // console.log("WebSocket connection cleaned up");
       }
     };
   }, [url, connect]);

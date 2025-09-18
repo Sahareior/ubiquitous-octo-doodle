@@ -56,9 +56,9 @@ const VEditProducts = () => {
   const [vendorEditProduct] = useVendorEditProductMutation()
   const {data:categories} = useGetCategoriesQuery()
 
-  console.log(productData,'this is productData')
+  // console.log(productData,'this is productData')
 
-  // console.log(productData,'adadad')
+  // // console.log(productData,'adadad')
 
 
 
@@ -247,7 +247,7 @@ Object.keys(formData).forEach((key) => {
     ...newImages
   ];
 
-  console.log(allImages,'asa')
+  // console.log(allImages,'asa')
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg space-y-8">

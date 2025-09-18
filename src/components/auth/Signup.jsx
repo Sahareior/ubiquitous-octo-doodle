@@ -33,7 +33,7 @@ const handleSubmit = async (e) => {
 
     localStorage.setItem("access_token", res.access_token);
 
-    console.log(res.data)
+    // console.log(res.data)
 
     await Swal.fire({
       icon: "success",

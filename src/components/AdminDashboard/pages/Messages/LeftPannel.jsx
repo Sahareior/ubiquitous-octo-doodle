@@ -17,7 +17,7 @@ const LeftPannel = ({
 
   // Keep localUnreadCounts in sync with prop
   useEffect(() => {
-    setLocalUnreadCounts(unreadCounts);
+    setLocalUnreadCounts(unreadCounts || {});
   }, [unreadCounts]);
 
   const filtteredData = data.filter((item) => item.id !== user.user.id);
@@ -43,8 +43,8 @@ const LeftPannel = ({
         <div className="space-y-2 overflow-y-auto max-h-[75vh] pr-1">
           {filtteredData.map((conversation) => {
             const isOnline =
-              lastSeen[conversation.id] &&
-              Date.now() - lastSeen[conversation.id] < 60000;
+              lastSeen?.[conversation.id] &&
+              Date.now() - new Date(lastSeen[conversation.id]).getTime() < 60000;
 
             const unread = localUnreadCounts[conversation.id] || 0;
 
@@ -89,7 +89,7 @@ const LeftPannel = ({
             );
           })}
 
-          {data.length === 0 && (
+          {filtteredData.length === 0 && (
             <p className="text-center text-gray-500 text-sm">
               No conversations
             </p>

@@ -145,7 +145,7 @@ const VendorTable = ({ vendors }) => {
         try {
           const res = await deleteUsers(id);
           refetch()
-          console.log("Deleted:", id, res);
+          // console.log("Deleted:", id, res);
           Swal.fire("Deleted!", "The vendor has been deleted.", "success");
         } catch (error) {
           console.error("Delete failed:", error);
@@ -175,7 +175,7 @@ const handleBulkDelete = async () => {
 
         const res = await deleteBulkUsers({ user_ids: idsToDelete });
         refetch()
-        console.log("Bulk delete response:", res);
+        // console.log("Bulk delete response:", res);
 
         Swal.fire(
           "Deleted!",

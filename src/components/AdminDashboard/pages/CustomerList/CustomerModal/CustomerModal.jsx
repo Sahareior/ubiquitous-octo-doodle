@@ -6,7 +6,7 @@ import { useGetAllUsersQuery } from '../../../../../redux/slices/Apis/dashboardA
 const CustomerModal = ({ isModalOpen, setIsModalOpen, selectedCustomer }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
 
-  console.log(selectedCustomer,'selce')
+  // console.log(selectedCustomer,'selce')
 
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);

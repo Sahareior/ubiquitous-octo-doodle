@@ -14,7 +14,7 @@ const ProductsList = ({path}) => {
   const { data: products } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
 
-  console.log(products,'this sasasasas')
+  // console.log(products,'this sasasasas')
 
   // --- states for filters ---
   const [searchText, setSearchText] = useState("");
@@ -26,7 +26,7 @@ const ProductsList = ({path}) => {
   const filteredProducts = useMemo(() => {
     let filtered = products?.results || [];
 
-    console.log(filtered,'ad')
+    // console.log(filtered,'ad')
 
     // 🔍 search filter
     if (searchText.trim() !== "") {

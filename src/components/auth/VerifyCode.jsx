@@ -83,7 +83,7 @@ const VerifyCode = () => {
       }).unwrap();
 
       message.success("OTP verified successfully!");
-      console.log("OTP verified:", res);
+      // console.log("OTP verified:", res);
       if(res.message){
       
       navigate("/reset", { state: { email } }); // Adjust route as needed

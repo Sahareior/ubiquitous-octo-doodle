@@ -185,7 +185,7 @@ const handleDelete = async (keys) => {
 
 
 
-  console.log('selected, ' , selected)
+  // console.log('selected, ' , selected)
 
   const columns = [
     {
