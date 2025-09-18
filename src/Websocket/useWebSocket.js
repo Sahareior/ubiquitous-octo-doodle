@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useGetAllConversationsidQuery } from "../redux/slices/Apis/dashboardApis";
 
 // Custom WebSocket hook with duplicate prevention
 const useWebSocket = (userId) => {
   const socketRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [lastSeen, setLastSeen] = useState({}); // { userId: timestamp }
+    const { data = [],refetch } = useGetAllConversationsidQuery(); 
   const [connected, setConnected] = useState(false);
   const token = localStorage.getItem("access_token");
 
@@ -21,7 +23,7 @@ const useWebSocket = (userId) => {
   socket.onmessage = (event) => {
   try {
     const data = JSON.parse(event.data);
-
+console.log(data,'dadadaaaaa')
     if (data.sender) {
       // record when this user was last active
       setLastSeen(prev => ({ ...prev, [data.sender]: Date.now() }));
@@ -70,7 +72,7 @@ const useWebSocket = (userId) => {
 
       // Send to server
       socketRef.current.send(JSON.stringify(messageObj));
-
+      console.log(messageObj,'this is message obj')
       // Optimistic UI update
       setMessages((prev) => [
         ...prev,
@@ -83,7 +85,7 @@ const useWebSocket = (userId) => {
           status: "pending",
         },
       ]);
-      
+      refetch()
       return tempId; // Return the tempId for potential tracking
     } else {
       console.warn("⚠️ WebSocket not connected yet. Message not sent.");

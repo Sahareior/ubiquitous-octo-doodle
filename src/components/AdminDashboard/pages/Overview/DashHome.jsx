@@ -99,7 +99,7 @@ const DashHome = () => {
       <div className="flex flex-col lg:flex-row gap-6 min-h-[600px]">
         {/* === Left Column === */}
         <div className="flex-1 flex flex-col space-y-6">
-          <AdminSellsOverview />
+           <SalesOverview  />
 
           <div className="bg-white p-6 rounded-xl shadow-md flex-1">
             <div className="flex justify-between items-center mb-4">

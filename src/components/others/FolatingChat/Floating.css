@@ -1,6 +1,6 @@
 .floating-chat-button {
   position: fixed;
-  bottom: 1px;
+  bottom: -66px;
   right: 30px;
   background-color: rgba(0, 255, 255, 0.2);
   backdrop-filter: blur(10px);
@@ -28,7 +28,7 @@
 
 .floating-chat-window {
  position: fixed;
-  bottom: 80px;
+  bottom: 20px;
   right: 5px;
   width: 350px;
   height: 550px;

@@ -14,9 +14,10 @@ const FloatingChat = ({ targetedId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
+  const customerPhoto = customerData ? JSON.parse(customerData)?.user?.profile_image : null;
   const { messages, sendMessage, connected } = useWebSocket(customerId);
   const [newMessage, setNewMessage] = useState("");
-  const [activeReceiver, setActiveReceiver] = useState(targetedId || 1);
+  const [activeReceiver, setActiveReceiver] = useState(targetedId || 3);
   const [previousMessages, setPreviousMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const [receivers, setReceivers] = useState(targetedId ? [targetedId] : []);
@@ -113,7 +114,9 @@ const FloatingChat = ({ targetedId }) => {
       setActiveReceiver(receiverId);
     }
   };
-
+  
+  const imaga= `http://10.10.13.16:8000${customerPhoto}`
+  console.log(imaga,'this is customer id')
   return (
     <>
       {/* Floating Chat Button */}
@@ -141,7 +144,7 @@ const FloatingChat = ({ targetedId }) => {
        
         <div className="receiver-tabs bg-gray-900 px-2 pt-3">
           <Tabs
-            activeKey={activeReceiver === 1 ? "support" : activeReceiver?.toString()}
+            activeKey={activeReceiver === 3 ? "support" : activeReceiver?.toString()}
             onChange={handleTabChange}
             type="card"
             size="small"
@@ -162,9 +165,9 @@ const FloatingChat = ({ targetedId }) => {
               } 
               key="support" 
             />
-            {receivers.filter(receiverId => receiverId !== 1).length > 0 && (
+            {receivers.filter(receiverId => receiverId !== 3).length > 0 && (
               receivers.map(receiverId => (
-                receiverId !== 1 && (
+                receiverId !== 3 && (
                   <TabPane 
                     tab={
                       <Tooltip title="Chat with Vendor">
@@ -214,13 +217,18 @@ const FloatingChat = ({ targetedId }) => {
                     {isMe && <span className="ml-1 text-blue-400">✓✓</span>}
                   </div>
                 </div>
-                {isMe && (
-                  <Avatar 
-                    size={32} 
-                    src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" 
-                    className="border border-[#CBA135]/30"
-                  />
-                )}
+{isMe && (
+  <Avatar
+    size={32}
+    src={
+      customerPhoto
+        ? `${imaga}`
+        : "https://cdn-icons-png.flaticon.com/512/149/149071.png" // fallback image
+    }
+    className="border border-[#CBA135]/30"
+  />
+)}
+
               </div>
             );
           })}
