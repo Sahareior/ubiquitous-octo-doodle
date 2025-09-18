@@ -87,7 +87,7 @@ const items = [
   {
     key: 'content',
     icon: <FaEdit size={16}/>,
-    label: <Link to="content">Content</Link>,
+    label: <Link to="content">Banners</Link>,
   },
  {
     key: 'settings',

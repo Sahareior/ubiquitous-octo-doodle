@@ -47,7 +47,7 @@ const CustomerLayout = () => {
           </div>
 
           {/* Floating chat is light, no need for suspense */}
-          <div className="fixed bottom-28 md:right-6 right-0 animate-float z-50">
+          <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
             <FloatingChat />
           </div>
         </Suspense>

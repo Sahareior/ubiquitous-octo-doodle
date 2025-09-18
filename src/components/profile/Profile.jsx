@@ -39,6 +39,7 @@ const Profile = () => {
     setActiveSection(section);
     setIsModalOpen(true);
   };
+  
 
   const updateProfileData = async (updateData) => {
     setIsUpdating(true);
@@ -147,6 +148,8 @@ const handlePhotoChange = async (e) => {
             <Card className="rounded-xl max-w-lg relative shadow-sm border">
               <h3 className="popbold text-[18px] py-5">Personal Information</h3>
               <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
+
+
                 <div>
                   <p className="popmed text-[#666666]">Full Name</p>
                   <p className="popbold">

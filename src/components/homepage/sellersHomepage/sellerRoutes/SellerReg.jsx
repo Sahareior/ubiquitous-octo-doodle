@@ -23,91 +23,86 @@ const SectionHeader = ({ icon, title, subtitle }) => (
 );
 
 const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
-  const [files, setFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
 
-  const handleFileChange = useCallback(
-    (e) => {
-      const selectedFiles = multiple ? Array.from(e.target.files) : [e.target.files[0]];
-
-      if (selectedFiles) {
-        setFiles(selectedFiles);
-        setPreviews(selectedFiles.map(file => ({
-          url: URL.createObjectURL(file),
-          name: file.name,
-          size: file.size
-        })));
+  const handleFileChange = useCallback((e) => {
+    const files = multiple ? Array.from(e.target.files) : e.target.files[0];
+    
+    // Create preview URLs for images
+    if (files) {
+      if (multiple) {
+        const urls = files.map(file => URL.createObjectURL(file));
+        setPreviewUrls(urls);
+      } else {
+        setPreviewUrls([URL.createObjectURL(files)]);
       }
+    }
+    
+    onChange(name, files);
+  }, [name, multiple, onChange]);
 
-      onChange(name, multiple ? selectedFiles : selectedFiles[0]);
-    },
-    [name, multiple, onChange]
-  );
-
-  const clearFiles = useCallback(() => {
+  const clearFileInput = useCallback(() => {
     const input = document.getElementById(name);
     if (input) input.value = '';
-    setFiles([]);
-    setPreviews([]);
+    setPreviewUrls([]);
     onChange(name, multiple ? [] : null);
   }, [name, multiple, onChange]);
 
-
-
   return (
-    <div className="mt-7">
-      <h2 className="popbold text-[18px] text-gray-800 mb-3">{title}</h2>
-      <div className="border-2 border-dashed border-gray-400 rounded-xl p-6 flex flex-col items-center justify-center hover:shadow-md transition-all">
+    <div className="space-y-3 mt-7">
+      <h2 className="popbold text-[18px] text-gray-800">{title}</h2>
+      <div className="bg-[#EAE7E1] rounded-xl border border-dashed border-gray-400 p-6 flex flex-col items-center justify-center space-y-3 hover:shadow-md transition-all">
         <FaCloudUploadAlt className="text-4xl text-[#CBA135]" />
-        <p className="popmed text-[16px] text-gray-700">Drag & drop files here</p>
+        <p className="popmed text-[16px] text-gray-700">Drag & drop images here</p>
         <p className="popreg text-[14px] text-gray-600 text-center">
-          or click to browse {multiple ? '(Min 1, Max 6 files)' : ''}
+          or click to browse {multiple ? '(Min 1, Max 6 images)' : ''}
         </p>
-
         <input
           type="file"
           id={name}
           className="hidden"
-          accept="image/*,application/pdf"
+          accept="image/*"
           multiple={multiple}
           onChange={handleFileChange}
         />
-
-        {previews.length > 0 && (
-          <div className="mt-4 w-full flex flex-wrap gap-4 justify-center">
-            {previews.map((file, index) => (
-              <div key={index} className="relative w-[280px] h-[220px] border rounded-md overflow-hidden flex flex-col items-center justify-center bg-gray-50">
-                <img
-                  src={file.url}
-                  alt={file.name}
-                  className="object-contain w-full h-full"
+        
+        {/* Image preview */}
+        {previewUrls.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            {previewUrls.map((url, index) => (
+              <div key={index} className="relative w-20 h-20 border rounded-md overflow-hidden">
+                <img 
+                  src={url} 
+                  alt={`Preview ${index + 1}`} 
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs text-center py-1">
-                  {file.name}
-                </div>
-                <button
-                  type="button"
-                  onClick={clearFiles}
-                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] hover:bg-red-700"
-                >
-                  &times;
-                </button>
               </div>
             ))}
           </div>
         )}
-
-        <label
-          htmlFor={name}
-          className="bg-[#CBA135] hover:bg-[#b8962e] text-white px-6 py-2 rounded-md shadow-sm cursor-pointer mt-3"
-        >
-          {previews.length > 0 ? 'Change File(s)' : 'Browse File(s)'}
-        </label>
+        
+        <div className="flex gap-2 mt-3">
+          <label
+            htmlFor={name}
+            className="bg-[#CBA135] hover:bg-[#b8962e] text-white px-6 py-2 rounded-md shadow-sm transition-all cursor-pointer"
+          >
+            {previewUrls.length > 0 ? 'Change Files' : 'Browse Files'}
+          </label>
+          
+          {previewUrls.length > 0 && (
+            <button
+              type="button"
+              onClick={clearFileInput}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md shadow-sm transition-all cursor-pointer"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 };
-
 
 const SellerReg = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -170,11 +165,6 @@ const SellerReg = () => {
   const prevStep = useCallback(() => {
     setCurrentStep(currentStep - 1);
   }, [currentStep]);
-
-      useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
-
 
   const validateStep = useCallback((step) => {
     switch (step) {
@@ -295,6 +285,9 @@ const handleApply = useCallback(async () => {
     }
   }, [formData, postSeller, navigate]);
 
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   return (
     <div className="bg-[#FAF8F2] px-6 md:px-20 py-20 pb-28">
       {/* Header Section */}
@@ -390,18 +383,20 @@ const ContactInfoStep = ({ formData, setFormData }) => {
 
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Job Title *</label>
-          <Select
-            placeholder="Select Your Role"
-            className="w-full h-[44px]"
-            suffixIcon={<FiChevronDown className="text-gray-500" />}
-            onChange={(value) => handleSelect('jobTitle', value)}
-            value={formData.jobTitle}
-          >
-            <Option value="">Select</Option>
-            <Option value="owner">Owner</Option>
-            <Option value="manager">Manager</Option>
-            <Option value="designer">Designer</Option>
-          </Select>
+<Select
+  placeholder="Select Your Role"
+  className="w-full h-[44px]"
+  suffixIcon={<FiChevronDown className="text-gray-500" />}
+  onChange={(value) => handleSelect('jobTitle', value)}
+  value={formData.jobTitle || "Select One"} // Ensure value is empty or undefined initially
+>
+
+  <Option value="owner">Owner</Option>
+  <Option value="manager">Manager</Option>
+  <Option value="designer">Designer</Option>
+</Select>
+
+
         </div>
 
         <div className='mt-2'>
@@ -517,7 +512,7 @@ const BusinessInfoStep = ({ formData, setFormData }) => {
       </div>
       <div className="grid md:grid-cols-2 mt-3 gap-4">
         <div>
-          <label className="block mb-1 popbold text-[14px] text-gray-700">Date*</label>
+          <label className="block mb-1 popbold text-[14px] text-gray-700">Year*</label>
           <DatePicker
             className="w-full h-[44px] border border-[#D1D5DB] rounded-md px-4 py-2 text-gray-700"
             placeholder="Enter Date"
@@ -637,9 +632,7 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
 
       <div className="flex flex-col sm:flex-row mt-6 gap-4">
         <div className="flex-1">
-          <label className="block mb-1 popbold text-[14px] text-gray-700">
-            Taxpayer Document *
-          </label>
+      
           <FileUploader 
             title="Taxpayer Document"
             name="taxFile"
@@ -650,9 +643,7 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
         </div>
 
         <div className="flex-1">
-          <label className="block mb-1 popbold text-[14px] text-gray-700">
-            Trade Register Document *
-          </label>
+
           <FileUploader 
             title="Trade Register Document"
             name="tradeFile"

@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, Button, Select, Tabs, Tooltip } from 'antd';
 import { FaRobot, FaTimes, FaPaperPlane, FaHeadset, FaStore, FaUser } from 'react-icons/fa';
 import useWebSocket from "../../../Websocket/useWebSocket";
 import './Floating.css';
 import { useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
+import image from "../../../assets/icon.png"
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -115,14 +117,16 @@ const FloatingChat = ({ targetedId }) => {
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="floating-chat-button md:w-56 flex justify-center items-center gap-3" onClick={() => setIsOpen(!isOpen)}>
-        <FaRobot className="floating-chat-button-icon" size={20} />
-        <span className='text-[#CBA135] hidden md:block'>Chat Assistant</span>
+      <div className="floating-chat-button md:w-48 flex rounded-full justify-center items-center gap-1" onClick={() => setIsOpen(!isOpen)}>
+     
+        <img src={image} alt="" />
+        <p className="text-yellow-500">Contact Us</p>
+     
       </div>
 
-      {/* Chat Window */}
+   
       <div className={`floating-chat-window ${isOpen ? '' : 'hidden'}`}>
-        {/* Header */}
+    
         <div className="chat-header flex justify-between items-center px-4 py-3 bg-gray-900 border-b border-[#CBA135]/30">
           <div className="flex items-center gap-2">
             <Avatar src="https://as2.ftcdn.net/v2/jpg/03/83/25/83/1000_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg" />
@@ -134,7 +138,7 @@ const FloatingChat = ({ targetedId }) => {
           />
         </div>
 
-        {/* Receiver Tabs */}
+       
         <div className="receiver-tabs bg-gray-900 px-2 pt-3">
           <Tabs
             activeKey={activeReceiver === 1 ? "support" : activeReceiver?.toString()}
@@ -179,7 +183,7 @@ const FloatingChat = ({ targetedId }) => {
         </div>
 
         {/* Chat Body */}
-        <div className="chat-body flex flex-col gap-3 overflow-y-auto p-4 h-[400px] bg-gray-900/50">
+        <div className="chat-body  flex-col gap-3 overflow-y-auto p-4 h-[400px] hidden bg-gray-900/50">
           {allMessages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
               <FaPaperPlane size={24} className="mb-2 opacity-50" />
@@ -239,7 +243,7 @@ const FloatingChat = ({ targetedId }) => {
             icon={<FaPaperPlane size={16} />}
             onClick={handleSend}
             className="bg-gradient-to-r from-[#CBA135] to-[#d4b65e] hover:from-[#b8912e] hover:to-[#c9a74d] flex justify-center items-center border-none h-10 w-10 rounded-lg transition-all shadow-md hover:shadow-lg"
-            disabled={!newMessage.trim() || !connected || !activeReceiver}
+            disabled={ !connected || !activeReceiver}
           />
         </div>
       </div>

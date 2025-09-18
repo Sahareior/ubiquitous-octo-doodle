@@ -135,7 +135,7 @@ const handleGoogleLogin = async () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen">
+    <div className="relative w-full min-h-screen overflow-hidden">
       {/* Background image */}
       <img
         className="w-full h-full object-cover absolute inset-0"

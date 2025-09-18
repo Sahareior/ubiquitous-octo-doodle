@@ -99,7 +99,7 @@ const Banner = () => {
     [currentIndex, nextIndex, prevIndex].forEach(index => {
       if (!loadedImages[index] && !imageErrors[index]) {
         const img = new Image();
-        img.src = banners.results[index].image;
+        img.src = banners?.results[index]?.image;
         img.onload = () => handleImageLoad(index);
         img.onerror = () => handleImageError(index);
       }
@@ -194,7 +194,7 @@ const Banner = () => {
   const currentBanner = banners.results[currentIndex];
 
   return (
-    <div className="relative w-full h-64 md:h-[30rem] bg-[#FAF8F2] overflow-hidden shadow-2xl group">
+    <div className="relative w-full h-64 md:h-[40rem] bg-[#FAF8F2] overflow-hidden shadow-2xl group">
       {/* Banner Image with Link */}
       <BannerContent 
         banner={currentBanner} 
@@ -204,35 +204,39 @@ const Banner = () => {
       />
       
       {/* Animated Text Overlay - Only render if image is loaded or transitioning is done */}
-      {(!isTransitioning || loadedImages[currentIndex]) && !imageErrors[currentIndex] && (
-        <div className="absolute inset-0 flex flex-col justify-center items-start text-left p-8 md:p-16">
-          <div className="max-w-2xl">
-            <h2 
-              className="text-3xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl"
-              style={{ 
-                fontFamily: "'Playfair Display', serif",
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              }}
-            >
-              {currentBanner.title}
-            </h2>
-            <p 
-              className="text-lg md:text-2xl text-white mb-8 drop-shadow-md"
-            >
-              {currentBanner.subtitle}
-            </p>
-            <a 
-              href={currentBanner.link}
-              className="inline-block bg-furniture-primary hover:bg-furniture-dark text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105"
-            >
-              Shop Now
-              <svg className="w-5 h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      )}
+ {(!isTransitioning || loadedImages[currentIndex]) && !imageErrors[currentIndex] && (
+  <div className="absolute top-1 inset-0 flex flex-col justify-center items-start text-left p-8 md:p-16">
+    {/* Gradient overlay */}
+    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+
+    <div className="relative max-w-2xl">
+      <h2 
+        className="text-3xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl"
+        style={{ 
+          fontFamily: "'Playfair Display', serif",
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+        }}
+      >
+        {currentBanner.title}
+      </h2>
+      <p 
+        className="text-lg md:text-2xl text-white mb-8 drop-shadow-md"
+      >
+        {currentBanner.subtitle}
+      </p>
+      <a 
+        href={currentBanner.link}
+        className="inline-block bg-furniture-primary hover:bg-furniture-dark text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105"
+      >
+        Shop Now
+        <svg className="w-5 h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+)}
+
       
       {/* Navigation Arrows with furniture-themed styling */}
       {banners.results.length > 1 && (

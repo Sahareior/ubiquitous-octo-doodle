@@ -7,7 +7,7 @@ export const apiSlice = createApi({
   reducerPath: "apiSlice",
   baseQuery: fetchBaseQuery({
      baseUrl: import.meta.env.VITE_API_URL ,
-    // baseUrl: "http://10.10.13.16:15000/api/",
+
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("access_token");
       if (token) {
@@ -69,7 +69,7 @@ sellerApprove: build.mutation({
 });
 
 export const {
-  useGetPokemonByNameQuery,
+
   useCustomerSignupMutation,
   useCustomerLoginMutation,
   useGetCustomerProfileQuery,

@@ -24,18 +24,9 @@ const Content = () => {
       showBanner: false,
       image: null
     },
-    
     onSubmit: async (values) => {
       const formData = new FormData();
 
-      if (editingBanner) {
-        // Update existing banner
-        formData.append("id", editingBanner.id);
-      } else {
-        // Create new banner
-        formData.append("id", "");
-      }
-      
       formData.append("title", values.bannerTitle);
       formData.append("subtitle", values.subheading);
       formData.append("link", values.ctaLink);
@@ -54,7 +45,8 @@ const Content = () => {
       try {
         let res;
         if (editingBanner) {
-          res = await updateBanner(formData);
+          // ✅ correct usage
+          res = await updateBanner({ id: editingBanner.id, data: formData });
         } else {
           res = await bannerUpload(formData);
         }
@@ -100,8 +92,7 @@ const Content = () => {
   const handleEditBanner = (banner) => {
     setEditingBanner(banner);
     setIsEditing(true);
-    
-    // Pre-fill the form with banner data
+
     formik.setValues({
       bannerTitle: banner.title || "",
       subheading: banner.subtitle || "",
@@ -111,13 +102,11 @@ const Content = () => {
       showBanner: banner.is_active || false,
       image: null
     });
-    
+
     setPreviewUrl(banner.image || null);
   };
 
-  const handleCancelEdit = () => {
-    resetForm();
-  };
+  const handleCancelEdit = () => resetForm();
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -126,28 +115,23 @@ const Content = () => {
         alert('Please select an image file');
         return;
       }
-      
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       formik.setFieldValue('image', file);
     }
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
-  };
+  const handleUploadClick = () => fileInputRef.current.click();
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       if (!file.type.startsWith('image/')) {
         alert('Please drop an image file');
         return;
       }
-      
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       formik.setFieldValue('image', file);
@@ -165,44 +149,29 @@ const Content = () => {
     formik.setFieldValue('image', null);
   };
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
-    });
+const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  });
 
-    if (result.isConfirmed) {
-      try {
-        const res = await deleteBanner(id);
-        if (res.data) {
-          Swal.fire(
-            'Deleted!',
-            'Your banner has been deleted.',
-            'success'
-          );
-          refetch();
-        } else {
-          Swal.fire(
-            'Error!',
-            'Failed to delete banner.',
-            'error'
-          );
-        }
-      } catch (error) {
-        console.error('Delete error:', error);
-        Swal.fire(
-          'Error!',
-          'Failed to delete banner.',
-          'error'
-        );
-      }
+  if (result.isConfirmed) {
+    try {
+      await deleteBanner(id).unwrap(); // unwrap throws if error
+      Swal.fire('Deleted!', 'Your banner has been deleted.', 'success');
+      refetch();
+    } catch (error) {
+      console.error('Delete error:', error);
+      Swal.fire('Error!', 'Failed to delete banner.', 'error');
     }
-  };
+  }
+};
+
 
   return (
     <div className="p-6 bg-[#fefcf7] min-h-screen space-y-6">

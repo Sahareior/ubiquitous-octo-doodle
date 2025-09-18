@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGetPrivacyPolicyQuery } from '../../../redux/slices/Apis/dashboardApis';
 
 const TermsAndConditions = () => {
   const { data: privacy } = useGetPrivacyPolicyQuery();
   
+
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   // Filter terms content
   const Isterms = privacy?.results?.filter(items => items.type === 'terms');
   const termsContent = Isterms?.[0]?.content || '';

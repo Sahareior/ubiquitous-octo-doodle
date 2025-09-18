@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FaBoxOpen, FaUndoAlt, FaShippingFast, FaMoneyBillAlt, FaTools, FaExchangeAlt } from 'react-icons/fa';
 import Breadcrumb from '../../others/Breadcrumb';
 
@@ -36,6 +36,8 @@ const policyPoints = [
 ];
 
 const ReturnPolicyOverview = () => {
+
+
   return (
 <div className=''>
       <div className='px-6 py-3'>
