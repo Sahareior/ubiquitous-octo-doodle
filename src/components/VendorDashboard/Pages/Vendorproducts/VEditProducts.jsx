@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import {  useGetCategoriesQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
 import Swal from "sweetalert2";
-import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useDeleteImageMutation, useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
 // ✅ Reusable Input
@@ -55,7 +55,7 @@ const VEditProducts = () => {
   const productData = location.state?.productData;
   const [vendorEditProduct] = useVendorEditProductMutation()
   const {data:categories} = useGetCategoriesQuery()
-
+   const [deleteImage] = useDeleteImageMutation()
   // console.log(productData,'this is productData')
 
   // // console.log(productData,'adadad')
@@ -158,20 +158,37 @@ useEffect(() => {
     setNewImages([...newImages, ...uploadedImages]);
   };
 
-  const handleImageRemove = (index, isNew) => {
-    if (isNew) {
-      // Remove from new images
-      const updatedNewImages = [...newImages];
-      URL.revokeObjectURL(updatedNewImages[index].preview);
-      updatedNewImages.splice(index, 1);
-      setNewImages(updatedNewImages);
-    } else {
-      // Remove from existing images
-      const updatedImages = [...formData.images];
-      updatedImages.splice(index, 1);
-      setFormData(prev => ({ ...prev, images: updatedImages }));
+const handleImageRemove = async (index, isNew, imageId) => {
+  if (isNew) {
+    // Remove from new images
+    const updatedNewImages = [...newImages];
+    URL.revokeObjectURL(updatedNewImages[index].preview);
+    updatedNewImages.splice(index, 1);
+    setNewImages(updatedNewImages);
+  } else {
+    try {
+      const res = await deleteImage(imageId).unwrap(); // 👈 call API
+      refetch()
+      Swal.fire({
+        icon: "success",
+        title: "Image Deleted",
+        text: "The image was successfully deleted!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      // Remove from state only after successful API call
+      const updatedImages = formData.images.filter((img) => img.id !== imageId);
+      setFormData((prev) => ({ ...prev, images: updatedImages }));
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Delete Failed",
+        text: "Could not delete the image. Try again.",
+      });
     }
-  };
+  }
+};
 
   // 🔹 Handle generic input change
   const handleChange = (e) => {
@@ -247,12 +264,13 @@ Object.keys(formData).forEach((key) => {
     ...newImages
   ];
 
+  
   // console.log(allImages,'asa')
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg space-y-8">
       {/* 🔹 Basic Info */}
-      <Section title="Basic Information">
+      <Section title="Basic Informations">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <InputField 
             label="Product Name" 
@@ -332,7 +350,7 @@ Object.keys(formData).forEach((key) => {
                   <button
                     type="button"
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleImageRemove(index, image.isNew)}
+                    onClick={() => handleImageRemove(index, image.isNew, image.id)}
                   >
                     <X className="w-4 h-4" />
                   </button>

@@ -78,7 +78,7 @@ useEffect(() => {
       title: 'Order ID',
       dataIndex: 'orderId',
       key: 'orderId',
-      render: text => <a className="text-[#CBA135]">{text}</a>,
+      render: text => <a className="text-[#CBA135] popreg">{text}</a>,
     },
     {
       title: 'Customer',
@@ -100,19 +100,19 @@ useEffect(() => {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: text => <div><a className="popmed text-[16px]">{text}</a></div>,
+      render: text => <div><a className="popreg text-[16px]">{text}</a></div>,
     },
     {
       title: 'Total',
       dataIndex: 'total',
       key: 'total',
-      render: text => <div><a className="popmed text-[16px]">{text}</a></div>,
+      render: text => <div><a className="popreg text-[16px]">{text}</a></div>,
     },
     {
       title: 'Payment',
       dataIndex: 'payment',
       key: 'payment',
-      render: text => <div><a className="popmed text-[16px]">{text}</a></div>,
+      render: text => <div><a className="popreg text-[16px]">{text}</a></div>,
     },
     {
       title: 'Status',

@@ -194,9 +194,8 @@ useEffect(() => {
           <p className="text-gray-400 text-sm mb-4">
             Start a conversation to connect with others
           </p>
-          <button className="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
-            Start Conversation
-          </button>
+
+
         </div>
       )}
     </div>

@@ -194,45 +194,48 @@ const handleDelete = async (keys) => {
       key: 'productId',
       render: (text) => <span className="text-sm font-medium">{text}</span>,
     },
-    {
-      title: 'Product Name',
-      dataIndex: 'productName',
-      key: 'productName',
-      render: (text, record) => (
+{
+  title: 'Product Name',
+  dataIndex: 'productName',
+  key: 'productName',
+  render: (text, record) => (
     <span className="flex items-center gap-3 text-sm font-medium">
       <img
-        className="w-11 h-11 rounded-full object-cover"
-        src={record.productImage || "https://plus.unsplash.com/premium_photo-1661964014750-963a28aeddea?q=80&w=1170&auto=format&fit=crop"} // fallback
+        className="w-16 h-16 rounded-md object-cover border border-gray-200 shadow-sm"
+        src={
+          record.productImage ||
+          "https://via.placeholder.com/150?text=No+Image"
+        }
         alt={text}
       />
       {text}
     </span>
   ),
-    },
+},
     {
       title: 'Category',
       dataIndex: 'category',
       key: 'category',
-      render: (text) => <span className="text-sm">{text}</span>,
+      render: (text) => <span className="text-sm popreg">{text}</span>,
     },
 
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      render: (price) => <span className="text-sm font-semibold">${price.toFixed(2)} XAF</span>,
+      render: (price) => <span className="text-sm font-semibold poopreg">${price.toFixed(2)} XAF</span>,
     },
     {
       title: 'Availability',
       dataIndex: 'stock',
       key: 'stock',
-      render: (text) => <span className="text-sm">{text}</span>,
+      render: (text) => <span className="text-sm popreg">{text}</span>,
     },
         {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (text) => <span className="text-sm">{text}</span>,
+      render: (text) => <span className="text-sm popreg">{text}</span>,
     },
     // {
     //   title: 'Status',

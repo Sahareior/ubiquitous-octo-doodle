@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useGetPrivacyPolicyQuery } from '../../../redux/slices/Apis/dashboardApis';
+import Breadcrumb from '../../others/Breadcrumb';
 
 const TermsAndConditions = () => {
   const { data: privacy } = useGetPrivacyPolicyQuery();
@@ -15,6 +16,9 @@ const TermsAndConditions = () => {
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen">
+          <div className='pl-5'>
+              <Breadcrumb />
+            </div>
       <div className="bg-[#696966] py-28">
         <h1 className="text-2xl md:text-5xl popbold font-semibold text-white text-center mb-4">
           Terms & Conditions

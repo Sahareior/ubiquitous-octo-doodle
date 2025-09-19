@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Text
 } from 'recharts';
@@ -6,20 +6,54 @@ import { useVendorSellsPerfomenceQuery } from '../../../../../redux/slices/Apis/
 
 const SalesOverview = () => {
   const { data, isLoading, error } = useVendorSellsPerfomenceQuery();
+  const [selectedPeriod, setSelectedPeriod] = useState('this_year');
 
-  // console.log("this is graph data", data?.sales_performance);
+  // Filter data based on selected period
+  const filteredData = useMemo(() => {
+    if (!data?.sales_performance) return [];
+    
+    const currentMonthIndex = new Date().getMonth(); // 0-11 (Jan-Dec)
+    const allMonths = data.sales_performance;
+    
+    switch (selectedPeriod) {
+      case 'last_7_days':
+        // For demo purposes, return last 3 months as approximation
+        // In a real app, you'd have daily data for this
+        return allMonths.slice(Math.max(0, currentMonthIndex - 2), currentMonthIndex + 1);
+      
+      case 'last_30_days':
+        // Return last 4 months as approximation
+        return allMonths.slice(Math.max(0, currentMonthIndex - 3), currentMonthIndex + 1);
+      
+      case 'this_year':
+        // Return all months of current year
+        return allMonths;
+      
+      case 'last_year':
+        // Return all months (assuming data is for current/last year)
+        return allMonths;
+      
+      default:
+        return allMonths;
+    }
+  }, [data, selectedPeriod]);
 
   // Check if all values are zero or if data is empty
-  const allZero = data?.sales_performance?.every(item => item.value === 0) || !data?.sales_performance;
+  const allZero = filteredData.every(item => item.value === 0) || filteredData.length === 0;
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-md w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800">Sales Overview</h2>
-        <select className="border px-3 py-1 rounded-md text-sm text-gray-700">
-          <option>Last 7 days</option>
-          <option>Last 30 days</option>
-          <option>This year</option>
+        <select 
+          className="border px-3 py-1 rounded-md text-sm text-gray-700"
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+        >
+
+          <option value="last_30_days">Last 30 days</option>
+          <option value="this_year">This year</option>
+         
         </select>
       </div>
 
@@ -40,7 +74,7 @@ const SalesOverview = () => {
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={350}>
-          <AreaChart data={data?.sales_performance}>
+          <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#CBA135" stopOpacity={0.8} />
@@ -55,7 +89,7 @@ const SalesOverview = () => {
             <YAxis 
               tickFormatter={(val) => `$${val}`} 
               stroke="#888888"
-              domain={[0, 'auto']} // Set minimum to 0
+              domain={[0, 'auto']}
             />
             <Tooltip 
               formatter={(val) => [`$${val.toLocaleString()}`, 'Sales']}

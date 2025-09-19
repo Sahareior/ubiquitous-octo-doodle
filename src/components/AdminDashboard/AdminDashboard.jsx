@@ -123,7 +123,7 @@ const AdminDashboard = () => {
 // 
 const profileImage = userInfo?.user?.profile_image
   ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`
-  : '/image/decor.png';
+  : 'https://villagesonmacarthur.com/wp-content/uploads/2020/12/Blank-Avatar.png';
 
 
   const handleLogout = () => {

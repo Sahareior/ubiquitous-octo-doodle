@@ -237,6 +237,13 @@ export const dashboardApis = createApi({
       })
     }),
 
+    deleteImage: build.mutation({
+      query:(id)=> ({
+        url: `product-images/${id}/`,
+        method: 'DELETE'
+      })
+    }),
+
     topProductsSell: build.query({
       query:() => 'admin/top/sell/products/'
     }),
@@ -301,6 +308,7 @@ export const dashboardApis = createApi({
       })
     }),
 
+
     notificationSeen: build.mutation({
       query: ({id,data}) => ({
         url: `/${id}/seen/`,
@@ -346,7 +354,7 @@ export const {
   useGetAllPayoutsQuery,
   useGetAllProductsQuery,
   useVendorAcceptProductMutation,
-  
+  useDeleteImageMutation,
   useAcceptSellerMutation,
   useAcceptProductsMutation,
   useGetAllVendorsQuery,
