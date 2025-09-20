@@ -9,17 +9,17 @@ const PrivacyPolicySettings = () => {
   const [clicked, setClicked] = useState(false);
   const { data: privacy } = useGetPrivacyPolicyQuery();
   
-  // Filter privacy content
+
   const IsPrivacy = privacy?.results?.filter(items => items.type === 'privacy');
   
-  // If there is no privacy policy data, handle the fallback case
+  
   const privacyContent = IsPrivacy?.[0]?.content || '';
   const lastUpdated = IsPrivacy?.[0]?.updated_at || 'N/A';
 
-  // console.log(privacyContent,'asdsa')
+  
 
   const onChange = (checked) => {
-    // console.log(`switch to ${checked}`);
+  
   };
 
   return (

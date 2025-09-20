@@ -147,6 +147,12 @@ const initialFormData = {
   seoTitle: "",
   metaDescription: "",
   tag: [],
+   dimensions: "",
+  material: "",
+  color: "",
+  weight: "",
+  warranty: "",
+  country_of_origin: "",
 };
 
 const handleSubmit = async () => {

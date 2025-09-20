@@ -116,7 +116,7 @@ const router = createBrowserRouter([
       { path: "signup", element: <Signup /> },
       { path: "verify", element: <VerifyCode /> },
         {
-          path: "/details", // now `/filter/details` will work
+          path: "/details", 
           element: <Details />,
         },
       { path: "forget", element: <ForgetPass /> },

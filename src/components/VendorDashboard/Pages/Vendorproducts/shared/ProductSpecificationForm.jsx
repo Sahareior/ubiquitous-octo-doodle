@@ -29,9 +29,9 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
   const colorOptions = ["Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray"];
 
   return (
-    <form className="bg-white p-6 rounded-2xl shadow-md space-y-4">
+    <form className="bg-white  rounded-2xl pt-8 space-y-4">
       <h2 className="text-lg font-bold mb-4">Product Specifications</h2>
-
+    <hr />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
           label="Dimensions (W×H×D)"

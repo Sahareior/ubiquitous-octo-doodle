@@ -8,8 +8,8 @@ const initialState = {
   cart: [],
   activeChat: '',
   wishlist: [],
-  onlineUsers: [],   // Will be updated via WebSocket messages
-  messages: []       // Will be updated via WebSocket messages
+  onlineUsers: [],  
+  messages: []       
 }
 
 const customerData = JSON.parse(localStorage.getItem("customerId"));
@@ -54,9 +54,9 @@ export const customerSlice = createSlice({
       }
     },
 
-    // WebSocket related reducers
+
     setOnlineUsers: (state, action) => {
-      // Filter out the current user from online users list
+
       if (customerData && customerData.user) {
         state.onlineUsers = action.payload.filter(item => item.uid !== customerData.user.id);
       } else {
@@ -69,31 +69,30 @@ export const customerSlice = createSlice({
     },
     
     setActiveChat: (state, action) => {
-      state.activeChat = action.payload  // which user we are chatting with
+      state.activeChat = action.payload  
     },
     
-    // Add a new reducer to handle user status updates
+
     updateUserStatus: (state, action) => {
       const { userId, isOnline } = action.payload;
       const userIndex = state.onlineUsers.findIndex(user => user.uid === userId);
       
       if (isOnline && userIndex === -1) {
-        // Add user to online list
+       
         state.onlineUsers.push({ uid: userId, isOnline: true });
       } else if (!isOnline && userIndex !== -1) {
-        // Remove user from online list
+   
         state.onlineUsers.splice(userIndex, 1);
       }
     },
     
-    // Clear all messages (optional)
+
     clearMessages: (state) => {
       state.messages = [];
     }
   },
 })
 
-// Extract actions
 export const { 
   increment, 
   decrement, 

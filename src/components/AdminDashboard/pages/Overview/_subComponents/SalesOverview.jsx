@@ -8,29 +8,28 @@ const SalesOverview = () => {
   const { data, isLoading, error } = useVendorSellsPerfomenceQuery();
   const [selectedPeriod, setSelectedPeriod] = useState('this_year');
 
-  // Filter data based on selected period
+
   const filteredData = useMemo(() => {
     if (!data?.sales_performance) return [];
     
-    const currentMonthIndex = new Date().getMonth(); // 0-11 (Jan-Dec)
+    const currentMonthIndex = new Date().getMonth(); 
     const allMonths = data.sales_performance;
     
     switch (selectedPeriod) {
       case 'last_7_days':
-        // For demo purposes, return last 3 months as approximation
-        // In a real app, you'd have daily data for this
+
         return allMonths.slice(Math.max(0, currentMonthIndex - 2), currentMonthIndex + 1);
       
       case 'last_30_days':
-        // Return last 4 months as approximation
+   
         return allMonths.slice(Math.max(0, currentMonthIndex - 3), currentMonthIndex + 1);
       
       case 'this_year':
-        // Return all months of current year
+       
         return allMonths;
       
       case 'last_year':
-        // Return all months (assuming data is for current/last year)
+       
         return allMonths;
       
       default:

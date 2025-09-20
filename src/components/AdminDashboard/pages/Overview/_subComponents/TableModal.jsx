@@ -73,7 +73,7 @@ const TableModal = ({ isModalOpen, setIsModalOpen, orderDetails, handleDelete })
         closable={false}
         className="rounded-lg"
       >
-        <div ref={invoiceRef} className="p-6 space-y-6">
+        <div ref={invoiceRef} className="p-6 space-y-6 ">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-2xl popbold">Order Details – #{orderDetails.order_id}</h2>

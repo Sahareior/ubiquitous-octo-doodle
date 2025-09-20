@@ -19,9 +19,6 @@ export const apiSlice = createApi({
   }),
 
   endpoints: (build) => ({
-    getPokemonByName: build.query({
-      query: (name) => `pokemon/${name}`,
-    }),
     customerSignup: build.mutation({
       query: (customerData) => ({
         url: "signup/customer/",

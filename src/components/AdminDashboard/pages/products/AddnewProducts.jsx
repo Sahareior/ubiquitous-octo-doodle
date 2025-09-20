@@ -66,7 +66,7 @@ const [formData, setFormData] = useState({
   stock_quantity: "",
   colors: [],
   sizes: [],
-  in_stock: true,
+  is_stock: true,
   home_delivery: false,
   pickup: false,
   partner_delivery: false,
@@ -115,7 +115,7 @@ const [formData, setFormData] = useState({
     setImages(newImages);
   };
 
-  // 🔹 Handle generic input change
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -147,6 +147,14 @@ const initialFormData = {
   seoTitle: "",
   metaDescription: "",
   tag: [],
+  dimensions: "",
+  material: "",
+  color: "",
+  weight: "",
+  // assembly_required: false,
+  warranty: "",
+  // care_instructions: "",
+  country_of_origin: "",
 };
 
 const handleSubmit = async () => {
@@ -164,7 +172,7 @@ const handleSubmit = async () => {
 
   const formDataToSend = new FormData();
 
-  // Extract specifications separately
+ 
   const {
     dimensions,
     material,
@@ -192,7 +200,7 @@ const handleSubmit = async () => {
  
   formDataToSend.append("specifications", JSON.stringify(specifications));
 
-  // Append other fields
+
   Object.keys(restFormData).forEach((key) => {
     if (Array.isArray(restFormData[key])) {
       restFormData[key].forEach((value) => {
@@ -206,17 +214,17 @@ const handleSubmit = async () => {
   });
 
 
-  // Append specifications as JSON
+ 
 
 
-  // Append images
+
   images.forEach((image) => {
     formDataToSend.append("uploaded_images", image.file);
   });
 
   try {
     const res = await vendorProductCreate(formDataToSend);
-    // console.log("this is res", res);
+  
 
     if (res?.data?.id) {
       Swal.fire({
@@ -230,7 +238,7 @@ const handleSubmit = async () => {
         },
       });
       refetch()
-      // ✅ Reset all fields & images
+   
       setFormData(initialFormData);
       setImages([]);
     } else {
