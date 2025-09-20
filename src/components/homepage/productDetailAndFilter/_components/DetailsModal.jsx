@@ -102,7 +102,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
       Swal.fire("Success!", "Your review has been submitted successfully.", "success").then(resetForm);
     } catch (err) {
       console.error("Error submitting review:", err);
-      Swal.fire("Error", err?.data?.message || "Failed to submit review. Please try again.", "error");
+      Swal.fire("Error", err.data?.[0] || "Failed to submit review. Please try again.", "error");
     } finally {
       setIsUploading(false);
     }
