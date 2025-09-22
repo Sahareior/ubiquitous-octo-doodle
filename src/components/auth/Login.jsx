@@ -1,5 +1,5 @@
 import { Button, Input } from 'antd';
-import { MdOutlineRemoveRedEye } from "react-icons/md";
+import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { use, useEffect, useState } from 'react';
@@ -202,12 +202,19 @@ const handleGoogleLogin = async () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                iconRender={(visible) => (
-                  <MdOutlineRemoveRedEye
-                    size={18}
-                    className="text-gray-500 cursor-pointer"
-                  />
-                )}
+                iconRender={(visible) =>
+                  visible ? (
+                    <MdOutlineVisibilityOff
+                      size={18}
+                      className="text-gray-500 cursor-pointer"
+                    />
+                  ) : (
+                    <MdOutlineRemoveRedEye
+                      size={18}
+                      className="text-gray-500 cursor-pointer"
+                    />
+                  )
+                }
               />
             </div>
           </div>

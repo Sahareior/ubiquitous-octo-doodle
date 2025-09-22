@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Input } from "antd";
-import { MdOutlineRemoveRedEye } from "react-icons/md";
+import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { useCustomerSignupMutation } from "../../redux/slices/apiSlice";
 import Swal from "sweetalert2";
@@ -12,6 +12,7 @@ const Signup = () => {
     password: "",
     agree_to_terms: true
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
 
   const navigate = useNavigate()
@@ -139,22 +140,28 @@ const handleSubmit = async (e) => {
       </div>
 
       {/* Password */}
-      <div>
-        <label className="text-xs sm:text-sm block pb-2">Password</label>
-        <div className="relative">
-          <Input
-            className="h-[44px] sm:h-[48px] rounded-[12px] bg-white text-sm sm:text-base"
-            placeholder="Enter your password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleChange("password", e.target.value)}
-          />
-          <MdOutlineRemoveRedEye
-            size={18}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 cursor-pointer"
-          />
-        </div>
-      </div>
+<div>
+  <label className="text-xs sm:text-sm block pb-2">Password</label>
+  <div className="relative">
+    <Input
+      className="h-[44px] sm:h-[48px] rounded-[12px] bg-white text-sm sm:text-base"
+      placeholder="Enter your password"
+      type={showPassword ? "text" : "password"}   // ✅ toggle here
+      value={formData.password}
+      onChange={(e) => handleChange("password", e.target.value)}
+    />
+    <span
+      className="absolute top-3 sm:top-4 right-3 sm:right-4 cursor-pointer text-gray-500"
+      onClick={() => setShowPassword(!showPassword)} // ✅ toggle state
+    >
+      {showPassword ? (
+        <MdOutlineVisibilityOff size={18} />
+      ) : (
+        <MdOutlineRemoveRedEye size={18} />
+      )}
+    </span>
+  </div>
+</div>
 
       {/* Terms */}
       <div className="flex items-center gap-2 text-xs sm:text-sm">
