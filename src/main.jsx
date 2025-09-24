@@ -70,6 +70,7 @@ import CreateCategory from './components/AdminDashboard/pages/Category/CreateCat
 import Payouts from './components/AdminDashboard/pages/payouts/Payouts.jsx';
 import ReturnReq from './components/AdminDashboard/pages/return_req/ReturnReq.jsx';
 import AboutUs from './components/homepage/_components/AboutUs.jsx';
+import { WebSocketProvider } from './context/WebSocketContext.jsx';
 
 const router = createBrowserRouter([
   {
@@ -216,7 +217,11 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
         <Provider store={store}>
-    <RouterProvider router={router} />
+          
+ <WebSocketProvider>
+     <RouterProvider router={router} />
+ </WebSocketProvider>
+
   
     </Provider>
   </StrictMode>

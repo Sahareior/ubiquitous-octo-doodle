@@ -2,26 +2,27 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, Button, Select, Tabs, Tooltip } from 'antd';
 import { FaRobot, FaTimes, FaPaperPlane, FaHeadset, FaStore, FaUser } from 'react-icons/fa';
-import useWebSocket from "../../../Websocket/useWebSocket";
+
 import './Floating.css';
 import { useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
 import image from "../../../assets/icon.png"
+import { useWebSocketContext } from "../../../context/WebSocketContext";
 
 const { Option } = Select;
 const { TabPane } = Tabs;
 
 const FloatingChat = ({ targetedId }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { globalMessages, sendMessage, connected,setUserId } = useWebSocketContext();
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
-  const customerPhoto = customerData ? JSON.parse(customerData)?.user?.profile_image : null;
-  const { messages, sendMessage, connected } = useWebSocket(customerId);
   const [newMessage, setNewMessage] = useState("");
   const [activeReceiver, setActiveReceiver] = useState(targetedId || 3);
   const [previousMessages, setPreviousMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const [receivers, setReceivers] = useState(targetedId ? [targetedId] : []);
-
+   const customerPhoto = customerData ? JSON.parse(customerData)?.user?.profile_image : null;
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
 
   // Add targetedId to receivers list when it changes
@@ -32,6 +33,7 @@ const FloatingChat = ({ targetedId }) => {
     }
   }, [targetedId, receivers]);
 
+  setUserId(customerId)
   // Fetch API messages when active receiver changes
   useEffect(() => {
     const fetchMessages = async () => {
@@ -45,6 +47,9 @@ const FloatingChat = ({ targetedId }) => {
     };
     fetchMessages();
   }, [activeReceiver, getMessagesById]);
+
+
+  console.log(globalMessages,'this is global mesaagae')
 
   // Filter and merge WebSocket + API messages for the active receiver
   const allMessages = useMemo(() => {
@@ -66,7 +71,7 @@ const FloatingChat = ({ targetedId }) => {
       }));
     
     // Filter WebSocket messages for the active receiver
-    const wsMessages = messages
+    const wsMessages = globalMessages
       .filter(msg => 
         msg.data && 
         ((msg.data.sender === activeReceiver && msg.data.receiver === customerId) ||
@@ -84,7 +89,7 @@ const FloatingChat = ({ targetedId }) => {
     // Merge and sort messages
     return [...apiMessages, ...wsMessages]
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  }, [messages, previousMessages, activeReceiver, customerId]);
+  }, [globalMessages, previousMessages, activeReceiver, customerId]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

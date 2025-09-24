@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, Badge, Tag } from "antd";
 import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/dashboardApis";
-import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
+
 import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
 
-const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargetedConvo, messages, unreplied }) => {
+const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargetedConvo, messages }) => {
   const { data = [], refetch } = useGetAllConversationsidQuery();
   const user = JSON.parse(localStorage.getItem("customerId"));
-  const { notifications } = useNotificationSocket();
+  
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
   
   // Track unread conversations
@@ -17,9 +17,6 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
   // Track unreplied conversations
   const [unrepliedConvos, setUnrepliedConvos] = useState({});
 
-  console.log(notifications, 'condata');
-
-  const unseenMessageId = notifications.map(items => console.log('aaadc', items?.data?.meta_data.sender_id))
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -96,7 +93,7 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
     return bUnread - aUnread;
   }) || [];
 
-  console.log(filtteredData,'this is d=s')
+
 
   return (
     <div className="p-4 space-y-4">
@@ -174,7 +171,7 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
                       
                       {/* Status Indicators */}
                       {isNewUser && (
-                        <span className="absolute -top-3 -right-[22rem]">
+                        <span className="absolute -top-3 -right-[18rem]">
                           <div className="bg-gradient-to-r w-20 text-center from-blue-500 to-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg">
                             New User
                           </div>
