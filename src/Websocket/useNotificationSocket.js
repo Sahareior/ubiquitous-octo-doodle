@@ -6,7 +6,7 @@ const useNotificationSocket = () => {
   const [connected, setConnected] = useState(false);
   const token = localStorage.getItem("access_token");
 
-  // Load saved notifications on mount
+
   useEffect(() => {
     const saved = localStorage.getItem("notifications");
     if (saved) {
@@ -16,8 +16,7 @@ const useNotificationSocket = () => {
 
   useEffect(() => {
     if (!token) return;
-
-    const wsUrl = `ws://10.10.13.16:8000/ws/notification/?token=${token}`;
+    const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL}notification/?token=${token}`;
     socketRef.current = new WebSocket(wsUrl);
 
     socketRef.current.onopen = () => {

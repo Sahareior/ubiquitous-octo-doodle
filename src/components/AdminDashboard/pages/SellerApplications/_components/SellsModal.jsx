@@ -186,7 +186,7 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
     >
       <div className="bg-white h-[85vh] overflow-y-auto rounded-lg">
         {/* Header with status and action buttons */}
-        <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
+        <div className="flex justify-between items-center border-b border-gray-200 pt-9 px-6 py-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Seller Application</h2>
             <p className="text-gray-500 text-sm mt-1">
@@ -338,14 +338,12 @@ const SellsModal = ({ isModalOpen, setIsModalOpen, sellerInfo }) => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    {/* <div className="text-right">
                       <p className="text-sm text-gray-500">Submitted On</p>
                       <p className="font-medium">
-                        {sellerInfo?.submittedDate 
-                          ? new Date(sellerInfo.submittedDate).toLocaleDateString() 
-                          : 'N/A'}
+                        {sellerInfo?.signup_date}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 </Card>
               </Col>

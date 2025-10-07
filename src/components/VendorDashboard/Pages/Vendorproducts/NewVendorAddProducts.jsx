@@ -3,9 +3,10 @@ import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 
 import Swal from "sweetalert2";
-import { useGetAllProductsQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import { useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 import ProductSpecificationForm from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationForm";
+import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
 // ✅ Reusable Input
@@ -66,7 +67,7 @@ const [formData, setFormData] = useState({
   stock_quantity: "",
   colors: [],
   sizes: [],
-  in_stock: true,
+  is_stock: true,
   home_delivery: false,
   pickup: false,
   partner_delivery: false,

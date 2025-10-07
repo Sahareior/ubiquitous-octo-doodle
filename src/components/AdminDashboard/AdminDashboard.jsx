@@ -123,7 +123,7 @@ const AdminDashboard = () => {
 // 
 const profileImage = userInfo?.user?.profile_image
   ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`
-  : 'https://villagesonmacarthur.com/wp-content/uploads/2020/12/Blank-Avatar.png';
+  : 'https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
 
   const handleLogout = () => {
@@ -179,7 +179,12 @@ const profileImage = userInfo?.user?.profile_image
          </Link>
 
 <div className='flex justify-center items-center gap-3 flex-col'>
-           <img className='h-[60px] w-[60px] rounded-full' src={profileImage} alt="" />
+           <Avatar
+  src={profileImage}
+  size={64}
+  style={{ border: "2px solid #e5e7eb" }}
+/>
+
 
          <p className='popmed text-lg text-[#666666]'>Hi {userInfo?.user?.first_name}</p>
 </div>

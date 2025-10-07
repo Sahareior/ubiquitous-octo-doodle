@@ -18,7 +18,7 @@ const FloatingChat = ({ targetedId }) => {
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   const [newMessage, setNewMessage] = useState("");
-  const [activeReceiver, setActiveReceiver] = useState(targetedId || 3);
+  const [activeReceiver, setActiveReceiver] = useState(targetedId ||1);
   const [previousMessages, setPreviousMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const [receivers, setReceivers] = useState(targetedId ? [targetedId] : []);
@@ -121,7 +121,7 @@ const FloatingChat = ({ targetedId }) => {
   };
   
   const imaga= `http://10.10.13.16:8000${customerPhoto}`
-  console.log(imaga,'this is customer id')
+
   return (
     <>
       {/* Floating Chat Button */}
@@ -149,7 +149,7 @@ const FloatingChat = ({ targetedId }) => {
        
         <div className="receiver-tabs bg-gray-900 px-2 pt-3">
           <Tabs
-            activeKey={activeReceiver === 3 ? "support" : activeReceiver?.toString()}
+            activeKey={activeReceiver === 1 ? "support" : activeReceiver?.toString()}
             onChange={handleTabChange}
             type="card"
             size="small"
@@ -170,9 +170,9 @@ const FloatingChat = ({ targetedId }) => {
               } 
               key="support" 
             />
-            {receivers.filter(receiverId => receiverId !== 3).length > 0 && (
+            {receivers.filter(receiverId => receiverId !==1).length > 0 && (
               receivers.map(receiverId => (
-                receiverId !== 3 && (
+                receiverId !==1 && (
                   <TabPane 
                     tab={
                       <Tooltip title="Chat with Vendor">

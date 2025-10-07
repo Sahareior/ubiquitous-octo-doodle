@@ -8,7 +8,7 @@ import ProductsModal from './ProductsModal/ProductsModal';
 import Swal from 'sweetalert2';
 import { useDeleteProductMutation, useGetCategoriesQuery } from '../../../../redux/slices/Apis/vendorsApi';
 import { Link } from 'react-router-dom';
-import { useBulkProductDeleteMutation, useBulkProductStatusMutation } from '../../../../redux/slices/Apis/dashboardApis';
+import { useBulkProductDeleteMutation, useBulkProductStatusMutation, useGetAllProductsQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 
@@ -21,7 +21,7 @@ const ProductsTable = ({ products,path }) => {
   const [deleteProduct] = useDeleteProductMutation();
      const {data:categories} = useGetCategoriesQuery()
      const [bulkAction, setBulkAction] = useState(undefined); // NEW
-
+      const { data,refetch } = useGetAllProductsQuery();
      const [bulkProductStatus] = useBulkProductStatusMutation()
      const [bulkProductDelete] = useBulkProductDeleteMutation()
 
@@ -146,7 +146,7 @@ const handleBulkAction = async (action) => {
 
 
 
-  // 🔥 Reusable Delete with Swal2
+
 const handleDelete = async (keys) => {
   if (!keys || keys.length === 0) return;
 
@@ -167,14 +167,15 @@ const handleDelete = async (keys) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        await deleteProduct(keys[0]); // if this doesn't throw => success
-        Swal.fire('Deleted!', 'Product has been removed.', 'success');
-        
-        // update table locally
-        setDataSource((prev) =>
-          prev.filter((item) => !keys.includes(item.key))
-        );
-        setSelectedRowKeys([]);
+        const res = await deleteProduct(keys[0]);
+
+        if (res?.error?.data) {
+          Swal.fire('Error', res.error.data[0], 'error');
+        } else {
+          Swal.fire('Deleted!', 'Product has been removed.', 'success');
+          refetch();
+        }
+
       } catch (error) {
         console.error("Delete error:", error);
         Swal.fire('Error!', 'Server error occurred.', 'error');

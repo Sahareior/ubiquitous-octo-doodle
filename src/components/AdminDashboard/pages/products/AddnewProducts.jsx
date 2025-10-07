@@ -3,9 +3,11 @@ import { Button, Checkbox, Select, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 
 import Swal from "sweetalert2";
-import { useGetAllProductsQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import {  useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 import ProductSpecificationForm from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationForm";
+import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
 // ✅ Reusable Input
@@ -51,6 +53,7 @@ const AddnewProducts = () => {
   const [loading, setLoading] = useState(false);
   const {data:categories} = useGetCategoriesQuery()
   const { data: products,refetch } = useGetAllProductsQuery();
+  const {data:ada,refetch:demoRefetch} = useGetAllProductsQuery()
   const [vendorProductCreate] = useVendorProductCreateMutation()
   const { sendNotification } = useNotificationSocket();
   // 🔹 State for all form data

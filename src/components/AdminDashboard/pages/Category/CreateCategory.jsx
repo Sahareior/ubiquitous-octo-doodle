@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, Upload, message, Card, Row, Col, Divider, Typography } from "antd";
 import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { usePostCategoriesMutation } from "../../../../redux/slices/Apis/customersApi";
+import { useGetCategoriesQuery, usePostCategoriesMutation } from "../../../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
 
 const { Title, Text } = Typography;
@@ -13,6 +13,7 @@ const CreateCategory = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: categoryData, isLoading, error, refetch } = useGetCategoriesQuery();
   const [postCategories] = usePostCategoriesMutation();
 
 const handleSubmit = async (values) => {
@@ -44,7 +45,8 @@ const handleSubmit = async (values) => {
       text: "Category created successfully 🎉",
       confirmButtonColor: "#3085d6",
     });
-
+    refetch();
+    navigate("/admin-dashboard/category");
     form.resetFields();
     setPreviewUrl(null);
     setFile(null);

@@ -27,7 +27,6 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
           data.map(convo => getMessagesById(convo.id).unwrap())
         );
 
-        console.log(conversationById);
 
         // Create unreplied conversations map
         const unrepliedMap = {};

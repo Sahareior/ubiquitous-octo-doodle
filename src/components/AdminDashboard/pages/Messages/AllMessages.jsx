@@ -9,19 +9,15 @@ import { useWebSocketContext } from "../../../../context/WebSocketContext";
 const { Option } = Select;
 
 const AllMessages = () => {
-  const customerData = localStorage.getItem("customerId");
   
   // Use the global WebSocket context
-  const { globalMessages, sendMessage, connected, clearConversationMessages, allMessages, userId, setUserId } = useWebSocketContext();
+  const { globalMessages, sendMessage, connected, clearConversationMessages, allMessages, userId, setUserId,demosocket } = useWebSocketContext();
   
+  const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   
-  // Set userId only once when component mounts
-  useEffect(() => {
-    if (customerId && !userId) {
-      setUserId(customerId);
-    }
-  }, [customerId, userId, setUserId]);
+
+ 
 
   const [targetedConvo, setTargetedConvo] = useState({});
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
@@ -37,16 +33,20 @@ const AllMessages = () => {
   });
 
   // Filter messages for the current conversation
-  const currentConversationMessages = globalMessages.filter(msg => {
-    if (!selectedConversation) return false;
-    
-    return (
-      (msg.data?.user_id === selectedConversation) ||
-      (msg.sender === selectedConversation) ||
-      (msg.data?.sender === selectedConversation) ||
-      (msg.data?.receiver === selectedConversation)
-    );
-  });
+const currentConversationMessages = globalMessages.filter(msg => {
+  if (!selectedConversation) return false;
+  
+  // Check if this message belongs to the selected conversation
+  const msgSender = msg.sender === "me" ? userId : msg.sender;
+  const msgReceiver = msg.data?.user_id || msg.data?.receiver;
+  
+  return (
+    msgSender === selectedConversation ||
+    msgReceiver === selectedConversation ||
+    (msg.data?.sender === selectedConversation) ||
+    (msg.data?.receiver === selectedConversation)
+  );
+});
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -67,36 +67,51 @@ const AllMessages = () => {
   }, [selectedConversation, getMessagesById]);
 
   // Merge API messages with WebSocket messages, removing duplicates
-  const allConversationMessages = selectedConversation
-    ? [
-        ...previousMessages.map(msg => ({
-          id: msg.id || msg._id,
-          sender: msg.sender,
-          receiver: msg.receiver,
-          message: msg.message,
-          timestamp: msg.timestamp,
-          source: 'api'
-        })),
-        ...currentConversationMessages.map(msg => ({
-          id: msg.id || msg.tempId || Date.now(), // Fixed: use tempId if available
-          sender: msg.sender === "me" ? customerId : msg.sender,
+const allConversationMessages = selectedConversation
+  ? [
+      ...previousMessages.map(msg => ({
+        id: msg.id || msg._id,
+        sender: msg.sender,
+        receiver: msg.receiver,
+        message: msg.message,
+        timestamp: msg.timestamp,
+        source: 'api'
+      })),
+      ...currentConversationMessages
+        .filter(msg => msg.status !== 'pending') // Exclude pending messages
+        .map(msg => ({
+          id: msg.id,
+          sender: msg.sender === "me" ? userId : msg.sender,
           receiver: msg.data?.user_id || msg.data?.receiver,
           message: msg.text || msg.data?.message,
-          timestamp: msg.timestamp || msg.data?.timestamp || Date.now(), // Fixed: fallback timestamp
+          timestamp: msg.timestamp || msg.data?.timestamp || Date.now(),
           source: 'websocket',
           status: msg.status
         }))
-      ]
-      .filter((msg, index, array) => {
-        // Remove duplicates based on ID or content/timestamp
-        const existingIndex = array.findIndex(m => 
-          m.id === msg.id || 
-          (m.message === msg.message && Math.abs(new Date(m.timestamp) - new Date(msg.timestamp)) < 1000)
-        );
-        return existingIndex === index;
-      })
-      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-    : [];
+    ]
+    .filter((msg, index, array) => {
+      // Remove duplicates based on ID
+      const existingIndex = array.findIndex(m => m.id === msg.id);
+      return existingIndex === index;
+    })
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+  : [];
+
+
+  // Add this useEffect to debug the AllMessages component
+useEffect(() => {
+  console.log('🔍 AllMessages Debug:');
+  console.log('   Selected Conversation:', selectedConversation);
+  console.log('   Global Messages Count:', globalMessages.length);
+  console.log('   Current Conversation Messages:', currentConversationMessages.length);
+  console.log('   Previous Messages Count:', previousMessages.length);
+  console.log('   All Conversation Messages:', allConversationMessages.length);
+  
+  // Log the actual messages for debugging
+  if (selectedConversation) {
+    console.log('   Current Conversation Messages Details:', currentConversationMessages);
+  }
+}, [globalMessages, selectedConversation, currentConversationMessages, previousMessages, allConversationMessages]);
 
   // Scroll to bottom when messages update
   useEffect(() => {

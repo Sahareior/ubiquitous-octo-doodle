@@ -7,6 +7,7 @@ import PhoneInput from "react-phone-number-input";
 import { FaEdit, FaPhoneAlt } from "react-icons/fa";
 import ProfileModal from "./ProfileModal/ProfileModal";
 import { useCustomerProfileUpdateMutation, useGetProfileQuery } from "../../redux/slices/Apis/customersApi";
+import { IoPersonSharp } from "react-icons/io5";
 
 const { Search } = Input;
 
@@ -127,7 +128,7 @@ const handlePhotoChange = async (e) => {
             <h3 className="text-[18px] popbold mb-4">Profile Photo</h3>
             <Avatar 
               size={100} 
-              src={profileData?.profile_image || "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop"}
+              src={profileData?.profile_image || <IoPersonSharp />}
             />
             <label className="text-[#CBA135] popmed mt-3 cursor-pointer">
               {isUpdating ? 'Uploading...' : 'Change Photo'}

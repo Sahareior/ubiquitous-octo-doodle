@@ -18,7 +18,7 @@ const ReturnExchangeForm = () => {
   const [returnProduct] = useReturnProductMutation();
   const { data: getDeleveryedProduct, isLoading } = useGetDeleveredOrdersQuery();
 
-
+console.log(getDeleveryedProduct,'ad')
   useEffect(()=>{
     window.scrollTo(0,0)
   },[])

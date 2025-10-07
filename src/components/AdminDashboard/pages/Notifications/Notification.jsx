@@ -13,13 +13,13 @@ import {
   Dropdown
 } from "antd";
 import {
-  BellOutlined,
-  CloseOutlined,
-  CheckCircleOutlined,
-  DeleteOutlined,
-  EyeOutlined
+  EyeOutlined,
+  DeleteOutlined
 } from "@ant-design/icons";
-import { useGetAllNotificationQuery, useLazyGetProductsByIdQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import {
+  useGetAllNotificationQuery,
+  useLazyGetProductsByIdQuery
+} from "../../../../redux/slices/Apis/dashboardApis";
 import useNotificationSocket from "../../../../Websocket/useNotificationSocket";
 import { FaBell } from "react-icons/fa";
 import "../Notifications/NotificationBell.css";
@@ -28,6 +28,7 @@ import NotificationModal from "./NotificationReview";
 const { Text, Title } = Typography;
 const { useToken } = theme;
 
+// Format time
 const timeAgo = (iso) => {
   if (!iso) return "";
   const t = new Date(iso);
@@ -42,39 +43,41 @@ const timeAgo = (iso) => {
   return `${d}d ago`;
 };
 
+// Avatar bg color
 const stringToColor = (string) => {
   let hash = 0;
   for (let i = 0; i < string.length; i++) {
     hash = string.charCodeAt(i) + ((hash << 5) - hash);
   }
-  let color = '#';
+  let color = "#";
   for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xFF;
-    color += ('00' + value.toString(16)).substr(-2);
+    const value = (hash >> (i * 8)) & 0xff;
+    color += ("00" + value.toString(16)).substr(-2);
   }
   return color;
 };
 
-export default function Notification({ onMarkSeen, onClear }) {
+export default function Notification({ onClear }) {
   const { token } = useToken();
   const { data, isLoading, refetch } = useGetAllNotificationQuery();
   const { notifications } = useNotificationSocket();
+
   const [localNotifications, setLocalNotifications] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [open, setOpen] = useState(false);
   const [showAllNotifications, setShowAllNotifications] = useState(false);
-  const [triggerGetProductsById, { data: productData, isLoading: productLoading }] = useLazyGetProductsByIdQuery();
 
-  // Get notifications from localStorage on initial load
+  const [triggerGetProductsById] = useLazyGetProductsByIdQuery();
+
+  // Load local notifications
   useEffect(() => {
-    const notificationFromLocalStorage = localStorage.getItem('notify');
+    const notificationFromLocalStorage = localStorage.getItem("notify");
     if (notificationFromLocalStorage) {
       try {
-        const parsedNotifications = JSON.parse(notificationFromLocalStorage);
-        setLocalNotifications(Array.isArray(parsedNotifications) ? parsedNotifications : []);
-      } catch (error) {
-        console.error('Error parsing notifications from localStorage:', error);
+        const parsed = JSON.parse(notificationFromLocalStorage);
+        setLocalNotifications(Array.isArray(parsed) ? parsed : []);
+      } catch {
         setLocalNotifications([]);
       }
     }
@@ -84,89 +87,86 @@ export default function Notification({ onMarkSeen, onClear }) {
     refetch();
   }, [notifications]);
 
-  // Update local notifications when new ones come from the socket
+  // Merge socket notifications into local state
   useEffect(() => {
     if (notifications && Array.isArray(notifications)) {
-      // Add new notifications to localStorage
-      const updatedNotifications = [...localNotifications, ...notifications];
-      setLocalNotifications(updatedNotifications);
-      localStorage.setItem('notify', JSON.stringify(updatedNotifications));
+      const updated = [...localNotifications, ...notifications];
+      setLocalNotifications(updated);
+      localStorage.setItem("notify", JSON.stringify(updated));
     }
   }, [notifications]);
 
+  // ✅ Open Review Modal with Product details
   const handleMarkSeen = async (notification) => {
     if (notification?.meta_data?.product_id) {
       try {
-        const product = await triggerGetProductsById(notification.meta_data.product_id).unwrap();
+        const product = await triggerGetProductsById(
+          notification.meta_data.product_id
+        ).unwrap();
         setSelectedProduct(product);
         setIsModalVisible(true);
       } catch (error) {
-        console.error('Failed to fetch product:', error);
+        console.error("Failed to fetch product:", error);
       }
     }
   };
 
-  // Function to handle "View All" button click
   const handleViewAll = () => {
     setShowAllNotifications(true);
-    refetch(); // Fetch all notifications from API
+    refetch();
   };
 
-  // Handle dropdown open/close
   const handleOpenChange = (isOpen) => {
     setOpen(isOpen);
-    
-    // When closing the dropdown, clear localStorage notifications
     if (!isOpen && localNotifications.length > 0) {
-      localStorage.removeItem('notify');
+      localStorage.removeItem("notify");
       setLocalNotifications([]);
     }
   };
 
-  // Determine which notifications to display
   const hasLocalNotifications = localNotifications.length > 0;
-  const displayItems = showAllNotifications || !hasLocalNotifications 
-    ? (data || []) 
-    : localNotifications;
+  const displayItems =
+    showAllNotifications || !hasLocalNotifications ? data || [] : localNotifications;
 
-  // Get the count for the badge - show local notification count if available
-  const badgeCount = localNotifications.length
+  const badgeCount = localNotifications.length;
 
   const menu = (
     <Card
       className="notification-panel"
       bodyStyle={{ padding: 0 }}
-      style={{ 
-        width: 380, 
-        borderRadius: '12px',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-        border: `1px solid ${token.colorBorderSecondary}`
+      style={{
+        width: 380,
+        borderRadius: "12px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+        border: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
       {/* Header */}
-      <div className="notification-header" style={{ 
-        background: token.colorBgContainer, 
-        borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        padding: '12px 16px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
+      <div
+        style={{
+          background: token.colorBgContainer,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          padding: "12px 16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Title level={5} style={{ margin: 0 }}>
           Notifications
         </Title>
         <Space>
-          <Button 
-            type="text" 
-            icon={<EyeOutlined />} 
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
             size="small"
             onClick={() => displayItems.forEach((i) => handleMarkSeen(i))}
             disabled={!displayItems.length}
             title="Mark all as read"
           />
-          <Button 
-            type="text" 
-            icon={<DeleteOutlined />} 
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
             size="small"
             onClick={onClear}
             disabled={!displayItems.length}
@@ -176,7 +176,7 @@ export default function Notification({ onMarkSeen, onClear }) {
       </div>
 
       {/* List */}
-      <div className="notification-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+      <div style={{ maxHeight: "400px", overflowY: "auto" }}>
         <List
           loading={isLoading && showAllNotifications}
           locale={{
@@ -184,59 +184,53 @@ export default function Notification({ onMarkSeen, onClear }) {
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description="No notifications yet"
-                style={{ padding: '20px 0' }}
+                style={{ padding: "20px 0" }}
               />
             ),
           }}
           dataSource={displayItems}
           renderItem={(n) => (
             <List.Item
-              className="notification-item"
-              style={{ 
+              style={{
                 cursor: "pointer",
-                padding: '12px 16px',
-                transition: 'all 0.2s ease',
-                borderBottom: `1px solid ${token.colorBorderSecondary}`
+                padding: "12px 16px",
+                transition: "all 0.2s ease",
+                borderBottom: `1px solid ${token.colorBorderSecondary}`,
               }}
               onClick={() => handleMarkSeen(n)}
             >
-              <div className="notification-content" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                {/* Avatar with user initial */}
-                <Avatar 
-                  size="default" 
-                  style={{ 
-                    backgroundColor: stringToColor(n.data?.full_name || n.full_name || 'User'),
-                    flexShrink: 0
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                {/* Avatar */}
+                <Avatar
+                  size="default"
+                  style={{
+                    backgroundColor: stringToColor(n.data?.full_name || n.full_name || "User"),
+                    flexShrink: 0,
                   }}
                 >
-                  {(n.data?.full_name || n.full_name || 'U').charAt(0).toUpperCase()}
+                  {(n.data?.full_name || n.full_name || "U").charAt(0).toUpperCase()}
                 </Avatar>
 
                 {/* Content */}
-                <div className="notification-details" style={{ flex: 1 }}>
-                  <div className="notification-message">
-                    <Text strong className="notification-sender">
-                      {n.data?.full_name || n.full_name}
-                    </Text>
-                    <Text className="notification-text">
-                      {n.data?.message || n.message}
-                    </Text>
+                <div style={{ flex: 1 }}>
+                  <div>
+                    <Text strong>{n.data?.full_name || n.full_name}</Text>{" "}
+                    <Text>{n.data?.message || n.message}</Text>
                   </div>
-                  <Text type="secondary" className="notification-time">
+                  <Text type="secondary">
                     {timeAgo(n.data?.event_time || n.event_time)}
                   </Text>
                 </div>
-                
-                {/* Status indicator */}
-                <div 
-                  className={`status-indicator ${(n.data?.seen || n.seen) ? 'seen' : 'unseen'}`} 
+
+                {/* Status */}
+                <div
                   style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: (n.data?.seen || n.seen) ? token.colorTextSecondary : token.colorPrimary,
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: n.data?.seen || n.seen ? token.colorTextSecondary : token.colorPrimary,
                     flexShrink: 0,
-                    marginTop: '8px'
+                    marginTop: "8px",
                   }}
                 />
               </div>
@@ -244,15 +238,17 @@ export default function Notification({ onMarkSeen, onClear }) {
           )}
         />
       </div>
-      
-      {/* Footer - Show View All button only if we're showing local notifications */}
+
+      {/* Footer */}
       {hasLocalNotifications && !showAllNotifications && (
-        <div className="notification-footer" style={{ 
-          background: token.colorBgContainer, 
-          borderTop: `1px solid ${token.colorBorderSecondary}`,
-          padding: '12px 16px',
-          textAlign: 'center'
-        }}>
+        <div
+          style={{
+            background: token.colorBgContainer,
+            borderTop: `1px solid ${token.colorBorderSecondary}`,
+            padding: "12px 16px",
+            textAlign: "center",
+          }}
+        >
           <Button type="primary" size="small" onClick={handleViewAll}>
             View all notifications
           </Button>
@@ -276,15 +272,13 @@ export default function Notification({ onMarkSeen, onClear }) {
           size="small"
           overflowCount={99}
           offset={[-2, 24]}
-          style={{ 
-            boxShadow: `0 0 0 2px ${token.colorBgContainer}`,
-          }}
+          style={{ boxShadow: `0 0 0 2px ${token.colorBgContainer}` }}
         >
-          <div className="-mt-">
-            <FaBell onClick={() => setOpen(!open)} className="bell-icon hover:cursor-pointer mt-7" />
-          </div>
+          <FaBell onClick={() => setOpen(!open)} className="bell-icon hover:cursor-pointer mt-7" />
         </Badge>
       </Dropdown>
+
+      {/* ✅ Modal for Product Review */}
       <NotificationModal
         setIsModalVisible={setIsModalVisible}
         isModalVisible={isModalVisible}

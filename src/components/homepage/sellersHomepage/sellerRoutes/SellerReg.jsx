@@ -270,7 +270,7 @@ const handleApply = useCallback(async () => {
         captcha: ''
       });
 
-      navigate('/');
+      // navigate('/');
 
     } catch (error) {
       console.error(error);

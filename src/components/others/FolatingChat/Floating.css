@@ -228,3 +228,35 @@
 .chat-message:last-child {
   animation: messagePulse 0.3s ease;
 }
+
+@media (max-width: 480px) {
+  .floating-chat-button {
+    bottom: 1px;     /* closer to bottom */
+    right: 15px;      /* less margin */
+    padding: 8px 12px;
+    font-size: 12px;  /* smaller text */
+    border-radius: 40px;
+  }
+  .floating-chat-window {
+     bottom: 20px;
+  right: 5px;
+  width: 350px;
+  height: 550px;
+  }
+}
+
+/* Tablet (481px - 768px) */
+@media (max-width: 768px) {
+  .floating-chat-button {
+    bottom: -40px;
+    right: 10px;
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+    .floating-chat-window {
+     bottom: 20px;
+  right: 5px;
+  width: 350px;
+  height: 550px;
+  }
+}

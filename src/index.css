@@ -657,3 +657,7 @@ color: white;
 .swiper-button-prev {
   transform: translateZ(0);
 }
+
+.anticon{
+  color:#1d8fcc !important
+}

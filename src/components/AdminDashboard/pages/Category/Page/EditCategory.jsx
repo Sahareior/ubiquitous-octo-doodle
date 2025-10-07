@@ -3,18 +3,20 @@ import { Form, Input, Button, Upload, message, Card, Row, Col, Divider, Typograp
 import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEditCategoryMutation, useGetCategoriesQuery } from "../../../../../redux/slices/Apis/customersApi";
+import Swal from "sweetalert2";
 
 const { Title, Text } = Typography;
 
 const EditCategory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: cateGoryData } = useGetCategoriesQuery();
+  const { data: cateGoryData, refetch } = useGetCategoriesQuery();
   const [editCategory] = useEditCategoryMutation();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState(null);
   const [file, setFile] = useState(null); // Track the uploaded file
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
   useEffect(() => {
     if (cateGoryData?.results) {
@@ -43,8 +45,14 @@ const EditCategory = () => {
       }
 
       await editCategory({ id, data: formData }).unwrap();
-      message.success("Category updated successfully");
-      navigate("/categories");
+          Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: "Category Updated successfully 🎉",
+            confirmButtonColor: "#3085d6",
+          });
+    refetch();
+    navigate("/admin-dashboard/category");
     } catch (error) {
       message.error("Failed to update category");
       console.error("Update error:", error);

@@ -209,7 +209,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
     >
 <div className='h-[80vh] overflow-y-auto'>
         {/* Header with status and actions */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 pt-8 border-b">
         <div className="flex justify-between w-full items-center">
           <div className='flex justify-between w-full'>
             <h2 className="text-2xl font-bold text-gray-800 mb-1 flex items-center gap-2">
@@ -254,13 +254,16 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                     {productData?.images?.length > 0 ? (
                       <div className="relative">
-                        <Image
-                          src={productData.images[0].image}
-                          alt={productData.name}
-                          className="rounded-t-lg object-cover w-full h-64"
-                          preview={false}
-                          onClick={() => openImagePreview(0)}
-                        />
+                       <Image
+  src={productData.images[0].image}
+  alt={productData.name}
+  width="100%"
+  height={256} // h-64 = 16rem = 256px
+  style={{ objectFit: "cover", borderTopLeftRadius: "0.5rem", borderTopRightRadius: "0.5rem" }}
+  preview={false}
+  onClick={() => openImagePreview(0)}
+/>
+
                         <div className="absolute top-2 right-2">
                           <Button 
                             type="primary" 
@@ -291,6 +294,7 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
                               onClick={() => openImagePreview(index)}
                             >
                               <Image 
+                            preview={false}
                                 src={img.image} 
                                 alt={`${productData.name} ${index + 1}`}
                                 className="w-full h-full object-cover"

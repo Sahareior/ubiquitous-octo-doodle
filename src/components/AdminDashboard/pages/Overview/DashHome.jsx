@@ -119,7 +119,7 @@ const DashHome = () => {
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div className="space-y-3">
  <Link to='/admin-dashboard/add-product'  className="block">
-                <button className="bg-[#CBA135] text-white py-3 w-full sm:w-72 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition">
+                <button className="bg-[#CBA135] text-white py-3 w-full  rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition">
           <FaPlus /> Add New Product
         </button>
         </Link>

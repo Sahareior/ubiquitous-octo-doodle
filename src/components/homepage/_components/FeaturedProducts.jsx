@@ -320,7 +320,7 @@ const FeaturedProducts = () => {
       <div ref={productsGridRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {currentProducts.length === 0 ? (
           <div className="col-span-4 text-center py-10">
-            No products found matching "{searchText}"
+            No product found
           </div>
         ) : (
           currentProducts.map(item => (
