@@ -57,6 +57,19 @@ const stringToColor = (string) => {
   return color;
 };
 
+// Filter out status notifications
+const filterStatusNotifications = (notifications) => {
+  if (!Array.isArray(notifications)) return [];
+  
+  return notifications.filter(notification => {
+    // Skip if it's a status type with "connected" status
+    if (notification.type === "status" && notification.status === "connected") {
+      return false;
+    }
+    return true;
+  });
+};
+
 export default function Notification({ onClear }) {
   const { token } = useToken();
   const { data, isLoading, refetch } = useGetAllNotificationQuery();
@@ -76,7 +89,13 @@ export default function Notification({ onClear }) {
     if (notificationFromLocalStorage) {
       try {
         const parsed = JSON.parse(notificationFromLocalStorage);
-        setLocalNotifications(Array.isArray(parsed) ? parsed : []);
+        // Filter out any status notifications that might have been saved previously
+        const filtered = filterStatusNotifications(Array.isArray(parsed) ? parsed : []);
+        setLocalNotifications(filtered);
+        // Update localStorage with filtered notifications
+        if (filtered.length !== parsed.length) {
+          localStorage.setItem("notify", JSON.stringify(filtered));
+        }
       } catch {
         setLocalNotifications([]);
       }
@@ -87,12 +106,17 @@ export default function Notification({ onClear }) {
     refetch();
   }, [notifications]);
 
-  // Merge socket notifications into local state
+  // Merge socket notifications into local state (WITH FILTERING)
   useEffect(() => {
     if (notifications && Array.isArray(notifications)) {
-      const updated = [...localNotifications, ...notifications];
-      setLocalNotifications(updated);
-      localStorage.setItem("notify", JSON.stringify(updated));
+      // Filter out status notifications before merging
+      const filteredNotifications = filterStatusNotifications(notifications);
+      
+      if (filteredNotifications.length > 0) {
+        const updated = [...localNotifications, ...filteredNotifications];
+        setLocalNotifications(updated);
+        localStorage.setItem("notify", JSON.stringify(updated));
+      }
     }
   }, [notifications]);
 

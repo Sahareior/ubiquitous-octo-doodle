@@ -22,6 +22,7 @@ import { MdLogout } from 'react-icons/md';
 import useNotificationSocket from '../../Websocket/useNotificationSocket';
 import Notification from '../AdminDashboard/pages/Notifications/Notification';
 import Swal from 'sweetalert2'; // Import SweetAlert2
+import { useGetProfileQuery } from '../../redux/slices/Apis/customersApi';
 
 const { Header, Content, Sider } = Layout;
 
@@ -73,6 +74,7 @@ const VendorDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const navigate = useNavigate();
   const location = useLocation();
+   const { data: profileData, error, refetch } = useGetProfileQuery();
   const currentKey = location.pathname.split('/')[1];
   const currentPath = location.pathname.split('/')[2]; // vendor-dashboard/**vendor-products**
   const activeItem = items.find(item => item.path === currentPath);
@@ -82,9 +84,11 @@ const VendorDashboard = () => {
 
     const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
+     const annomalyImage = "/image/ann.png"
+
 const profileImage = userInfo?.user?.profile_image
-  ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`
-  : 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+  ? `${profileData?.profile_image}`
+  : annomalyImage;
 
 
 

@@ -104,9 +104,9 @@ const CustomersNavbar = ({ cartCount }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+  const annomalyImage = "/image/ann.png"
 
-  const profileImg = profileData?.profile_image || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1170&auto=format&fit=crop'
-
+  const profileImg = profileData?.profile_image || annomalyImage
   return (
     <>
       <div className="w-full px-4 md:px-8 lg:px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
@@ -146,7 +146,7 @@ const CustomersNavbar = ({ cartCount }) => {
                   className="w-full flex justify-center"
                   key={category.id}
                 >
-                  <button className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer w-full text-left">
+                  <button className="px-4 py-2 text-sm text-gray-700 popmed hover:bg-gray-100 cursor-pointer w-full text-left">
                     {category.name}
                   </button>
                 </Link>
@@ -191,11 +191,11 @@ const CustomersNavbar = ({ cartCount }) => {
                 {filteredProducts.map((product) => (
                   <div 
                     key={product.id}
-                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b  border-gray-100 last:border-b-0"
                     onClick={() => handleProductSelect(product)}
                   >
                     <img 
-                      src={product.images[0]?.image || '/image/placeholder-product.png'} 
+                      src={product.images[0]?.image || annomalyImage} 
                       alt={product.name}
                       className="w-10 h-10 object-cover rounded mr-3"
                     />
@@ -206,7 +206,7 @@ const CustomersNavbar = ({ cartCount }) => {
                         <span className="text-sm font-semibold text-[#CBA135]">
                           XAF {product.price1}
                         </span>
-                        <span className="text-xs text-gray-500">___by {product.vendor_details.first_name}</span>
+                        <span className="text-xs  text-gray-500">___by {product.vendor_details.first_name}</span>
                       </div>
                     </div>
                   </div>

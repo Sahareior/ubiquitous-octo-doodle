@@ -109,6 +109,8 @@ const handlePhotoChange = async (e) => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const annomalyImage = "/image/ann.png"
+
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-8 px-4">
       <div className="md:mx-40">
@@ -128,7 +130,7 @@ const handlePhotoChange = async (e) => {
             <h3 className="text-[18px] popbold mb-4">Profile Photo</h3>
             <Avatar 
               size={100} 
-              src={profileData?.profile_image || <IoPersonSharp />}
+              src={profileData?.profile_image || annomalyImage}
             />
             <label className="text-[#CBA135] popmed mt-3 cursor-pointer">
               {isUpdating ? 'Uploading...' : 'Change Photo'}

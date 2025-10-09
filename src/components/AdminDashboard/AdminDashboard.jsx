@@ -25,6 +25,7 @@ import { useGetAllNotificationQuery } from '../../redux/slices/Apis/dashboardApi
 import Notification from './pages/Notifications/Notification';
 import { RxExit } from 'react-icons/rx';
 import Swal from 'sweetalert2'; // Import SweetAlert2
+import { useGetProfileQuery } from '../../redux/slices/Apis/customersApi';
 
 const { Header, Content, Sider } = Layout;
 
@@ -110,6 +111,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathKey = location.pathname.split('/')[2] || 'admin-overview';
+  const { data: profileData, error, refetch } = useGetProfileQuery();
   const {data:notificationData, isLoading} = useGetAllNotificationQuery()
     const { notifications, connected } = useNotificationSocket();
 
@@ -119,11 +121,14 @@ const AdminDashboard = () => {
 
   const userInfo = JSON.parse(localStorage.getItem('customerId'))
 
-// console.log("User Info:", userInfo.user.profile_image); // Debugging line to check user info
+
 // 
+
+ const annomalyImage = "/image/ann.png"
+
 const profileImage = userInfo?.user?.profile_image
-  ? `http://10.10.13.16:15000/${userInfo.user.profile_image}`
-  : 'https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+  ? `${profileData?.profile_image}`
+  : annomalyImage;
 
 
   const handleLogout = () => {

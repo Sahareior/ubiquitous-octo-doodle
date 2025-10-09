@@ -11,7 +11,7 @@ const useWebSocket = (userId) => {
   const token = localStorage.getItem("access_token");
 
   const connectWebSocket = () => {
-    const wsUrl = `ws://10.10.13.16:8000/ws/chat/?token=${token}`;
+    const wsUrl = ``;
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {

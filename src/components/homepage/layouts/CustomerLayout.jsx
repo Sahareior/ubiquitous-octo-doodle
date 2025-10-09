@@ -18,6 +18,11 @@ const CustomerLayout = () => {
   const location = useLocation();
   const { data: cartData } = useGetAppCartQuery();
 
+   const storedRole = localStorage.getItem('user_role');
+
+
+   console.log(storedRole,'this is role')
+
   const isHomePage = location.pathname === '/';
 
   return (
@@ -47,9 +52,11 @@ const CustomerLayout = () => {
           </div>
 
           {/* Floating chat is light, no need for suspense */}
-          <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
+   {
+    storedRole === 'customer' &&       <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
             <FloatingChat />
           </div>
+   }
         </Suspense>
       )}
 

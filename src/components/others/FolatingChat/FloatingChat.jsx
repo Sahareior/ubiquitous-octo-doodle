@@ -4,7 +4,7 @@ import { Avatar, Button, Select, Tabs, Tooltip } from 'antd';
 import { FaRobot, FaTimes, FaPaperPlane, FaHeadset, FaStore, FaUser } from 'react-icons/fa';
 
 import './Floating.css';
-import { useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
+import { useGetProfileQuery, useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
 import image from "../../../assets/icon.png"
 import { useWebSocketContext } from "../../../context/WebSocketContext";
 
@@ -13,13 +13,15 @@ const { TabPane } = Tabs;
 
 const FloatingChat = ({ targetedId }) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const { globalMessages, sendMessage, connected,setUserId } = useWebSocketContext();
+  
+  const { globalMessages, sendMessage, connected,setUserId,setIncoming,incoming } = useWebSocketContext();
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   const [newMessage, setNewMessage] = useState("");
   const [activeReceiver, setActiveReceiver] = useState(targetedId ||1);
   const [previousMessages, setPreviousMessages] = useState([]);
+  
+  const { data: profileData, error, refetch } = useGetProfileQuery();
   const messagesEndRef = useRef(null);
   const [receivers, setReceivers] = useState(targetedId ? [targetedId] : []);
    const customerPhoto = customerData ? JSON.parse(customerData)?.user?.profile_image : null;
@@ -119,18 +121,38 @@ const FloatingChat = ({ targetedId }) => {
       setActiveReceiver(receiverId);
     }
   };
+
+
+    
+       const annomalyImage = "/image/ann.png"
+
+const profileImage = profileData?.profile_image? profileData?.profile_image : annomalyImage;
+
   
-  const imaga= `http://10.10.13.16:8000${customerPhoto}`
+console.log(profileData?.profile_image,'this is profile image')
 
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="floating-chat-button md:w-48 flex rounded-full justify-center items-center gap-1" onClick={() => setIsOpen(!isOpen)}>
-     
-        <img src={image} alt="" />
-        <p className="text-yellow-500">Contact Us</p>
-     
-      </div>
+<div
+  className="floating-chat-button md:w-48 flex rounded-full relative justify-center items-center gap-1 cursor-pointer"
+  onClick={() => {
+    setIsOpen(!isOpen);
+    setIncoming(false);
+  }}
+>
+  <img src={image} alt="chat" className="w-8 h-8 rounded-full" />
+  <p className="text-yellow-500 font-medium">Contact Us</p>
+
+  {/* Notification Badge */}
+  {incoming && !isOpen && (
+    <span className="absolute -top-1 -right-1 flex h-4 w-4">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+      <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+    </span>
+  )}
+</div>
+
 
    
       <div className={`floating-chat-window ${isOpen ? '' : 'hidden'}`}>
@@ -226,9 +248,7 @@ const FloatingChat = ({ targetedId }) => {
   <Avatar
     size={32}
     src={
-      customerPhoto
-        ? `${imaga}`
-        : "https://cdn-icons-png.flaticon.com/512/149/149071.png" // fallback image
+      profileImage
     }
     className="border border-[#CBA135]/30"
   />
