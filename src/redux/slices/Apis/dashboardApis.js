@@ -25,6 +25,10 @@ export const dashboardApis = createApi({
       query: () => "products/",
     }),
 
+    getTopVendors: build.query({
+      query: ()=> 'admin/vendor-performance/'
+    }),
+
     getProductsById: build.query({
       query:(id)=> `products/${id}`
     }),
@@ -327,6 +331,7 @@ export const dashboardApis = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useGetTopVendorsQuery,
   useNotificationSeenMutation,
   useBulkOrderStatusMutation,
   useRejectProductsMutation,

@@ -309,7 +309,7 @@ const FeaturedProducts = () => {
   return (
     <div className="md:py-20 md:px-10 p-3 bg-[#FAF8F2] space-y-6" ref={componentTopRef}>
       {/* Header & Search */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between MD:items-start items-center gap-4">
         <div>
           <h2 className="text-[30px] popbold font-extrabold">Featured Products</h2>
           <p className="text-[18px] text-gray-600">Explore our curated furniture categories</p>

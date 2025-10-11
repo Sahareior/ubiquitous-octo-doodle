@@ -11,13 +11,16 @@ import {
 } from "react-icons/md";
 import { FaCheck, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { useAdminOverViewQuery, useGetAllNotificationQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useAdminOverViewQuery, useGetAllNotificationQuery, useGetTopVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import AdminSellsOverview from "./_subComponents/AdminSellsOverview";
 
 
 const DashHome = () => {
   const {data} = useAdminOverViewQuery()
   const {data:notifications} = useGetAllNotificationQuery()
+  const {data:vendors} = useGetTopVendorsQuery()
+
+  console.log(vendors?.results,'this is vendors')
 
   // console.log(notifications,'notify')
 
@@ -174,18 +177,20 @@ const DashHome = () => {
               ))}
             </div>
 
-            <div className="mt-4">
-              <p className="text-lg font-semibold pb-2">Top Seller/Vendor</p>
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="flex justify-between items-center py-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-red-500" />
-                    <p className="text-sm text-gray-700">Living Room</p>
-                  </div>
-                  <p className="text-sm text-gray-600 font-medium">34%</p>
-                </div>
-              ))}
-            </div>
+<div className="mt-4">
+  <p className="text-lg font-semibold pb-2">Top Seller/Vendor</p>
+  {vendors?.results?.slice(0, 4)?.map((item, index) => (
+    <div key={index} className="flex justify-between items-center py-2">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 rounded-full bg-red-500" />
+        <p className="text-sm text-gray-700">{item?.first_name}</p>
+      </div>
+      {/* <p className="text-sm text-gray-600 font-medium">34%</p> */}
+    </div>
+  ))}
+</div>
+
+
           </div>
         </div>
       </div>

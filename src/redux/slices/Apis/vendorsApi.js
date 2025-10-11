@@ -15,6 +15,7 @@ export const vendorsApi = createApi({
     },
   }),
 
+
   endpoints: (build) => ({
     getPokemonByName: build.query({
       query: (name) => `pokemon/${name}`,

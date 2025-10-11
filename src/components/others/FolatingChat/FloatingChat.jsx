@@ -14,7 +14,7 @@ const { TabPane } = Tabs;
 const FloatingChat = ({ targetedId }) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  const { globalMessages, sendMessage, connected,setUserId,setIncoming,incoming } = useWebSocketContext();
+  const { globalMessages, sendMessage, connected,setUserId,setIncoming,incoming,clientmsg } = useWebSocketContext();
   const customerData = localStorage.getItem("customerId");
   const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
   const [newMessage, setNewMessage] = useState("");
@@ -51,7 +51,7 @@ const FloatingChat = ({ targetedId }) => {
   }, [activeReceiver, getMessagesById]);
 
 
-  console.log(globalMessages,'this is global mesaagae')
+  console.log(clientmsg.receiver,'this is global mesaagae')
 
   // Filter and merge WebSocket + API messages for the active receiver
   const allMessages = useMemo(() => {
@@ -145,7 +145,7 @@ console.log(profileData?.profile_image,'this is profile image')
   <p className="text-yellow-500 font-medium">Contact Us</p>
 
   {/* Notification Badge */}
-  {incoming && !isOpen && (
+  {clientmsg.receiver === customerId && !isOpen && (
     <span className="absolute -top-1 -right-1 flex h-4 w-4">
       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
       <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>

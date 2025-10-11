@@ -16,6 +16,7 @@ export const WebSocketProvider = ({ children }) => {
   const [allMessages, setAllMessages] = useState([]);
   const [connected, setConnected] = useState(false);
   const [incoming, setIncoming] = useState(false);
+  const [clientmsg, setClientmsg] = useState({});
  // inside WebSocketProvider
 const [userId, setUserId] = useState(() => {
   const customerData = localStorage.getItem("customerId");
@@ -105,7 +106,14 @@ socket.onmessage = (event) => {
   try {
     const data = JSON.parse(event.data);
     console.log('📩 Received WebSocket message:', data);
-    setIncoming(true);
+    setClientmsg(data);
+    if(data.error === 'user_id and message required'){
+      setIncoming(false);
+    }
+    else{
+      setIncoming(true);
+    }
+      
     // Add to all messages for debugging
     setAllMessages(prev => [...prev, data]);
 
@@ -323,6 +331,7 @@ socket.onmessage = (event) => {
       updateMessageStatus,
      incoming,
      setIncoming,
+     clientmsg,
       manualReconnect,
       reconnectAttempts: reconnectAttemptsRef.current
     }}>

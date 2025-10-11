@@ -586,17 +586,17 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
             <div className="flex gap-3">
               <Button 
                 onClick={handleApprove}
-                icon={<CheckCircleOutlined />}
+            
                 size="large"
-                className="bg-green-500 hover:bg-green-600 text-white border-0 rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 h-11 px-4"
+                className="bg-yellow-500 hover:bg-green-600 text-white border-0 rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 h-11 px-4"
               >
                 Approve Product
               </Button>
               <Button 
                 onClick={handleReject}
-                icon={<CloseCircleOutlined />}
+            
                 size="large"
-                className="bg-red-500 hover:bg-red-600 text-white border-0 rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 h-11 px-4"
+                className="bg-red-400 hover:bg-red-600 text-white border-0 rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 h-11 px-4"
               >
                 Reject Product
               </Button>
