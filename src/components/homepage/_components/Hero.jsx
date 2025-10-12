@@ -6,14 +6,14 @@ const Hero = () => {
     <div>
       <div className="relative">
         <img
-          className="w-full h-[90vh] object-cover"
+          className="w-full h-[100vh] object-cover"
           src="/image/heroImg.png"
           alt="Hero"
         />
 
         {/* Glass container */}
         <div
-          className="absolute top-1/4 left-2 sm:left-8 md:left-12 lg:left-16 
+          className="absolute top-[20%] left-2 sm:left-8 md:left-12 lg:left-16 
           w-[95%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5 
           p-3 sm:p-6 lg:p-10 
           flex flex-col gap-3 sm:gap-6 rounded-xl"
@@ -45,10 +45,10 @@ const Hero = () => {
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-2 sm:mt-4">
-            <Button className="bg-[#CBA135] text-white px-4 sm:px-10 py-3 sm:py-6 border-none rounded-lg text-sm sm:text-base">
+            <Button className="bg-[#CBA135] text-white px-4 sm:px-10 py-5 sm:py-6 border-none rounded-lg text-sm sm:text-base">
               Shop New Arrivals
             </Button>
-            <Button className="bg-[#2B2B2B] text-white px-4 sm:px-12 py-3 sm:py-6 border-none rounded-lg text-sm sm:text-base">
+            <Button className="bg-[#2B2B2B] text-white px-4 sm:px-12 py-5 sm:py-6 border-none rounded-lg text-sm sm:text-base">
               View Wishlist
             </Button>
           </div>

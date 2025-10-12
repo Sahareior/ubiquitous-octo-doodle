@@ -142,7 +142,7 @@ console.log(profileData?.profile_image,'this is profile image')
   }}
 >
   <img src={image} alt="chat" className="w-8 h-8 rounded-full" />
-  <p className="text-yellow-500 font-medium">Contact Us</p>
+  <p className="text-yellow-500 hidden md:block font-medium">Contact Us</p>
 
   {/* Notification Badge */}
   {clientmsg.receiver === customerId && !isOpen && (

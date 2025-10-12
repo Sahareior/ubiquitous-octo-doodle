@@ -26,7 +26,17 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
   };
 
   // Color options for select
-  const colorOptions = ["Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray"];
+  const colorOptions = [
+    "Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray",
+    "Blue", "Brown", "Beige", "Ivory", "Cream", "Charcoal", "Slate Gray",
+    "Silver", "Gold", "Bronze", "Copper", "Orange", "Pink", "Purple",
+    "Lavender", "Teal", "Turquoise", "Maroon", "Burgundy", "Forest Green",
+    "Olive Green", "Mustard Yellow", "Royal Blue", "Sky Blue", "Navy",
+    "Dark Brown", "Light Brown", "Tan", "Off-White", "Eggshell", "Pearl White",
+    "Platinum", "Champagne", "Rose Gold", "Coral", "Salmon", "Magenta",
+    "Violet", "Indigo", "Mint Green", "Sage Green", "Khaki", "Taupe",
+    "Espresso", "Ebony", "Ash Gray", "Stone", "Sand", "Terracotta"
+  ];
 
   return (
     <form className="bg-white  rounded-2xl pt-8 space-y-4">
@@ -76,6 +86,11 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
             }
             options={colorOptions.map(color => ({ label: color, value: color }))}
             style={{ width: "100%" }}
+            filterOption={(input, option) =>
+              option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+            showSearch
+            allowClear
           />
         </div>
 

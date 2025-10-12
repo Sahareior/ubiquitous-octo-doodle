@@ -65,7 +65,7 @@ const CategoryCarousel = React.memo(({ categories, loading }) => {
       <Swiper
         modules={[Navigation, Pagination]}
         spaceBetween={20} // Increased space between slides
-        slidesPerView={2} // Start with fewer slides on mobile
+        slidesPerView={1} // Start with fewer slides on mobile
         speed={500} // Faster transitions
         resistance={false} // Disable resistance for smoother feel
         preloadImages={false}
