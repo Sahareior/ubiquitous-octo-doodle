@@ -276,7 +276,7 @@ console.log(profileData?.profile_image,'this is profile image')
             icon={<FaPaperPlane size={16} />}
             onClick={handleSend}
             className="bg-gradient-to-r from-[#CBA135] to-[#d4b65e] hover:from-[#b8912e] hover:to-[#c9a74d] flex justify-center items-center border-none h-10 w-10 rounded-lg transition-all shadow-md hover:shadow-lg"
-            disabled={ !connected || !activeReceiver}
+           
           />
         </div>
       </div>

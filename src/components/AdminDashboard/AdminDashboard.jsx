@@ -32,7 +32,7 @@ import { MdLogout } from "react-icons/md";
 import { TbCategoryPlus } from "react-icons/tb";
 import useNotificationSocket from "../../Websocket/useNotificationSocket";
 import { isLoading } from "./../../../node_modules/sweetalert2/src/utils/dom/getters";
-import { useGetAllNotificationQuery } from "../../redux/slices/Apis/dashboardApis";
+import { useGetAllConversationsidQuery, useGetAllNotificationQuery } from "../../redux/slices/Apis/dashboardApis";
 import Notification from "./pages/Notifications/Notification";
 import { RxExit } from "react-icons/rx";
 import Swal from "sweetalert2"; // Import SweetAlert2
@@ -43,6 +43,7 @@ const { Header, Content, Sider } = Layout;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+    const { data = [], refetch:convoRefetch } = useGetAllConversationsidQuery();
   const location = useLocation();
   const pathKey = location.pathname.split("/")[2] || "admin-overview";
   const { data: profileData, error, refetch } = useGetProfileQuery();
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
     {
       key: "messages",
       icon: (
-        <div className="relative">
+        <div onClick={()=> convoRefetch()} className="relative">
           <LuMessageSquareText size={16} />
           {incoming && (
             <span className="absolute top-1 -right-28 flex h-3 w-3">
