@@ -39,13 +39,13 @@ const LeftPannel = ({
         conversationById.forEach((convo, index) => {
           const conversationId = data[index]?.id;
           if (conversationId && convo.results && convo.results.length > 0) {
-            // Get the last message in the conversation
+           
             const lastMessage = convo.results[convo.results.length - 1];
-            // Check if the last message was NOT sent by admin (ID 1)
+          
             const isUnreplied = lastMessage.sender !== 1;
             unrepliedMap[conversationId] = isUnreplied;
           } else {
-            // If no messages, consider it as unreplied
+           
             unrepliedMap[conversationId] = true;
           }
         });
@@ -59,13 +59,13 @@ const LeftPannel = ({
     fetchConvo();
   }, [data]);
 
-  // Filter out current user
+
   const filtteredData = data?.filter((item) => item.id !== user.user.id) || [];
 
-  // Detect new conversations when data changes
+
   useEffect(() => {
     if (data.length > previousData.length) {
-      // New conversation detected
+     
       const newConversations = data.filter(conv => 
         !previousData.some(prevConv => prevConv.id === conv.id)
       );
