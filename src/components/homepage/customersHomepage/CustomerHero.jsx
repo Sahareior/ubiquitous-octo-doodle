@@ -48,12 +48,12 @@ const CustomerHero = () => {
             Discover premium furniture that transforms your space into a warm, elegant home.
           </h4>
           <div className="flex justify-center md:justify-start gap-4">
-            <Link to="/filter">
+            <Link to="/filter" state={{text:"Discover Your Favorite Items"}}>
               <Button className="bg-[#CBA135] py-5 text-white border-none popbold hover:bg-pink-500">
                 Shop New Arrivals
               </Button>
             </Link>
-            <Link to="/wishlist">
+            <Link to="/wishlist" >
               <Button className="bg-white py-5 popbold border-[#CBA135] px-8 text-[#CBA135] hover:bg-[#CBA135]/10">
                 View Wishlist
               </Button>

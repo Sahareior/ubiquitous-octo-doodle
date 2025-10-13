@@ -3,20 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaFacebookF, FaInstagram, FaPhone, FaTwitter } from 'react-icons/fa';
 import CustomModal from '../../checkout/modal/CustomModal';
 import { useDispatch } from 'react-redux';
-import { selectedLocation } from '../../../redux/slices/customerSlice';
 import { useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
+import { selectedLocation } from '../../../redux/slices/customerSlice';
 
 const Footer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { data: allCategories } = useGetCategoriesQuery();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { data: allCategories, isLoading, isError } = useGetCategoriesQuery();
 
   const handelClick = () => {
-    navigate('/regester-seller')
-  }
+    navigate('/regester-seller');
+  };
 
-  // Map of static category names to possible API name variations
+  // Define static mappings (what you *want* vs what may come from API)
   const categoryMappings = useMemo(() => ({
     'Living Room': ['living room', 'livingroom', 'living', 'lounge', 'sitting room'],
     'Bedroom': ['bedroom', 'bedrooms', 'bed room', 'master bedroom', 'sleeping room'],
@@ -25,30 +25,26 @@ const Footer = () => {
     'Kitchen': ['kitchen', 'kitchens', 'cooking area', 'culinary space']
   }), []);
 
-  // Find matching categories from API data
+  // Step 1: Find category IDs if API has data
   const matchedCategories = useMemo(() => {
-    if (!allCategories?.results) return [];
+    if (!allCategories?.results?.length) return [];
 
     const matches = [];
-    
-    Object.entries(categoryMappings).forEach(([staticName, variations]) => {
-      // Find category that matches any of the variations
-      const foundCategory = allCategories.results.find(category => {
-        if (!category.name) return false;
-        
-        const categoryName = category.name.toLowerCase().trim();
-        
-        // Check if category name matches any variation
-        return variations.some(variation => 
-          categoryName.includes(variation.toLowerCase()) || 
-          variation.toLowerCase().includes(categoryName)
+
+    Object.entries(categoryMappings).forEach(([displayName, variations]) => {
+      const found = allCategories.results.find(cat => {
+        if (!cat.name) return false;
+        const catName = cat.name.toLowerCase();
+        return variations.some(variation =>
+          catName.includes(variation.toLowerCase()) ||
+          variation.toLowerCase().includes(catName)
         );
       });
 
-      if (foundCategory) {
+      if (found) {
         matches.push({
-          staticName,
-          category: foundCategory
+          displayName,
+          id: found.id,
         });
       }
     });
@@ -56,34 +52,38 @@ const Footer = () => {
     return matches;
   }, [allCategories, categoryMappings]);
 
-  // Render category links dynamically
+  // Step 2: Generate links
   const renderCategoryLinks = () => {
-    // If we have matched categories from API, use them
+    if (isLoading) return <li>Loading categories...</li>;
+    if (isError) return <li>Failed to load categories</li>;
+
+    // If found matches, show them dynamically
     if (matchedCategories.length > 0) {
-      return matchedCategories.map(({ staticName, category }) => (
-        <li key={category.id}>
-          <Link 
-            to={`/filter?category=${category.id}`} 
+      return matchedCategories.map(({ displayName, id }) => (
+        <li key={id}>
+          <Link
+            to={`/filter?category=${id}`}
             className="hover:text-white block w-full"
           >
-            {staticName}
+            {displayName}
           </Link>
         </li>
- ));
+      ));
     }
 
-    // Fallback to static categories if no API matches found
+    // Fallback static categories
     return (
       <>
-        <li><Link to="/filter?category=living-room" className="hover:text-white">Living Room</Link></li>
-        <li><Link to="/filter?category=bedroom" className="hover:text-white">Bedroom</Link></li>
-        <li><Link to="/filter?category=dining-room" className="hover:text-white">Dining Room</Link></li>
-        <li><Link to="/filter?category=office-room" className="hover:text-white">Office Room</Link></li>
-        <li><Link to="/filter?category=kitchen" className="hover:text-white">Kitchen</Link></li>
+        <li><Link to="/filter?category=11" className="hover:text-white">Living Room</Link></li>
+        <li><Link to="/filter?category=2" className="hover:text-white">Bedroom</Link></li>
+        <li><Link to="/filter?category=3" className="hover:text-white">Dining Room</Link></li>
+        <li><Link to="/filter?category=4" className="hover:text-white">Office Room</Link></li>
+        <li><Link to="/filter?category=5" className="hover:text-white">Kitchen</Link></li>
       </>
     );
   };
 
+  // Step 3: Render footer
   return (
     <footer className="bg-black text-white px-6 py-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -126,8 +126,8 @@ const Footer = () => {
           <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
             <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-white">Track Order</li>
             <li><Link to="/return" className="hover:text-white">Return Request</Link></li>
-            <li className='hover:cursor-pointer'>
-              <div onClick={() => handelClick()} className="hover:text-white">Be a Vendor</div>
+            <li className="hover:cursor-pointer">
+              <div onClick={handelClick} className="hover:text-white">Be a Vendor</div>
             </li>
             <li><Link to="/return-policy" className="hover:text-white">Return Policy</Link></li>
           </ul>
@@ -145,10 +145,8 @@ const Footer = () => {
       {/* Bottom Footer */}
       <div className="border-t border-gray-700 mt-10 pt-6 text-sm text-gray-500 flex flex-col md:flex-row justify-between items-center">
         <p>© {new Date().getFullYear()} WIROKO. All rights reserved.</p>
-        <div className='flex items-center gap-6'>
-          <Link to="/privacy" className="mt-2 md:mt-0 hover:text-white">
-            Privacy Policy
-          </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/privacy" className="mt-2 md:mt-0 hover:text-white">Privacy Policy</Link>
           <Link to="/terms&conditions" className="hover:text-white">Terms & Conditions</Link>
         </div>
       </div>
