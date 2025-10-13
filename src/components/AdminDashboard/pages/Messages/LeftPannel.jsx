@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, Badge, Tag } from "antd";
 import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/dashboardApis";
-
 import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
 
-const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargetedConvo, messages }) => {
-  const { data = [], refetch } = useGetAllConversationsidQuery();
+const LeftPannel = ({ 
+  setSelectedConversation, 
+  selectedConversation, 
+  setTargetedConvo, 
+  messages,
+  sentMessages 
+}) => {
+  const { data = [], refetch, isLoading } = useGetAllConversationsidQuery();
   const user = JSON.parse(localStorage.getItem("customerId"));
   
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
@@ -17,6 +22,8 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
   // Track unreplied conversations
   const [unrepliedConvos, setUnrepliedConvos] = useState({});
 
+  // Store previous data to detect new conversations
+  const [previousData, setPreviousData] = useState([]);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -27,15 +34,19 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
           data.map(convo => getMessagesById(convo.id).unwrap())
         );
 
-
-        // Create unreplied conversations map
+        // Create unreplied conversations map based on LAST MESSAGE
         const unrepliedMap = {};
         conversationById.forEach((convo, index) => {
           const conversationId = data[index]?.id;
-          if (conversationId) {
-            // Check if admin (sender ID 3) has NOT replied
-            const isUnreplied = !convo.results.some(msg => msg.sender === 3);
+          if (conversationId && convo.results && convo.results.length > 0) {
+            // Get the last message in the conversation
+            const lastMessage = convo.results[convo.results.length - 1];
+            // Check if the last message was NOT sent by admin (ID 1)
+            const isUnreplied = lastMessage.sender !== 1;
             unrepliedMap[conversationId] = isUnreplied;
+          } else {
+            // If no messages, consider it as unreplied
+            unrepliedMap[conversationId] = true;
           }
         });
 
@@ -48,9 +59,30 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
     fetchConvo();
   }, [data]);
 
-  // filter out current user
+  // Filter out current user
   const filtteredData = data?.filter((item) => item.id !== user.user.id) || [];
 
+  // Detect new conversations when data changes
+  useEffect(() => {
+    if (data.length > previousData.length) {
+      // New conversation detected
+      const newConversations = data.filter(conv => 
+        !previousData.some(prevConv => prevConv.id === conv.id)
+      );
+      
+      if (newConversations.length > 0) {
+        newConversations.forEach(conv => {
+          setNewUsers(prev => ({ ...prev, [conv.id]: true }));
+          setUnrepliedConvos(prev => ({ ...prev, [conv.id]: true }));
+        });
+      }
+    }
+    
+    // Update previous data
+    setPreviousData(data);
+  }, [data, previousData]);
+
+  // Handle new messages and detect new users
   useEffect(() => {
     if (!messages || messages?.length === 0) return;
 
@@ -58,107 +90,144 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
     const senderId = latestMsg?.data?.sender;
     if (!senderId) return;
 
-    const existingIds = new Set(filtteredData?.map((c) => c.id));
-
-    if (!existingIds?.has(senderId)) {
-      setNewUsers((prev) => ({ ...prev, [senderId]: true }));
-      setUnrepliedConvos((prev) => ({ ...prev, [senderId]: true })); // Mark as unreplied for new users
+    // Check if this sender exists in our conversations
+    const senderExists = filtteredData.some(conv => conv.id === senderId);
+    
+    if (!senderExists) {
+      // New user - trigger refetch to get updated conversation list
       refetch();
     } else {
+      // Existing user - mark as unread if not selected
       if (senderId !== selectedConversation) {
         setUnread((prev) => ({ ...prev, [senderId]: true }));
-        // If admin hasn't replied yet, keep it as unreplied
-        if (!unrepliedConvos[senderId]) {
-          setUnrepliedConvos((prev) => ({ ...prev, [senderId]: true }));
-        }
+      }
+      
+      // Update unreplied status based on last message sender
+      // If the new message is NOT from admin (ID 1), mark as unreplied
+      if (latestMsg?.data?.sender !== 1) {
+        setUnrepliedConvos(prev => ({ ...prev, [senderId]: true }));
+      } else {
+        // If the new message is from admin, mark as replied
+        setUnrepliedConvos(prev => ({ ...prev, [senderId]: false }));
       }
     }
-  }, [messages, refetch]);
-
-  const sortedData = [...filtteredData]?.sort((a, b) => {
-    // Priority 1: New users
-    const aNew = newUsers[a.id] ? 1 : 0;
-    const bNew = newUsers[b.id] ? 1 : 0;
-    if (aNew !== bNew) return bNew - aNew;
-
-    // Priority 2: Unreplied conversations
-    const aUnreplied = unrepliedConvos[a.id] ? 1 : 0;
-    const bUnreplied = unrepliedConvos[b.id] ? 1 : 0;
-    if (aUnreplied !== bUnreplied) return bUnreplied - aUnreplied;
-
-    // Priority 3: Unread messages
-    const aUnread = unread[a.id] ? 1 : 0;
-    const bUnread = unread[b.id] ? 1 : 0;
-    return bUnread - aUnread;
-  }) || [];
+  }, [messages, refetch, selectedConversation, filtteredData]);
 
 
+  useEffect(() => {
+    if (!sentMessages || sentMessages.length === 0) return;
+
+    const latestSentMsg = sentMessages[sentMessages.length - 1];
+    
+
+    if (latestSentMsg?.sender === 1 && selectedConversation) {
+
+      setUnrepliedConvos(prev => ({
+        ...prev,
+        [selectedConversation]: false
+      }));
+      
+
+      setUnread(prev => {
+        const updated = { ...prev };
+        delete updated[selectedConversation];
+        return updated;
+      });
+    }
+  }, [sentMessages, selectedConversation]);
+
+ 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 5000); 
+
+    return () => clearInterval(interval);
+  }, [refetch]);
+
+  
+  const displayData = filtteredData || [];
+
+  // Generate initials from name for avatar
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const nameToColor = (name) => {
+    const colors = [
+      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 
+      'bg-pink-500', 'bg-orange-500', 'bg-indigo-500',
+      'bg-teal-500', 'bg-cyan-500', 'bg-amber-500'
+    ];
+    const index = name.length % colors.length;
+    return colors[index];
+  };
+
+  const handleConversationClick = (conversation) => {
+    setSelectedConversation(conversation.id);
+    setTargetedConvo({
+      name: conversation.name,
+      image: conversation.user_image,
+      email: conversation.email,
+    });
+
+    setUnread((prev) => {
+      const updated = { ...prev };
+      delete updated[conversation.id];
+      return updated;
+    });
+    setNewUsers((prev) => {
+      const updated = { ...prev };
+      delete updated[conversation.id];
+      return updated;
+    });
+    
+
+    setUnrepliedConvos(prev => ({
+      ...prev,
+      [conversation.id]: false
+    }));
+  };
 
   return (
     <div className="p-4 space-y-4">
       <div className="space-y-3">
+        {/* Refresh indicator */}
+        {isLoading && (
+          <div className="text-center py-2">
+            <div className="inline-flex items-center gap-2 text-sm text-blue-600">
+              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Updating conversations...
+            </div>
+          </div>
+        )}
+        
         <div className="overflow-y-auto max-h-[75vh] pr-2 custom-scrollbar">
-          {sortedData.map((conversation) => {
+          {displayData.map((conversation) => {
             const isUnread = unread[conversation.id];
             const isNewUser = newUsers[conversation.id];
             const isUnreplied = unrepliedConvos[conversation.id];
             const isSelected = selectedConversation === conversation.id;
-            
-            // Generate initials from name for avatar
-            const getInitials = (name) => {
-              return name
-                .split(' ')
-                .map(word => word[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2);
-            };
-            
-            // Generate a color based on the name for consistent avatar background
-            const nameToColor = (name) => {
-              const colors = [
-                'bg-blue-500', 'bg-green-500', 'bg-purple-500', 
-                'bg-pink-500', 'bg-orange-500', 'bg-indigo-500',
-                'bg-teal-500', 'bg-cyan-500', 'bg-amber-500'
-              ];
-              const index = name.length % colors.length;
-              return colors[index];
-            };
 
             return (
               <div
                 key={conversation.id}
                 className={`p-4 rounded-xl transition-all mt-2 duration-300 cursor-pointer border-2 ${
                   isSelected
-                    ? "bg-blue-50 border-blue-400 shadow-lg transform scale-[1.02]"
+                    ? "bg-blue-50 border-blue-400 shadow-lg"
                     : isUnreplied 
-                    ? "bg-red-50 border-red-200" // Highlight unreplied conversations
+                    ? "bg-red-50 border-red-200"
                     : "bg-white border-gray-100 hover:border-blue-200 hover:shadow-md"
                 }`}
-                onClick={() => {
-                  setSelectedConversation(conversation.id);
-                  setTargetedConvo({
-                    name: conversation.name,
-                    image: conversation.user_image,
-                    email: conversation.email,
-                  });
-
-                  setUnread((prev) => {
-                    const updated = { ...prev };
-                    delete updated[conversation.id];
-                    return updated;
-                  });
-                  setNewUsers((prev) => {
-                    const updated = { ...prev };
-                    delete updated[conversation.id];
-                    return updated;
-                  });
-                  // Mark as replied when admin selects the conversation
-                  setUnrepliedConvos((prev) => ({
-                    ...prev,
-                    [conversation.id]: false
-                  }));
-                }}
+                onClick={() => handleConversationClick(conversation)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -167,15 +236,6 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
                       <div className={`flex items-center justify-center h-12 w-12 rounded-full ${nameToColor(conversation.name)} text-white font-semibold text-lg`}>
                         {getInitials(conversation.name)}
                       </div>
-                      
-                      {/* Status Indicators */}
-                      {isNewUser && (
-                        <span className="absolute -top-3 -right-[18rem]">
-                          <div className="bg-gradient-to-r w-20 text-center from-blue-500 to-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg">
-                            New User
-                          </div>
-                        </span>
-                      )}
                     </div>
 
                     {/* User Info */}
@@ -186,13 +246,13 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
                         </span>
                         
                         {/* Badge for unreplied conversations */}
-                        {isUnreplied && (
+                        {isUnreplied && !isSelected && (
                           <span className="bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded-full">
                             Needs Reply
                           </span>
                         )}
                         
-                        {/* Badge for new messages (only if not unreplied to avoid duplication) */}
+                        {/* Badge for new messages */}
                         {isUnread && !isNewUser && !isUnreplied && (
                           <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full">
                             New Message
@@ -257,7 +317,7 @@ const LeftPannel = ({ setSelectedConversation, selectedConversation, setTargeted
                 No conversations yet
               </h3>
               <p className="text-gray-400 text-sm mb-4">
-                Start a conversation to connect with others
+                New conversations will appear here automatically
               </p>
             </div>
           )}

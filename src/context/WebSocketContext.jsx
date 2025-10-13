@@ -17,33 +17,22 @@ export const WebSocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [incoming, setIncoming] = useState(false);
   const [clientmsg, setClientmsg] = useState({});
- // inside WebSocketProvider
-const [userId, setUserId] = useState(() => {
-  const customerData = localStorage.getItem("customerId");
-  return customerData ? JSON.parse(customerData)?.user?.id : null;
-});
- 
+  
+  // inside WebSocketProvider
+  const [userId, setUserId] = useState(() => {
+    const customerData = localStorage.getItem("customerId");
+    return customerData ? JSON.parse(customerData)?.user?.id : null;
+  });
+
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
-  const [demosocket,setDemosocket] = useState(null)
+  const [demosocket, setDemosocket] = useState(null);
   const isConnectingRef = useRef(false);
   const reconnectAttemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 5;
 
-
-//   if (!userId) {
-//   console.error("❌ Cannot send message - userId not set yet");
-//   return;
-// }
-
-
   // Message queue for when connection is down
   const messageQueueRef = useRef([]);
-
-  // Store messages in localStorage for persistence
-
-
-
 
   const connectWebSocket = useCallback(() => {
     if (isConnectingRef.current) {
@@ -54,7 +43,6 @@ const [userId, setUserId] = useState(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
       console.log("❌ No token available for WebSocket connection");
-      // Try again in 2 seconds if no token
       setTimeout(connectWebSocket, 2000);
       return;
     }
@@ -72,21 +60,21 @@ const [userId, setUserId] = useState(() => {
 
     try {
       const socket = new WebSocket(wsUrl);
-      setDemosocket(socket)
+      setDemosocket(socket);
       socketRef.current = socket;
 
       socket.onopen = () => {
         console.log("✅ WebSocket connected successfully");
         setConnected(true);
         isConnectingRef.current = false;
-        reconnectAttemptsRef.current = 0; // Reset on successful connection
+        reconnectAttemptsRef.current = 0;
 
-         if (userId) {
-    socket.send(JSON.stringify({
-      type: "identify",
-      userId: userId
-    }));
-  }
+        if (userId) {
+          socket.send(JSON.stringify({
+            type: "identify",
+            userId: userId
+          }));
+        }
         
         // Send any queued messages
         if (messageQueueRef.current.length > 0) {
@@ -100,90 +88,73 @@ const [userId, setUserId] = useState(() => {
         }
       };
 
-// In your WebSocketContext.jsx, replace the onmessage handler:
-
-socket.onmessage = (event) => {
-  try {
-    const data = JSON.parse(event.data);
-    console.log('📩 Received WebSocket message:', data);
-    setClientmsg(data);
-    if(data.error === 'user_id and message required'){
-      setIncoming(false);
-    }
-    else{
-      setIncoming(true);
-    }
-      
-    // Add to all messages for debugging
-    setAllMessages(prev => [...prev, data]);
-
-    setGlobalMessages((prev) => {
-      // Check if this is a server confirmation for an optimistic message
-      const isServerConfirmation = data.message_id && data.status === 'sent';
-      
-      if (isServerConfirmation) {
-        // Find and update the optimistic message with the real message_id
-        const updatedMessages = prev.map(msg => {
-          if (msg.tempId && msg.text === data.message && msg.status === 'pending') {
-            console.log('🔄 Updating optimistic message with server ID:', data.message_id);
-            return {
-              ...msg,
-              id: data.message_id,
-              tempId: null,
-              status: 'delivered',
-              data: {
-                ...msg.data,
-                ...data
-              }
-            };
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('📩 Received WebSocket message:', data);
+          
+          // Set clientmsg first
+          setClientmsg(data);
+          
+          // Handle different message types
+          if (data.error === 'user_id and message required') {
+            setIncoming(false);
+            console.log('⚠️ Server error - missing user_id or message');
+            return;
           }
-          return msg;
-        });
-        
-        // If we found and updated a message, return the updated array
-        if (updatedMessages.some((msg, index) => msg !== prev[index])) {
-          return updatedMessages;
+          
+          if (data.type === 'status' && data.status === 'connected') {
+            setIncoming(true);
+            console.log('✅ Connection confirmed by server');
+            return;
+          }
+          
+          // Only process actual chat messages
+          if (data.message && (data.sender || data.receiver)) {
+            setIncoming(true);
+            
+            setGlobalMessages((prev) => {
+              // Check for duplicates by message_id
+              const isDuplicate = data.message_id && prev.some((m) => 
+                m.data?.message_id === data.message_id
+              );
+              
+              if (isDuplicate) {
+                console.log('🔄 Duplicate message detected by message_id, skipping');
+                return prev;
+              }
+
+              // Check for duplicates by tempId
+              const isTempDuplicate = data.tempId && prev.some((m) => 
+                m.tempId === data.tempId
+              );
+              
+              if (isTempDuplicate) {
+                console.log('🔄 Duplicate message detected by tempId, skipping');
+                return prev;
+              }
+
+              // This is a new message - add it
+              console.log('💾 Adding new message to state:', data);
+              const newMessage = {
+                text: data.message,
+                sender: data.sender === userId ? "me" : data.sender,
+                data,
+                id: data.message_id || data.tempId || `msg-${Date.now()}-${Math.random()}`,
+                tempId: data.tempId || null,
+                timestamp: data.timestamp || Date.now(),
+                status: data.status || "delivered"
+              };
+
+              return [...prev, newMessage];
+            });
+          } else {
+            console.log('📨 Non-chat message received, skipping state update:', data);
+          }
+        } catch (err) {
+          console.error("📩 Failed parsing message:", err, event.data);
         }
-      }
-
-      // Check for duplicates by message_id (prevent actual duplicates)
-      const isDuplicate = data.message_id && prev.some((m) => 
-        m.data?.message_id === data.message_id
-      );
-      
-      if (isDuplicate) {
-        console.log('🔄 Duplicate message detected by message_id, skipping');
-        return prev;
-      }
-
-      // Check for duplicates by tempId (prevent double processing)
-      const isTempDuplicate = data.tempId && prev.some((m) => 
-        m.tempId === data.tempId
-      );
-      
-      if (isTempDuplicate) {
-        console.log('🔄 Duplicate message detected by tempId, skipping');
-        return prev;
-      }
-
-      // This is a new message - add it
-      console.log('💾 Adding new message to state:', data);
-      const newMessage = {
-        text: data.message,
-        sender: data.sender === userId ? "me" : data.sender,
-        data,
-        id: data.message_id || data.tempId || `msg-${Date.now()}-${Math.random()}`,
-        tempId: data.tempId || null,
-        timestamp: data.timestamp || Date.now(),
-        status: data.status || "delivered"
       };
-
-      return [...prev, newMessage];
-    });
-  } catch (err) {
-    console.error("📩 Failed parsing message:", err, event.data);
-  }
-};
 
       socket.onerror = (err) => {
         console.error("⚠️ WebSocket error:", err);
@@ -205,7 +176,7 @@ socket.onmessage = (event) => {
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           const baseDelay = 1000;
           const exponentialDelay = Math.min(baseDelay * Math.pow(2, reconnectAttemptsRef.current), 30000);
-          const jitter = Math.random() * 1000; // Add jitter to avoid thundering herd
+          const jitter = Math.random() * 1000;
           const delay = exponentialDelay + jitter;
           
           console.log(`🔄 Reconnecting in ${Math.round(delay/1000)} seconds...`);
@@ -220,15 +191,20 @@ socket.onmessage = (event) => {
       isConnectingRef.current = false;
       setTimeout(connectWebSocket, 5000);
     }
-  }, [userId]);
+  }, [userId]); // ✅ FIXED: Added userId dependency
 
   const sendMessage = useCallback((receiverId, message, tempId = `temp-${Date.now()}-${Math.random()}`) => {
+    if (!userId) {
+      console.error("❌ Cannot send message - userId not set yet");
+      return;
+    }
+
     const messageObj = { 
       user_id: receiverId, 
       message, 
       tempId,
       timestamp: Date.now(),
-      sender: userId // Include sender ID for verification
+      sender: userId
     };
 
     console.log('📤 Sending message:', messageObj);
@@ -248,21 +224,17 @@ socket.onmessage = (event) => {
     ]);
 
     if (socketRef.current?.readyState === WebSocket.OPEN && connected) {
-      // Send immediately if connected
       try {
         socketRef.current.send(JSON.stringify(messageObj));
         console.log('✅ Message sent via WebSocket');
       } catch (error) {
         console.error('❌ Error sending message:', error);
-        // Fall back to queueing
         messageQueueRef.current.push(messageObj);
       }
     } else {
-      // Queue message if not connected
       messageQueueRef.current.push(messageObj);
       console.log("📝 Message queued - WebSocket not connected");
       
-      // Try to reconnect if not already connecting
       if (!isConnectingRef.current) {
         connectWebSocket();
       }
@@ -287,8 +259,6 @@ socket.onmessage = (event) => {
     ));
   }, []);
 
-
-
   // Manual reconnect function
   const manualReconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -298,20 +268,24 @@ socket.onmessage = (event) => {
     connectWebSocket();
   }, [connectWebSocket]);
 
-  // Initialize connection when component mounts AND when userId changes
+  // ✅ FIXED: Single connection useEffect
   useEffect(() => {
-    if (userId) {
-      console.log('👤 User ID set, connecting WebSocket...');
+    // Only connect if we have a userId and aren't already connected/connecting
+    if (userId && !connected && !isConnectingRef.current) {
+      console.log('👤 User ID available, connecting WebSocket...');
       connectWebSocket();
     }
     
     return () => {
+      // Cleanup on unmount
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
-      // Don't close WebSocket on cleanup to maintain connection
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
     };
-  }, [connectWebSocket, userId]);
+  }, [userId]); // ✅ FIXED: Remove connected and connectWebSocket from dependencies
 
   // Debug: Log connection state changes
   useEffect(() => {
@@ -329,9 +303,9 @@ socket.onmessage = (event) => {
       setUserId,
       clearConversationMessages,
       updateMessageStatus,
-     incoming,
-     setIncoming,
-     clientmsg,
+      incoming,
+      setIncoming,
+      clientmsg,
       manualReconnect,
       reconnectAttempts: reconnectAttemptsRef.current
     }}>

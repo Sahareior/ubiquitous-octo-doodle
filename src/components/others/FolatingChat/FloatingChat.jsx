@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Avatar, Button, Select, Tabs, Tooltip } from 'antd';
 import { FaRobot, FaTimes, FaPaperPlane, FaHeadset, FaStore, FaUser } from 'react-icons/fa';
 
@@ -13,19 +12,44 @@ const { TabPane } = Tabs;
 
 const FloatingChat = ({ targetedId }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { 
+    globalMessages, 
+    sendMessage, 
+    connected, 
+    setUserId, 
+    setIncoming, 
+    incoming, 
+    clientmsg 
+  } = useWebSocketContext();
   
-  const { globalMessages, sendMessage, connected,setUserId,setIncoming,incoming,clientmsg } = useWebSocketContext();
-  const customerData = localStorage.getItem("customerId");
-  const customerId = customerData ? JSON.parse(customerData)?.user?.id : null;
+  const customerData = useMemo(() => localStorage.getItem("customerId"), []);
+  const customerId = useMemo(() => 
+    customerData ? JSON.parse(customerData)?.user?.id : null, 
+    [customerData]
+  );
+  
   const [newMessage, setNewMessage] = useState("");
-  const [activeReceiver, setActiveReceiver] = useState(targetedId ||1);
+  const [activeReceiver, setActiveReceiver] = useState(targetedId || 1);
   const [previousMessages, setPreviousMessages] = useState([]);
   
-  const { data: profileData, error, refetch } = useGetProfileQuery();
+  const { data: profileData } = useGetProfileQuery();
   const messagesEndRef = useRef(null);
   const [receivers, setReceivers] = useState(targetedId ? [targetedId] : []);
-   const customerPhoto = customerData ? JSON.parse(customerData)?.user?.profile_image : null;
+  
+  const customerPhoto = useMemo(() => 
+    customerData ? JSON.parse(customerData)?.user?.profile_image : null, 
+    [customerData]
+  );
+  
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
+
+  // Set userId only once when component mounts
+  useEffect(() => {
+    if (customerId) {
+      console.log('👤 Setting user ID in context:', customerId);
+      setUserId(customerId);
+    }
+  }, [customerId, setUserId]);
 
   // Add targetedId to receivers list when it changes
   useEffect(() => {
@@ -33,35 +57,34 @@ const FloatingChat = ({ targetedId }) => {
       setReceivers(prev => [...prev, targetedId]);
       setActiveReceiver(targetedId);
     }
-  }, [targetedId, receivers]);
+  }, [targetedId]); // Remove receivers from dependencies
 
-  setUserId(customerId)
-  // Fetch API messages when active receiver changes
+  // Fetch previous messages
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!activeReceiver) return;
+      if (!activeReceiver || !customerId) return;
       try {
         const res = await getMessagesById(activeReceiver).unwrap();
         setPreviousMessages(res.results || []);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to fetch messages:', err);
       }
     };
-    fetchMessages();
-  }, [activeReceiver, getMessagesById]);
-
-
-  console.log(clientmsg.receiver,'this is global mesaagae')
-
-  // Filter and merge WebSocket + API messages for the active receiver
-  const allMessages = useMemo(() => {
-    if (!activeReceiver) return [];
     
-    // Filter API messages for the active receiver
-    const apiMessages = previousMessages
+    if (isOpen) {
+      fetchMessages();
+    }
+  }, [activeReceiver, customerId, getMessagesById, isOpen]);
+
+  // Optimized message filtering
+  const allMessages = useMemo(() => {
+    if (!activeReceiver || !customerId) return [];
+
+    const apiMessages = (previousMessages || [])
       .filter(msg => 
-        (msg.sender === activeReceiver && msg.receiver === customerId) ||
-        (msg.receiver === activeReceiver && msg.sender === customerId)
+        msg && 
+        ((msg.sender === activeReceiver && msg.receiver === customerId) ||
+         (msg.receiver === activeReceiver && msg.sender === customerId))
       )
       .map(msg => ({
         id: msg.id || msg._id,
@@ -71,11 +94,11 @@ const FloatingChat = ({ targetedId }) => {
         timestamp: msg.timestamp,
         isFromApi: true
       }));
-    
-    // Filter WebSocket messages for the active receiver
-    const wsMessages = globalMessages
+
+    const wsMessages = (globalMessages || [])
       .filter(msg => 
-        msg.data && 
+        msg?.data && 
+        msg.data.message && // Only include messages with actual content
         ((msg.data.sender === activeReceiver && msg.data.receiver === customerId) ||
          (msg.data.receiver === activeReceiver && msg.data.sender === customerId))
       )
@@ -89,47 +112,60 @@ const FloatingChat = ({ targetedId }) => {
       }));
     
     // Merge and sort messages
-    return [...apiMessages, ...wsMessages]
+    const mergedMessages = [...apiMessages, ...wsMessages]
+      .filter(msg => msg.text && msg.text.trim()) // Filter out empty messages
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    console.log(`📨 Merged ${mergedMessages.length} messages for receiver ${activeReceiver}`);
+    return mergedMessages;
   }, [globalMessages, previousMessages, activeReceiver, customerId]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages]);
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [allMessages, isOpen]);
 
-  const handleSend = () => {
-    if (!newMessage.trim() || !connected || !activeReceiver) return;
+  const handleSend = useCallback(() => {
+    if (!newMessage.trim() || !connected || !activeReceiver || !customerId) {
+      console.log('❌ Cannot send message - missing requirements');
+      return;
+    }
+    
+    console.log(`📤 Sending message to ${activeReceiver}:`, newMessage);
     sendMessage(activeReceiver, newMessage);
     setNewMessage("");
-  };
+  }, [newMessage, connected, activeReceiver, customerId, sendMessage]);
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  };
+  }, [handleSend]);
 
-  const handleTabChange = (key) => {
+  const handleTabChange = useCallback((key) => {
     setActiveReceiver(key === "support" ? 1 : parseInt(key));
-  };
+  }, []);
 
-  const addNewChat = (receiverId) => {
+  const addNewChat = useCallback((receiverId) => {
     if (receiverId && !receivers.includes(receiverId)) {
       setReceivers(prev => [...prev, receiverId]);
       setActiveReceiver(receiverId);
     }
-  };
+  }, [receivers]);
 
+  const annomalyImage = "/image/ann.png";
+  const profileImage = profileData?.profile_image || annomalyImage;
 
-    
-       const annomalyImage = "/image/ann.png"
-
-const profileImage = profileData?.profile_image? profileData?.profile_image : annomalyImage;
-
-  
-console.log(profileData?.profile_image,'this is profile image')
+  console.log('🔧 Debug info:', {
+    customerId,
+    activeReceiver,
+    connected,
+    messageCount: allMessages.length,
+    hasClientMsg: !!clientmsg
+  });
 
   return (
     <>
