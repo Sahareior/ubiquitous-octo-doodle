@@ -21,7 +21,7 @@ export const WebSocketProvider = ({ children }) => {
   // inside WebSocketProvider
   const [userId, setUserId] = useState(() => {
     const customerData = localStorage.getItem("customerId");
-    return customerData ? JSON.parse(customerData)?.user?.id : null;
+    return customerData ? JSON.parse(customerData)?.user?.id : 1;
   });
 
   const socketRef = useRef(null);

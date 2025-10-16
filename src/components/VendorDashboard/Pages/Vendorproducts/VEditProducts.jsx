@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Button, Checkbox, Select, Switch, message } from "antd";
+import { Button, Checkbox, Select, Spin, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
+import imageCompression from 'browser-image-compression';
 
 import { useLocation } from "react-router-dom";
 import {  useGetCategoriesQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
@@ -60,9 +61,14 @@ const VEditProducts = () => {
 
   // // console.log(productData,'adadad')
 
+  const compressionOptions = {
+  maxSizeMB: 0.6, // Maximum size in MB
+  maxWidthOrHeight: 1920, // Maximum width/height
+  useWebWorker: true, // Use web worker for better performance
+  fileType: 'image/jpeg', // Output file type
+};
 
-
-  // 🔹 State for all form data
+  
   const [formData, setFormData] = useState({
     name: "",
     categories: [],
@@ -89,7 +95,7 @@ const VEditProducts = () => {
     images: []
   });
 
-  // Initialize form data when productData is available
+ 
 useEffect(() => {
   if (productData) {
     setFormData({
@@ -139,24 +145,58 @@ useEffect(() => {
 
 
 
-  const handleImageUpload = (files) => {
-    
- if (newImages.length + files.length > 5) {
-      Swal.fire({
-        icon: "warning",
-        title: "You can’t upload more than 5 newImages",
-        text: `You can only add ${5 - newImages.length} more image(s).`,
+const handleImageUpload = async (files) => {
+  if (newImages.length + files.length > 5) {
+    Swal.fire({
+      icon: "warning",
+      title: "You can't upload more than 5 images",
+      text: `You can only add ${5 - newImages.length} more image(s).`,
       confirmButtonColor: "#3085d6",
     });
     return;
   }
-    const uploadedImages = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      isNew: true
-    }));
-    setNewImages([...newImages, ...uploadedImages]);
-  };
+
+  setLoading(true);
+  
+  try {
+    const compressedImages = [];
+    
+    for (const file of files) {
+      // Compress each image
+      const compressedFile = await imageCompression(file, {
+        ...compressionOptions,
+        fileType: file.type, 
+      });
+      
+      
+      const finalFile = new File(
+        [compressedFile], 
+        file.name, 
+        { type: file.type } 
+      );
+      
+      const preview = URL.createObjectURL(compressedFile);
+      
+      compressedImages.push({
+        file: finalFile,
+        preview: preview,
+        isNew: true
+      });
+    }
+    
+    setNewImages([...newImages, ...compressedImages]);
+  } catch (error) {
+    console.error('Error compressing images:', error);
+    Swal.fire({
+      icon: "error",
+      title: "Compression Failed",
+      text: "Failed to compress images. Please try again.",
+      confirmButtonColor: "#d33",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
 const handleImageRemove = async (index, isNew, imageId) => {
   if (isNew) {
@@ -321,13 +361,17 @@ Object.keys(formData).forEach((key) => {
               htmlFor="dropzone-file"
               className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
             >
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+{
+  loading? <div> <div className="flex justify-center items-center">
+    <Spin />
+  </div></div>:               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-8 h-8 mb-3 text-gray-500" />
                 <p className="mb-2 text-sm text-gray-500">
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-gray-500">SVG, PNG, JPG or GIF (MAX. 5MB each)</p>
               </div>
+}
               <input
                 id="dropzone-file"
                 type="file"

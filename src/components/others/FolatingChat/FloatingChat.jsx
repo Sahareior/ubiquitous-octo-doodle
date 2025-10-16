@@ -46,7 +46,7 @@ const FloatingChat = ({ targetedId }) => {
   
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
   const location = useLocation();
-const isDetailsPage = location.pathname === "/details";
+  const isDetailsPage = location.pathname === "/details";
 
   // Set userId only once when component mounts
   useEffect(() => {
@@ -62,15 +62,27 @@ const isDetailsPage = location.pathname === "/details";
       setReceivers(prev => [...prev, targetedId]);
       setActiveReceiver(targetedId);
     }
-  }, [targetedId]); // Remove receivers from dependencies
+  }, [targetedId]);
 
-  // Fetch previous messages
+  // Reset messages when modal closes
   useEffect(() => {
+    if (!isOpen) {
+      setPreviousMessages([]);
+    }
+  }, [isOpen]);
+
+  // Fetch previous messages with cleanup
+  useEffect(() => {
+    let isMounted = true;
+    
     const fetchMessages = async () => {
-      if (!activeReceiver || !customerId) return;
+      if (!activeReceiver || !customerId || !isOpen) return;
+      
       try {
         const res = await getMessagesById(activeReceiver).unwrap();
-        setPreviousMessages(res.results || []);
+        if (isMounted) {
+          setPreviousMessages(res.results || []);
+        }
       } catch (err) {
         console.error('Failed to fetch messages:', err);
       }
@@ -79,46 +91,61 @@ const isDetailsPage = location.pathname === "/details";
     if (isOpen) {
       fetchMessages();
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [activeReceiver, customerId, getMessagesById, isOpen]);
 
-  // Optimized message filtering
+  // Optimized message filtering with duplicate prevention
   const allMessages = useMemo(() => {
     if (!activeReceiver || !customerId) return [];
+
+    const seenMessageIds = new Set();
 
     const apiMessages = (previousMessages || [])
       .filter(msg => 
         msg && 
         ((msg.sender === activeReceiver && msg.receiver === customerId) ||
-         (msg.receiver === activeReceiver && msg.sender === customerId))
+         (msg.receiver === activeReceiver && msg.sender === customerId)) &&
+        !seenMessageIds.has(msg.id || msg._id)
       )
-      .map(msg => ({
-        id: msg.id || msg._id,
-        sender: msg.sender,
-        receiver: msg.receiver,
-        text: msg.message,
-        timestamp: msg.timestamp,
-        isFromApi: true
-      }));
+      .map(msg => {
+        seenMessageIds.add(msg.id || msg._id);
+        return {
+          id: msg.id || msg._id,
+          sender: msg.sender,
+          receiver: msg.receiver,
+          text: msg.message,
+          timestamp: msg.timestamp,
+          isFromApi: true
+        };
+      });
 
     const wsMessages = (globalMessages || [])
       .filter(msg => 
         msg?.data && 
-        msg.data.message && // Only include messages with actual content
+        msg.data.message &&
         ((msg.data.sender === activeReceiver && msg.data.receiver === customerId) ||
-         (msg.data.receiver === activeReceiver && msg.data.sender === customerId))
+         (msg.data.receiver === activeReceiver && msg.data.sender === customerId)) &&
+        !seenMessageIds.has(msg.id || `ws-${msg.data.timestamp}`)
       )
-      .map(msg => ({
-        id: msg.id || Date.now(),
-        sender: msg.data.sender,
-        receiver: msg.data.receiver,
-        text: msg.data.message,
-        timestamp: msg.data.timestamp,
-        isFromApi: false
-      }));
+      .map(msg => {
+        const messageId = msg.id || `ws-${msg.data.timestamp}`;
+        seenMessageIds.add(messageId);
+        return {
+          id: messageId,
+          sender: msg.data.sender,
+          receiver: msg.data.receiver,
+          text: msg.data.message,
+          timestamp: msg.data.timestamp,
+          isFromApi: false
+        };
+      });
     
     // Merge and sort messages
     const mergedMessages = [...apiMessages, ...wsMessages]
-      .filter(msg => msg.text && msg.text.trim()) // Filter out empty messages
+      .filter(msg => msg.text && msg.text.trim())
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
     console.log(`📨 Merged ${mergedMessages.length} messages for receiver ${activeReceiver}`);
@@ -171,6 +198,7 @@ const isDetailsPage = location.pathname === "/details";
     messageCount: allMessages.length,
     hasClientMsg: !!clientmsg
   });
+
 
   return (
     <>

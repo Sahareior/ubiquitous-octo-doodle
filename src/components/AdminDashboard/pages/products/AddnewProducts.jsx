@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button, Checkbox, Select, Switch, message } from "antd";
+import { Button, Checkbox, Select, Spin, Switch, message } from "antd";
+import imageCompression from 'browser-image-compression';
 import { Upload, X } from "lucide-react";
 
 import Swal from "sweetalert2";
@@ -56,6 +57,13 @@ const AddnewProducts = () => {
   const {data:ada,refetch:demoRefetch} = useGetAllProductsQuery()
   const [vendorProductCreate] = useVendorProductCreateMutation()
   const { sendNotification } = useNotificationSocket();
+
+  const compressionOptions = {
+  maxSizeMB: 0.6, // Maximum size in MB
+  maxWidthOrHeight: 1920, // Maximum width/height
+  useWebWorker: true, // Use web worker for better performance
+  fileType: 'image/jpeg', // Output file type
+};
   // 🔹 State for all form data
 const [formData, setFormData] = useState({
   name: "",
@@ -92,24 +100,60 @@ const [formData, setFormData] = useState({
 });
 
 
-  const handleImageUpload = (files) => {
-
- if (images.length + files.length > 5) {
-      Swal.fire({
-        icon: "warning",
-        title: "You can’t upload more than 5 images",
-        text: `You can only add ${5 - images.length} more image(s).`,
+const handleImageUpload = async (files) => {
+  if (images.length + files.length > 5) {
+    Swal.fire({
+      icon: "warning",
+      title: "You can't upload more than 5 images",
+      text: `You can only add ${5 - images.length} more image(s).`,
       confirmButtonColor: "#3085d6",
     });
     return;
   }
+
+  setLoading(true);
+  
+  try {
+    const compressedImages = [];
     
-    const newImages = files.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-    setImages([...images, ...newImages]);
-  };
+    for (const file of files) {
+      // Get file extension from original file
+      const fileExtension = file.name.split('.').pop();
+      const fileNameWithoutExt = file.name.slice(0, file.name.lastIndexOf('.'));
+      
+      // Compress each image
+      const compressedFile = await imageCompression(file, compressionOptions);
+      
+      // Create a new File object with proper name and extension
+      const compressedFileWithName = new File(
+        [compressedFile], 
+        `${fileNameWithoutExt}_compressed.${fileExtension}`, 
+        { type: compressedFile.type }
+      );
+      
+      // Create object URL for preview
+      const preview = URL.createObjectURL(compressedFile);
+      
+      compressedImages.push({
+        file: compressedFileWithName, // Use the properly named file
+        preview: preview,
+        originalName: file.name
+      });
+    }
+    
+    setImages([...images, ...compressedImages]);
+  } catch (error) {
+    console.error('Error compressing images:', error);
+    Swal.fire({
+      icon: "error",
+      title: "Compression Failed",
+      text: "Failed to compress images. Please try again.",
+      confirmButtonColor: "#d33",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleImageRemove = (index) => {
     const newImages = [...images];
@@ -346,26 +390,32 @@ const handleSubmit = async () => {
             </label>
           </div>
 
-          {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              {images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={image.preview}
-                    alt={`Preview ${index + 1}`}
-                    className="h-32 w-full object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleImageRemove(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+           {loading ? (
+  <div className="flex justify-center items-center">
+    <Spin />
+  </div>
+) : (
+  images.length > 0 && (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+      {images.map((image, index) => (
+        <div key={index} className="relative group">
+          <img
+            src={image.preview}
+            alt={`Preview ${index + 1}`}
+            className="h-32 w-full object-cover rounded-lg"
+          />
+          <button
+            type="button"
+            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => handleImageRemove(index)}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+)}
         </div>
       </Section>
 

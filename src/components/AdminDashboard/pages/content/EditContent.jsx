@@ -2,15 +2,25 @@ import { useState, useRef, useEffect } from 'react';
 import { useFormik } from 'formik';
 import { FaCloudUploadAlt, FaTrashAlt, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { useBannerUploadMutation, useDeleteBannerMutation, useGetAllBannersQuery, useUpdateBannerMutation } from '../../../../redux/slices/Apis/dashboardApis';
+import imageCompression from 'browser-image-compression';
 
 const EditContent = ({ bannerData }) => {
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [editingBanner, setEditingBanner] = useState(null);
   const [bannerUpload] = useBannerUploadMutation();
- const [updateBanner] = useUpdateBannerMutation()
+  const [updateBanner] = useUpdateBannerMutation();
   const { data: banners, refetch } = useGetAllBannersQuery();
   const [deleteBanner] = useDeleteBannerMutation();
+  const [isCompressing, setIsCompressing] = useState(false); // New state for compression loading
+
+  // Compression options
+  const compressionOptions = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+    fileType: 'image/jpeg',
+  };
 
   // Initialize form with bannerData if provided (for editing)
   const formik = useFormik({
@@ -51,8 +61,6 @@ const EditContent = ({ bannerData }) => {
           res = await bannerUpload(formData);
         }
         
-        // console.log(res);
-        
         if (res.data || res.error === undefined) {
           // Reset form after successful submission
           formik.resetForm();
@@ -86,28 +94,52 @@ const EditContent = ({ bannerData }) => {
     }
   }, [editingBanner]);
 
-  // Handle file selection
-  const handleFileSelect = (event) => {
+  // Handle file selection with compression
+  const handleFileSelect = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    try {
+      setIsCompressing(true); // Start loading
       
-      const objectUrl = URL.createObjectURL(file);
+      // Compress the image
+      const compressedFile = await imageCompression(file, {
+        ...compressionOptions,
+        fileType: file.type, // Use original file type
+      });
+
+      // Create a new File object with original name
+      const finalFile = new File(
+        [compressedFile], 
+        file.name, // Keep original filename
+        { type: file.type } // Keep original type
+      );
+
+      const objectUrl = URL.createObjectURL(compressedFile);
       setPreviewUrl(objectUrl);
-      formik.setFieldValue('image', file);
+      formik.setFieldValue('image', finalFile);
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      alert('Failed to compress image. Please try again.');
+    } finally {
+      setIsCompressing(false); // End loading
     }
   };
 
   // Trigger file input click
   const handleUploadClick = () => {
-    fileInputRef.current.click();
+    if (!isCompressing) {
+      fileInputRef.current.click();
+    }
   };
 
-  // Handle drag and drop
-  const handleDrop = (e) => {
+  // Handle drag and drop with compression
+  const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -117,11 +149,33 @@ const EditContent = ({ bannerData }) => {
         alert('Please drop an image file');
         return;
       }
-      
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-      formik.setFieldValue('image', file);
-      e.dataTransfer.clearData();
+
+      try {
+        setIsCompressing(true); // Start loading
+        
+        // Compress the dropped image
+        const compressedFile = await imageCompression(file, {
+          ...compressionOptions,
+          fileType: file.type,
+        });
+
+        // Create a new File object with original name
+        const finalFile = new File(
+          [compressedFile], 
+          file.name,
+          { type: file.type }
+        );
+
+        const objectUrl = URL.createObjectURL(compressedFile);
+        setPreviewUrl(objectUrl);
+        formik.setFieldValue('image', finalFile);
+        e.dataTransfer.clearData();
+      } catch (error) {
+        console.error('Error compressing dropped image:', error);
+        alert('Failed to compress image. Please try again.');
+      } finally {
+        setIsCompressing(false); // End loading
+      }
     }
   };
 
@@ -165,7 +219,10 @@ const EditContent = ({ bannerData }) => {
         <button 
           type="button"
           onClick={formik.handleSubmit}
-          className="bg-[#CBA135] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          disabled={isCompressing}
+          className={`bg-[#CBA135] hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 ${
+            isCompressing ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           <FaSave /> {editingBanner ? 'Update Banner' : 'Save Changes'}
         </button>
@@ -183,7 +240,10 @@ const EditContent = ({ bannerData }) => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-sm text-blue-500 hover:text-blue-700"
+                disabled={isCompressing}
+                className={`text-sm text-blue-500 hover:text-blue-700 ${
+                  isCompressing ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 + Create New Banner
               </button>
@@ -192,10 +252,16 @@ const EditContent = ({ bannerData }) => {
 
           {/* Upload Area */}
           <div 
-            className="border-2 border-dashed bg-[#CBA1351A] border-yellow-400 rounded-lg p-12 text-center text-sm text-gray-600 cursor-pointer"
+            className={`border-2 border-dashed bg-[#CBA1351A] rounded-lg p-12 text-center text-sm text-gray-600 transition-all ${
+              isCompressing 
+                ? 'border-blue-500 bg-blue-50 cursor-not-allowed' 
+                : previewUrl 
+                  ? 'border-green-500 cursor-pointer' 
+                  : 'border-yellow-400 hover:border-yellow-500 cursor-pointer'
+            }`}
             onClick={handleUploadClick}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
+            onDrop={isCompressing ? undefined : handleDrop}
+            onDragOver={isCompressing ? undefined : handleDragOver}
           >
             <input
               type="file"
@@ -203,9 +269,16 @@ const EditContent = ({ bannerData }) => {
               onChange={handleFileSelect}
               accept="image/*"
               className="hidden"
+              disabled={isCompressing}
             />
             
-            {previewUrl ? (
+            {isCompressing ? (
+              <div className="flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                <p className="text-blue-600 font-medium">Compressing image...</p>
+                <p className="text-sm text-gray-500 mt-1">Please wait</p>
+              </div>
+            ) : previewUrl ? (
               <div className="relative">
                 <img 
                   src={previewUrl} 
@@ -244,9 +317,12 @@ const EditContent = ({ bannerData }) => {
               type="text"
               name="bannerTitle"
               placeholder="Enter banner title"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className={`w-full border border-gray-300 rounded-md px-3 py-2 ${
+                isCompressing ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
               value={formik.values.bannerTitle}
               onChange={formik.handleChange}
+              disabled={isCompressing}
             />
           </div>
           
@@ -256,9 +332,12 @@ const EditContent = ({ bannerData }) => {
               type="text"
               name="subheading"
               placeholder="Enter subheading"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className={`w-full border border-gray-300 rounded-md px-3 py-2 ${
+                isCompressing ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
               value={formik.values.subheading}
               onChange={formik.handleChange}
+              disabled={isCompressing}
             />
           </div>
           
@@ -268,20 +347,26 @@ const EditContent = ({ bannerData }) => {
               type="text"
               name="ctaLink"
               placeholder="https://example.com"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className={`w-full border border-gray-300 rounded-md px-3 py-2 ${
+                isCompressing ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
               value={formik.values.ctaLink}
               onChange={formik.handleChange}
+              disabled={isCompressing}
             />
           </div>
 
           {/* Show Banner Toggle */}
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-[16px]">
+            <label className={`flex items-center gap-2 text-[16px] ${
+              isCompressing ? 'opacity-50 cursor-not-allowed' : ''
+            }`}>
               <input
                 type="checkbox"
                 name="showBanner"
                 checked={formik.values.showBanner}
                 onChange={formik.handleChange}
+                disabled={isCompressing}
               />
               Show Banner
             </label>
@@ -292,7 +377,12 @@ const EditContent = ({ bannerData }) => {
         <div className="bg-white p-6 rounded-xl shadow">
           <h3 className="text-sm font-semibold mb-3">Preview</h3>
           <div className="space-y-4">
-            {previewUrl ? (
+            {isCompressing ? (
+              <div className="flex flex-col items-center justify-center h-48 bg-gray-100 rounded-md">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                <p className="text-blue-600 text-sm">Compressing image...</p>
+              </div>
+            ) : previewUrl ? (
               <div className="relative">
                 <img 
                   src={previewUrl} 
@@ -337,13 +427,17 @@ const EditContent = ({ bannerData }) => {
               </div>
               <div className="flex gap-3 text-gray-600">
                 <FaEdit 
-                  className="cursor-pointer text-[#CBA135] hover:text-blue-500" 
-                  onClick={() => setEditingBanner(banner)}
+                  className={`cursor-pointer text-[#CBA135] hover:text-blue-500 ${
+                    isCompressing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  onClick={() => !isCompressing && setEditingBanner(banner)}
                 />
                 <FaTrashAlt 
                   size={16} 
-                  className="cursor-pointer text-[#EF4444] hover:text-red-500" 
-                  onClick={() => handleDelete(banner.id)}
+                  className={`cursor-pointer text-[#EF4444] hover:text-red-500 ${
+                    isCompressing ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  onClick={() => !isCompressing && handleDelete(banner.id)}
                 />
               </div>
             </div>

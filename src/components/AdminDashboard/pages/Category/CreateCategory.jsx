@@ -4,6 +4,7 @@ import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, PlusOutlined } from "@
 import { useNavigate } from "react-router-dom";
 import {  usePostCategoriesMutation } from "../../../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
+ import imageCompression from "browser-image-compression";
 import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
 const { Title, Text } = Typography;
@@ -71,19 +72,53 @@ const handleSubmit = async (values) => {
       reader.onerror = (error) => reject(error);
     });
 
-  const handleBeforeUpload = async (file) => {
-    const isImage = file.type.startsWith("image/");
-    if (!isImage) {
-      message.error("You can only upload image files!");
-      return Upload.LIST_IGNORE;
-    }
+const handleBeforeUpload = async (file) => {
+  const isImage = file.type.startsWith("image/");
+  if (!isImage) {
+    message.error("You can only upload image files!");
+    return Upload.LIST_IGNORE;
+  }
 
-    setFile(file);
-    const preview = await getBase64(file);
+  try {
+    // Compression options
+    const options = {
+      maxSizeMB: 1, // Maximum file size in MB
+      maxWidthOrHeight: 1024, // Maximum width or height
+      useWebWorker: true, // Use web worker for better performance
+      fileType: "image/jpeg", // Output file type
+      initialQuality: 0.8, // Initial quality (0.8 = 80%)
+    };
+
+    // Compress the image
+    const compressedFile = await imageCompression(file, options);
+    
+    // Create a new File object with proper name and type
+    const finalFile = new File([compressedFile], file.name, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+
+    // Log compression results
+    console.log(
+      `Compressed from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(
+        compressedFile.size /
+        1024 /
+        1024
+      ).toFixed(2)}MB`
+    );
+
+    setFile(finalFile);
+    const preview = await getBase64(finalFile);
     setPreviewUrl(preview);
 
-    return false;
-  };
+  } catch (error) {
+    console.error("Compression error:", error);
+    message.error("Failed to compress image. Please try another image.");
+    return Upload.LIST_IGNORE;
+  }
+
+  return false;
+};
 
   return (
     <div

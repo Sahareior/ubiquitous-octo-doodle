@@ -4,6 +4,7 @@ import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, DeleteOutlined, PlusOu
 import { useParams, useNavigate } from "react-router-dom";
 import { useEditCategoryMutation } from "../../../../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
+import imageCompression from "browser-image-compression";
 import { useGetCategoriesQuery } from "../../../../../redux/slices/Apis/vendorsApi";
 
 const { Title, Text } = Typography;
@@ -15,9 +16,8 @@ const EditCategory = () => {
   const [editCategory] = useEditCategoryMutation();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState(null);
-  const [file, setFile] = useState(null); // Track the uploaded file
+  const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
 
   useEffect(() => {
     if (cateGoryData?.results) {
@@ -33,6 +33,63 @@ const EditCategory = () => {
     }
   }, [cateGoryData, id, form]);
 
+  const getBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+
+  const handleBeforeUpload = async (file) => {
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      message.error("You can only upload image files!");
+      return Upload.LIST_IGNORE;
+    }
+
+    try {
+      // Compression options
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+        fileType: "image/jpeg",
+        initialQuality: 0.8,
+      };
+
+      // Compress the image
+      const compressedFile = await imageCompression(file, options);
+      
+      // Create a new File object with proper name and type
+      const finalFile = new File([compressedFile], file.name, {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+
+      console.log(
+        `Compressed from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(
+          compressedFile.size /
+          1024 /
+          1024
+        ).toFixed(2)}MB`
+      );
+
+      setFile(finalFile);
+      const preview = await getBase64(finalFile);
+      setImageUrl(preview);
+      
+      message.success("Image compressed and ready!");
+
+    } catch (error) {
+      console.error("Compression error:", error);
+      message.error("Failed to compress image. Please try another image.");
+      return Upload.LIST_IGNORE;
+    }
+
+    return false;
+  };
+
   const handleSubmit = async (values) => {
     setIsSubmitting(true);
     try {
@@ -42,52 +99,24 @@ const EditCategory = () => {
       formData.append("description", values.description);
       
       if (file) {
-        formData.append("image", file); // Append the file if it exists
+        formData.append("image", file);
       }
 
       await editCategory({ id, data: formData }).unwrap();
-          Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: "Category Updated successfully 🎉",
-            confirmButtonColor: "#3085d6",
-          });
-    refetch();
-    navigate("/admin-dashboard/category");
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Category Updated successfully 🎉",
+        confirmButtonColor: "#3085d6",
+      });
+      refetch();
+      navigate("/admin-dashboard/category");
     } catch (error) {
       message.error("Failed to update category");
       console.error("Update error:", error);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleImageUpload = ({ file: uploadedFile }) => {
-    if (uploadedFile.originFileObj) {
-      const fileObj = uploadedFile.originFileObj;
-      setFile(fileObj); // Store the file object
-      setImageUrl(URL.createObjectURL(fileObj));
-    }
-  };
-
-  const uploadProps = {
-    beforeUpload: (file) => {
-      // Validate file type and size
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        message.error('You can only upload image files!');
-        return Upload.LIST_IGNORE;
-      }
-      const isLt5M = file.size / 1024 / 1024 < 5;
-      if (!isLt5M) {
-        message.error('Image must be smaller than 5MB!');
-        return Upload.LIST_IGNORE;
-      }
-      return true;
-    },
-    onChange: handleImageUpload,
-    maxCount: 1,
-    showUploadList: false,
   };
 
   const removeImage = () => {
@@ -105,7 +134,25 @@ const EditCategory = () => {
         fontFamily: '"Playfair Display", "Inter", serif',
       }}
     >
-
+      {/* Back Button */}
+      <Button
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e8e0d7",
+          borderRadius: "8px",
+          color: "#7a6a58",
+          marginBottom: "24px",
+          boxShadow: "0 2px 8px rgba(139, 108, 77, 0.08)",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          fontWeight: "500",
+        }}
+        icon={<ArrowLeftOutlined style={{ color: "#7a6a58" }} />}
+        onClick={() => navigate("/admin-dashboard/category")}
+      >
+        Back to Categories
+      </Button>
 
       {/* Main Card */}
       <Card
@@ -234,7 +281,10 @@ const EditCategory = () => {
                     Category Image
                   </h3>
                   <div style={{ marginBottom: "20px" }}>
-                    <Upload {...uploadProps}>
+                    <Upload 
+                      beforeUpload={handleBeforeUpload} 
+                      showUploadList={false}
+                    >
                       {imageUrl ? (
                         <div
                           style={{
@@ -364,6 +414,7 @@ const EditCategory = () => {
                       <li>Use high-quality product images</li>
                       <li>Recommended size: 800×800px</li>
                       <li>Show the category's best items</li>
+                      <li>Images are automatically compressed</li>
                     </ul>
                   </div>
                 </div>
