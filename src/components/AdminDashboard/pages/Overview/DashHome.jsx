@@ -13,14 +13,16 @@ import { FaCheck, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAdminOverViewQuery, useGetAllNotificationQuery, useGetTopVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import AdminSellsOverview from "./_subComponents/AdminSellsOverview";
+import { useTopCategoryQuery } from "../../../../redux/slices/apiSlice";
 
 
 const DashHome = () => {
   const {data} = useAdminOverViewQuery()
   const {data:notifications} = useGetAllNotificationQuery()
   const {data:vendors} = useGetTopVendorsQuery()
+  const {data:topCate} = useTopCategoryQuery()
 
-  console.log(vendors?.results,'this is vendors')
+  console.log(topCate,'this is vendors')
 
   // console.log(notifications,'notify')
 
@@ -166,11 +168,11 @@ const DashHome = () => {
           <div className="bg-white p-6 rounded-xl shadow-md">
             <div>
               <p className="text-lg font-semibold pb-2">Top Categories</p>
-              {[1, 2, 3].map((item) => (
+              {topCate?.top_categories?.map((item) => (
                 <div key={item} className="flex justify-between items-center py-2">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-green-500" />
-                    <p className="text-sm text-gray-700">Living Room</p>
+                    <p className="text-sm text-gray-700">{item?.category}</p>
                   </div>
                   <p className="text-sm text-gray-600 font-medium">34%</p>
                 </div>

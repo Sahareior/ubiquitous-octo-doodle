@@ -74,9 +74,9 @@ const CategoryCarousel = React.memo(({ categories, loading }) => {
           loadPrevNextAmount: 1, // Only preload adjacent slides
         }}
         breakpoints={{
-          380: { slidesPerView: 2, spaceBetween: 20 },
-          480: { slidesPerView: 2, spaceBetween: 20 },
-          640: { slidesPerView: 3, spaceBetween: 20 },
+          380: { slidesPerView: 1, spaceBetween: 20 },
+          480: { slidesPerView: 1, spaceBetween: 20 },
+          640: { slidesPerView: 1, spaceBetween: 20 },
           768: { slidesPerView: 3, spaceBetween: 25 },
           1024: { slidesPerView: 3, spaceBetween: 30 },
           1280: { slidesPerView: 3, spaceBetween: 30 },

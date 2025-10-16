@@ -50,6 +50,10 @@ vendorApprove: build.query({
   query: () => 'seller/applications/'
 }),
 
+topCategory: build.query({
+  query: ()=> '/top-sell-category-vendor/'
+}),
+
 sellerApprove: build.mutation({
   query: (id) => {
     return{
@@ -68,6 +72,7 @@ sellerApprove: build.mutation({
 export const {
 
   useCustomerSignupMutation,
+  useTopCategoryQuery,
   useCustomerLoginMutation,
   useGetCustomerProfileQuery,
   usePostSellerMutation,

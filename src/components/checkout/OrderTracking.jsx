@@ -9,6 +9,7 @@ import TrackingMap from './ToolComponents/TrackingMap';
 import { FiChevronDown } from 'react-icons/fi';
 import { MdEmail } from 'react-icons/md';
 import { useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const notificationIcons = [
   <TiMessages className="text-2xl text-[#CBA135]" />, // SMS
@@ -16,13 +17,59 @@ const notificationIcons = [
   <FaWhatsapp className="text-2xl text-[#CBA135]" /> // WhatsApp
 ];
 
+// Helper function to determine current step based on order status
+const getCurrentStep = (orderStatus) => {
+  const statusMap = {
+    'Pending': 0,
+    'Processing': 1,
+    'Shipped': 2,
+    'Out for Delivery': 3,
+    'Delivered': 4
+  };
+  return statusMap[orderStatus] || 0;
+};
+
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Not specified';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+};
+
 const OrderTracking = () => {
   const icons = useMemo(() => notificationIcons, []);
+  const location = useLocation();
+  
+  // Get order data from location state
+  const orderData = location.state?.orderData || {};
+  
+  const {
+    order_id,
+    order_date,
+    estimated_delivery,
+    items = [],
+    subtotal,
+    discount_amount,
+    tax_amount,
+    delivery_fee,
+    total_amount,
+    delivery_type_display,
+    order_status_display,
+    payment_status_display,
+    payment_method,
+    shipping_address = {}
+  } = orderData;
 
   const onChange = () => {
     // Removed debug // console.log
     // In production: maybe hook into API / user settings here
   };
+
+  const currentStep = getCurrentStep(order_status_display);
 
   return (
     <div className="bg-[#FAF8F2] pb-10">
@@ -45,7 +92,7 @@ const OrderTracking = () => {
             <div className="bg-white p-6 rounded-md shadow-sm">
               <Steps
                 size="small"
-                current={2}
+                current={currentStep}
                 items={[
                   { title: 'Order Placed' },
                   { title: 'Processing' },
@@ -55,9 +102,12 @@ const OrderTracking = () => {
                 ]}
               />
               <div className="bg-[#EAE7E1] p-5 mt-6 rounded-md">
-                <p className="text-[16px] popmed">Current Status: Shipped</p>
+                <p className="text-[16px] popmed">Current Status: {order_status_display || 'Processing'}</p>
                 <p className="text-[14px] popreg">
-                  Your order is on the way. Expected delivery: July 20, 2025
+                  {order_status_display === 'Delivered' 
+                    ? 'Your order has been delivered successfully.'
+                    : `Your order is on the way. Expected delivery: ${formatDate(estimated_delivery)}`
+                  }
                 </p>
               </div>
             </div>
@@ -88,7 +138,7 @@ const OrderTracking = () => {
                 <label className="block mb-1 text-sm popmed">Landmark Description</label>
                 <input
                   type="text"
-                  placeholder="Near Central Mosque, opposite University"
+                  placeholder={shipping_address.landmark || "Near Central Mosque, opposite University"}
                   className="h-[46px] w-full border border-gray-300 rounded-md px-3 focus:outline-none focus:ring-0 focus:border-gray-400"
                 />
               </div>
@@ -157,89 +207,93 @@ const OrderTracking = () => {
                   Message Preview:
                 </p>
                 <p className="text-[14px] popreg text-[#4B5563]">
-                  "Your WRIKO order #Wriko240001 has been shipped. ETA: July 20."
+                  {`Your WRIKO order ${order_id} has been ${order_status_display?.toLowerCase() || 'shipped'}. ${estimated_delivery ? `ETA: ${formatDate(estimated_delivery)}` : ''}`}
                 </p>
               </div>
             </div>
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="flex flex-col justify-between gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-md h-fit">
-              <h3 className="text-[20px] font-semibold popbold mb-4">
-                Order Summary
-              </h3>
+   <div className="flex flex-col justify-between gap-6 overflow-y-auto">
+  <div className="bg-white p-6 rounded-xl shadow-md h-fit">
+    <h3 className="text-[20px] font-semibold popbold mb-4">
+      Order Summary
+    </h3>
 
-              {/* Sample items */}
-              <div className="space-y-4">
-                {[1, 2, 3].map((_, idx) => (
-                  <div key={idx} className="flex justify-between gap-4">
-                    <div className="flex gap-4">
-                      <img
-                        src="/image/featured/img1.png"
-                        alt="Sofa"
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                      <div>
-                        <h4 className="text-sm popbold text-[#333333] font-semibold">
-                          Luxury Velvet Sectional Sofa
-                        </h4>
-                        <p className="text-sm popreg text-gray-500">
-                          by Elegant Furniture Co.
-                        </p>
-                        <p className="text-xs popreg text-gray-500">Qty: 1</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-[#666666] popreg font-semibold text-right">
-                      $3000.00
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Totals */}
-              <div className="border-t border-gray-300 mt-6 pt-4 space-y-2 text-[16px] popreg text-[#666666]">
-                <div className="flex justify-between">
-                  <span>Subtotal (3 items)</span>
-                  <span>$7000.00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Delivery fee</span>
-                  <span>$80.00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span>$50.00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total Discount</span>
-                  <span className="text-green-600">-$100.00</span>
-                </div>
-              </div>
-              <hr className="mt-3" />
-              <div className="flex justify-between items-center mt-4">
-                <h4 className="text-base font-semibold">Total</h4>
-                <h4 className="text-xl font-bold text-[#CBA135]">$7030.00</h4>
-              </div>
-
-              <div className="bg-[#EAE7E1] rounded-2xl space-y-2 p-5 mt-5">
-                <p className="flex items-center popmed gap-2">
-                  <FaCarSide size={21} className="text-[#CBA135]" /> Delivery Info
-                </p>
-                <p className="text-[12px] popreg text-[#4B5563]">Order: #Wriko240001</p>
-                <p className="text-[12px] popreg text-[#4B5563]">
-                  Expected: July 20, 2024
-                </p>
-                <p className="text-[12px] popreg text-[#4B5563]">Carrier: XYZ</p>
-              </div>
-
-              <button className="w-full bg-[#2B2B2B] text-white font-semibold text-sm py-3 mt-5 rounded-md hover:bg-yellow-600">
-                Contact Support
-              </button>
+    {/* Order items */}
+    <div className="space-y-4 h-[20vh] overflow-y-scroll">
+      {items?.map((item, idx) => (
+        <div key={idx} className="flex justify-between gap-4">
+          <div className="flex gap-4">
+            {/* <img
+              src="/image/featured/img1.png"
+              alt={item?.product_name}
+              className="w-16 h-16 object-cover rounded-md"
+            /> */}
+            <div>
+              <h4 className="text-sm popbold text-[#333333] font-semibold">
+                {item?.product_name}
+              </h4>
+              <p className="text-sm popreg text-gray-500">
+                Quantity: {item?.quantity}
+              </p>
+              <p className="text-xs popreg text-gray-500">Price: ${item?.price}</p>
             </div>
-
-            <TrackingMap />
           </div>
+          <p className="text-sm text-[#666666] popreg font-semibold text-right">
+            ${(parseFloat(item?.price) * item?.quantity).toFixed(2)}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    {/* Totals */}
+    <div className="border-t border-gray-300 mt-6 pt-4 space-y-2 text-[16px] popreg text-[#666666]">
+      <div className="flex justify-between">
+        <span>Subtotal ({items?.length} item{items?.length !== 1 ? 's' : ''})</span>
+        <span>${subtotal || '0.00'}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Delivery fee</span>
+        <span>${delivery_fee || '0.00'}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>Tax</span>
+        <span>${tax_amount || '0.00'}</span>
+      </div>
+      {parseFloat(discount_amount) > 0 && (
+        <div className="flex justify-between">
+          <span>Total Discount</span>
+          <span className="text-green-600">-${discount_amount || '0.00'}</span>
+        </div>
+      )}
+    </div>
+    <hr className="mt-3" />
+    <div className="flex justify-between items-center mt-4">
+      <h4 className="text-base font-semibold">Total</h4>
+      <h4 className="text-xl font-bold text-[#CBA135]">${total_amount || '0.00'}</h4>
+    </div>
+
+    <div className="bg-[#EAE7E1] rounded-2xl space-y-2 p-5 mt-5">
+      <p className="flex items-center popmed gap-2">
+        <FaCarSide size={21} className="text-[#CBA135]" /> Delivery Info
+      </p>
+      <p className="text-[12px] popreg text-[#4B5563]">Order: {order_id}</p>
+      <p className="text-[12px] popreg text-[#4B5563]">
+        Expected: {formatDate(estimated_delivery)}
+      </p>
+      <p className="text-[12px] popreg text-[#4B5563]">Carrier: {delivery_type_display || 'Standard'}</p>
+      <p className="text-[12px] popreg text-[#4B5563]">Payment: {payment_status_display} ({payment_method})</p>
+    </div>
+
+    <button className="w-full bg-[#2B2B2B] text-white font-semibold text-sm py-3 mt-5 rounded-md hover:bg-yellow-600">
+      Contact Support
+    </button>
+  </div>
+
+  <TrackingMap />
+</div>
+
         </div>
       </div>
     </div>

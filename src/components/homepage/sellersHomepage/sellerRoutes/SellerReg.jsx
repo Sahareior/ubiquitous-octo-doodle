@@ -8,6 +8,7 @@ import { FaHandshakeSimple } from 'react-icons/fa6';
 import { FiChevronDown } from 'react-icons/fi';
 import { usePostSellerMutation } from '../../../../redux/slices/apiSlice';
 import { useNavigate } from 'react-router-dom';
+import { useGetAllSellerApplicationQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Option } = Select;
 const MySwal = withReactContent(Swal);
@@ -106,6 +107,7 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
 
 const SellerReg = () => {
   const [currentStep, setCurrentStep] = useState(0);
+   const { data: applicants, isLoading, refetch } = useGetAllSellerApplicationQuery();
   const [postSeller] = usePostSellerMutation();
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -269,8 +271,8 @@ const handleApply = useCallback(async () => {
         tradeFile: null,
         captcha: ''
       });
-
-      // navigate('/');
+      refetch()
+      navigate('/');
 
     } catch (error) {
       console.error(error);

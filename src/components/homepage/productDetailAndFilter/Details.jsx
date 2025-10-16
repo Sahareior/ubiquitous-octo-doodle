@@ -59,12 +59,15 @@ const Details = () => {
   const [createCheckout] = useCreateCheckoutMutation();
      const navigate = useNavigate();
     const location = useLocation();
-  const { product } = location.state || {};
+  const { product}  = location.state ;
     const searchParams = new URLSearchParams(location.search);
   const productId = searchParams.get('id');
   const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
 const [selectedProduct, setSelectedProduct] = useState(product || null);
 
+console.log(product,'this is selectedProduct')
+
+console.log('product',location.state)
 // Trigger API when productId exists
 useEffect(() => {
   if (!product && productId) {
@@ -101,9 +104,15 @@ useEffect(() => {
 
 // console.log(product, 'this is peoduct')
 
-  const filteredProducts = productsData?.results?.filter((product) =>
-    product?.categories.some((cat) => selectedProduct?.categories?.includes(cat))
-  );
+const filteredProducts = productsData?.results?.filter(
+  (product) =>
+    product?.id !== selectedProduct?.id &&
+    product?.categories?.some((cat) =>
+      selectedProduct?.categories?.includes(cat)
+    )
+);
+
+
 
   // Fisher–Yates shuffle
   const shuffleArray = (array) => {
@@ -207,18 +216,21 @@ useEffect(() => {
 
   const handleOrderSubmit = async (values) => {
     try {
-      const payload = {
-        discount_amount: values.discount_amount ?? null,
-        promo_code: values.promo_code ?? "",
-        delivery_type: values.delivery_type ?? "express",
-        delivery_instructions: values.delivery_instructions ?? "",
-        estimated_delivery: values.estimated_delivery ?? null,
-        delivery_date: values.delivery_date ? values.delivery_date.format("YYYY-MM-DD") : null,
-        selected_shipping_address_id: values.selected_shipping_address_id ?? null,
-        payment_method: values.payment_method ?? "bank",
-        notes: values.notes ?? "",
-        product_id: selectedProduct.id,
-      };
+    const payload = {
+      discount_amount: values.discount_amount ?? null,
+      promo_code: values.promo_code ?? "",
+      delivery_type: values.delivery_type ?? "express",
+      delivery_instructions: values.delivery_instructions ?? "", // 👈 double-check key
+      estimated_delivery: values.estimated_delivery ?? null,
+      delivery_date: values.delivery_date 
+        ? values.delivery_date.format("YYYY-MM-DD") // 👈 convert from dayjs
+        : null,
+      selected_shipping_address_id: values.selected_shipping_address_id ?? null,
+      payment_method: values.payment_method ?? "bank",
+      notes: values.notes ?? "",
+      product_id: selectedProduct.id,
+    };
+
 
       const res = await createSingleOrder(payload);
 
@@ -300,7 +312,7 @@ const calculateTotal = () => {
      const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
 
   return (
-    <div className="bg-[#FAF8F2] overflow-hidden min-h-screen">
+    <div className="bg-[#FAF8F2] relative overflow-hidden min-h-screen">
       {/* Mobile Back Navigation */}
       <div className="lg:hidden bg-white p-4 shadow-sm sticky top-0 z-30">
         <div className="flex items-center">
@@ -793,7 +805,9 @@ const calculateTotal = () => {
       </div>
 
       {/* Mobile Floating Action Buttons */}
-                <FloatingChat targetedId={vendorId} />
+                <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
+             <FloatingChat targetedId={vendorId} />
+          </div>
 
       <DetailsModal id={selectedProduct?.id} setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
     </div>

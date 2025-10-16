@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Avatar, Badge, Tag } from "antd";
 import { useGetAllConversationsidQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import { useLazyGetMessagesByIdQuery } from "../../../../redux/slices/Apis/customersApi";
@@ -22,9 +22,11 @@ const LeftPannel = ({
   // Track unreplied conversations
   const [unrepliedConvos, setUnrepliedConvos] = useState({});
 
-  // Store previous data to detect new conversations
-  const [previousData, setPreviousData] = useState([]);
+  // Use ref for previous data to avoid re-renders
+  const previousDataRef = useRef([]);
+  const isFirstRender = useRef(true);
 
+  // Fetch unreplied conversations - FIXED: Only run when data changes
   useEffect(() => {
     if (!data || data.length === 0) return;
 
@@ -39,13 +41,10 @@ const LeftPannel = ({
         conversationById.forEach((convo, index) => {
           const conversationId = data[index]?.id;
           if (conversationId && convo.results && convo.results.length > 0) {
-           
             const lastMessage = convo.results[convo.results.length - 1];
-          
             const isUnreplied = lastMessage.sender !== 1;
             unrepliedMap[conversationId] = isUnreplied;
           } else {
-           
             unrepliedMap[conversationId] = true;
           }
         });
@@ -57,17 +56,21 @@ const LeftPannel = ({
     };
 
     fetchConvo();
-  }, [data]);
-
+  }, [data]); // Removed getMessagesById from dependencies since it's stable
 
   const filtteredData = data?.filter((item) => item.id !== user.user.id) || [];
 
-
+  // Detect new conversations - FIXED: Using ref to avoid state updates
   useEffect(() => {
-    if (data.length > previousData.length) {
-     
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      previousDataRef.current = data;
+      return;
+    }
+
+    if (data.length > previousDataRef.current.length) {
       const newConversations = data.filter(conv => 
-        !previousData.some(prevConv => prevConv.id === conv.id)
+        !previousDataRef.current.some(prevConv => prevConv.id === conv.id)
       );
       
       if (newConversations.length > 0) {
@@ -78,11 +81,11 @@ const LeftPannel = ({
       }
     }
     
-    // Update previous data
-    setPreviousData(data);
-  }, [data, previousData]);
+    // Update ref without causing re-render
+    previousDataRef.current = data;
+  }, [data]);
 
-  // Handle new messages and detect new users
+  // Handle new messages and detect new users - FIXED: Added proper dependencies
   useEffect(() => {
     if (!messages || messages?.length === 0) return;
 
@@ -103,31 +106,26 @@ const LeftPannel = ({
       }
       
       // Update unreplied status based on last message sender
-      // If the new message is NOT from admin (ID 1), mark as unreplied
       if (latestMsg?.data?.sender !== 1) {
         setUnrepliedConvos(prev => ({ ...prev, [senderId]: true }));
       } else {
-        // If the new message is from admin, mark as replied
         setUnrepliedConvos(prev => ({ ...prev, [senderId]: false }));
       }
     }
-  }, [messages, refetch, selectedConversation, filtteredData]);
+  }, [messages, selectedConversation, filtteredData, refetch]);
 
-
+  // Handle sent messages - FIXED: Simplified
   useEffect(() => {
     if (!sentMessages || sentMessages.length === 0) return;
 
     const latestSentMsg = sentMessages[sentMessages.length - 1];
     
-
     if (latestSentMsg?.sender === 1 && selectedConversation) {
-
       setUnrepliedConvos(prev => ({
         ...prev,
         [selectedConversation]: false
       }));
       
-
       setUnread(prev => {
         const updated = { ...prev };
         delete updated[selectedConversation];
@@ -136,16 +134,15 @@ const LeftPannel = ({
     }
   }, [sentMessages, selectedConversation]);
 
- 
+  // Auto-refresh conversations - FIXED: Added cleanup
   useEffect(() => {
     const interval = setInterval(() => {
       refetch();
-    }, 5000); 
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [refetch]);
 
-  
   const displayData = filtteredData || [];
 
   // Generate initials from name for avatar
@@ -181,13 +178,13 @@ const LeftPannel = ({
       delete updated[conversation.id];
       return updated;
     });
+    
     setNewUsers((prev) => {
       const updated = { ...prev };
       delete updated[conversation.id];
       return updated;
     });
     
-
     setUnrepliedConvos(prev => ({
       ...prev,
       [conversation.id]: false

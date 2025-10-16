@@ -53,6 +53,7 @@ const NewVendorAddProducts = () => {
   const {data:categories} = useGetCategoriesQuery()
   const { data: products,refetch } = useGetAllProductsQuery();
   const [vendorProductCreate] = useVendorProductCreateMutation()
+  
   const { sendNotification } = useNotificationSocket();
   // 🔹 State for all form data
 const [formData, setFormData] = useState({

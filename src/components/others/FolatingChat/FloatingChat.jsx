@@ -6,6 +6,7 @@ import './Floating.css';
 import { useGetProfileQuery, useLazyGetMessagesByIdQuery } from "../../../redux/slices/Apis/customersApi";
 import image from "../../../assets/icon.png"
 import { useWebSocketContext } from "../../../context/WebSocketContext";
+import { useLocation } from "react-router-dom";
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -27,6 +28,8 @@ const FloatingChat = ({ targetedId }) => {
     customerData ? JSON.parse(customerData)?.user?.id : null, 
     [customerData]
   );
+
+  console.log(targetedId,'this is targeted id')
   
   const [newMessage, setNewMessage] = useState("");
   const [activeReceiver, setActiveReceiver] = useState(targetedId || 1);
@@ -42,6 +45,8 @@ const FloatingChat = ({ targetedId }) => {
   );
   
   const [getMessagesById] = useLazyGetMessagesByIdQuery();
+  const location = useLocation();
+const isDetailsPage = location.pathname === "/details";
 
   // Set userId only once when component mounts
   useEffect(() => {
@@ -172,6 +177,7 @@ const FloatingChat = ({ targetedId }) => {
       {/* Floating Chat Button */}
 <div
   className="floating-chat-button md:w-48 flex rounded-full relative justify-center items-center gap-1 cursor-pointer"
+  
   onClick={() => {
     setIsOpen(!isOpen);
     setIncoming(false);

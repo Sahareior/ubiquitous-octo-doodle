@@ -1,27 +1,64 @@
 import React, { useState } from 'react';
 import { Button, Input, Modal } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useLazyGetReceptQuery } from '../../../redux/slices/Apis/customersApi';
+// import { useLazyGetReceptQuery } from '../../../redux/slices/Apis/customersApi';
 
 const CustomModal = ({ isModalOpen, setIsModalOpen }) => {
   const [orderId, setOrderId] = useState('');
+  const [triggerGetRecept, { data, isLoading, error }] = useLazyGetReceptQuery();
+  const navigate = useNavigate();
 
   const showModal = () => {
     setIsModalOpen(true);
   };
 
   const handleOk = () => {
-    // Optional: Add validation here before closing
     setIsModalOpen(false);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    setOrderId('');
+  };
+
+  const handleTrackOrder = async () => {
+    if (!orderId.trim()) {
+      // You can add a toast or alert here for empty order ID
+      console.log('Please enter an Order ID');
+      return;
+    }
+
+    try {
+      // Fetch order data by ID
+      const result = await triggerGetRecept(orderId);
+      
+      if (result.data) {
+        // If data is successfully fetched, navigate to order track page
+        console.log('Order data:', result.data);
+        handleOk(); // Close modal
+        
+        // Navigate to order track page with the order data
+        navigate('/order-track', { 
+          state: { 
+            orderData: result.data,
+            orderId: orderId 
+          } 
+        });
+      } else if (result.error) {
+        // Handle error (order not found, etc.)
+        console.error('Error fetching order:', result.error);
+        // You can show an error message to the user here
+        alert('Order not found. Please check your Order ID.');
+      }
+    } catch (err) {
+      console.error('Failed to fetch order:', err);
+      alert('Failed to fetch order. Please try again.');
+    }
   };
 
   return (
     <>
-    
-
       <Modal
         open={isModalOpen}
         onOk={handleOk}
@@ -29,46 +66,49 @@ const CustomModal = ({ isModalOpen, setIsModalOpen }) => {
         footer={null}
         centered
         closable
-       
         aria-labelledby='track-order-title'
         bodyStyle={{ padding: '24px' }}
       >
-        <div className=' p-16 rounded-lg'>
-<div className='mb-4'>
-              <h3 id='track-order-title' className='text-[20px] font-semibold text-gray-800 mb-1'>
-            Track Your Order
-          </h3>
-    <div className='h-[2px] w-full bg-slate-400' />
-</div>
+        <div className='p-16 rounded-lg'>
+          <div className='mb-4'>
+            <h3 id='track-order-title' className='text-[20px] font-semibold text-gray-800 mb-1'>
+              Track Your Order
+            </h3>
+            <div className='h-[2px] w-full bg-slate-400' />
+          </div>
+          
           <div className='mb-4'>
             <label htmlFor='order-id' className='block text-[16px] popmed text-[#666666] mb-2'>
               Enter your Order ID
             </label>
-           <input
-  id="order-id"
-  type="text"
-  placeholder="#Wriko240001"
-  value={orderId}
-  onChange={(e) => setOrderId(e.target.value)}
-  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-400 custom-input"
-/>
-
+            <input
+              id="order-id"
+              type="text"
+              placeholder="#Wriko240001"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-0 focus:border-gray-400 custom-input"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleTrackOrder();
+                }
+              }}
+            />
+            {error && (
+              <p className="text-red-500 text-sm mt-2">
+                {error.data?.message || 'Failed to fetch order. Please check the Order ID.'}
+              </p>
+            )}
           </div>
 
-    <Link to='/order-track'>
-              <button
-            type='primary'
-            className='bg-[#CBA135] w-full popbold text-[16px] py-3 text-white rounded-md mt-4'
-            size='large'
-            onClick={() => {
-              // Add tracking logic here
-              // console.log('Tracking Order:', orderId);
-              handleOk();
-            }}
+          <button
+            type='button'
+            className='bg-[#CBA135] w-full popbold text-[16px] py-3 text-white rounded-md mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed'
+            onClick={handleTrackOrder}
+            disabled={isLoading || !orderId.trim()}
           >
-            Track My Order
+            {isLoading ? 'Tracking...' : 'Track My Order'}
           </button>
-    </Link>
         </div>
       </Modal>
     </>

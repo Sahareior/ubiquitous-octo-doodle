@@ -31,6 +31,8 @@ const ProductsModal = ({ isModalOpen, setIsModalOpen, productData, path }) => {
   const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  console.log(productData,'asdas')
+
   const handleApprove = async () => {
     if (!productData) return;
 

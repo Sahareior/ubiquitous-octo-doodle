@@ -5,7 +5,7 @@ const Hero = () => {
     <section className="relative w-full h-screen overflow-hidden">
       {/* Optimized image with lazy loading */}
       <img
-        src="/image/heroImg.png"
+        src="/image/hh.webp"
         alt="Hero"
         loading="lazy"
         decoding="async"
@@ -15,7 +15,7 @@ const Hero = () => {
       {/* Glass container */}
       <div
         className="
-          absolute top-[20%] left-2 sm:left-8 md:left-12 lg:left-16 
+          absolute top-[20%] py-16 left-2 sm:left-8 md:left-12 lg:left-16 
           w-[95%] sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5 
           p-3 sm:p-6 lg:p-10 flex flex-col gap-3 sm:gap-6 rounded-xl
           bg-gradient-to-r from-[rgba(147,116,86,0.37)] via-[rgba(131,162,137,0.37)] to-[rgba(172,185,188,0.37)]

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Upload, message, Card, Row, Col, Divider, Typography } from "antd";
 import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEditCategoryMutation, useGetCategoriesQuery } from "../../../../../redux/slices/Apis/customersApi";
+import { useEditCategoryMutation } from "../../../../../redux/slices/Apis/customersApi";
 import Swal from "sweetalert2";
+import { useGetCategoriesQuery } from "../../../../../redux/slices/Apis/vendorsApi";
 
 const { Title, Text } = Typography;
 

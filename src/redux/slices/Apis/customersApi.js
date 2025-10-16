@@ -283,6 +283,7 @@ useCustomerProfileUpdateMutation,
   useCreateCheckoutMutation,
   useGetReceptQuery,
   useCreateSingleOrderMutation,
+  useLazyGetReceptQuery,
   usePostCategoriesMutation,
   useReturnProductMutation,
 } = customersApi;

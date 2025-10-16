@@ -37,11 +37,12 @@ import {
 import { IoEyeOutline } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { RiArrowDropDownLine } from "react-icons/ri";
-import { useDeleteCategoriesMutation, useGetCategoriesQuery } from "../../../../redux/slices/Apis/customersApi";
+import { useDeleteCategoriesMutation } from "../../../../redux/slices/Apis/customersApi";
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
 dayjs.extend(advancedFormat);
 

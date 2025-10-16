@@ -15,6 +15,8 @@ const Checkout = () => {
   const location = useLocation()
 
   const isDetails = location.state?.productData ? true : false;
+
+  console.log(location.state,'adadadwert54gf')
   
 
 
@@ -47,9 +49,10 @@ const onFinish = async (values) => {
     }).then(() => {
 
       if(isDetails){
-        navigate(`/details`,{
-          state: location.state.productData
-        })
+      navigate(`/details`, {
+  state: { product: location.state.productData }
+})
+
         refetch()
       }
       else{

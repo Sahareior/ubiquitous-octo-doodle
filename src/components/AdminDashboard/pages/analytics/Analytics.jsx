@@ -152,19 +152,19 @@ const Analytics = () => {
 
           {/* Table Rows - Using actual vendorPerfomence data */}
           {vendorPerfomence?.results?.length > 0 ? (
-            vendorPerfomence.results.map((vendor) => (
-              <div key={vendor.id} className="grid grid-cols-4 text-[15px] text-gray-700 popreg items-center border-b py-3">
+            vendorPerfomence?.results?.map((vendor) => (
+              <div key={vendor?.id} className="grid grid-cols-4 text-[15px] text-gray-700 popreg items-center border-b py-3">
                 <p className="text-center">
-                  {vendor.first_name} {vendor.last_name}
+                  {vendor?.first_name} {vendor?.last_name}
                 </p>
-                <p className="text-center">{vendor.products_sold}</p>
-                <p className="text-center">{formatCurrency(vendor.revenue)}</p>
+                <p className="text-center">{vendor?.products_sold}</p>
+                <p className="text-center">{formatCurrency(vendor?.revenue)}</p>
                 <p className={`text-center rounded-full p-2 font-medium ${
                   vendor.status === "Active" 
                     ? "bg-green-100 text-green-600" 
                     : "bg-red-100 text-red-600"
                 }`}>
-                  {vendor.status}
+                  {vendor?.status}
                 </p>
               </div>
             ))

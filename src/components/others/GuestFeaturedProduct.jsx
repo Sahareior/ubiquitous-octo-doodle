@@ -37,7 +37,7 @@ const GuestFeaturedProduct = () => {
   // ✅ Error State
   if (isError || !allProducts?.results?.length) {
     return (
-      <div className="text-center text-gray-600 mt-10">
+      <div className="text-center py-52 text-gray-600 mt-10">
         <p>Failed to load products or no products available.</p>
       </div>
     );

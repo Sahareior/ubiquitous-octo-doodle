@@ -75,17 +75,17 @@ const Footer = () => {
     return (
       <>
         <li><Link to="/filter?category=11" className="hover:text-white">Living Room</Link></li>
-        <li><Link to="/filter?category=2" className="hover:text-white">Bedroom</Link></li>
-        <li><Link to="/filter?category=3" className="hover:text-white">Dining Room</Link></li>
-        <li><Link to="/filter?category=4" className="hover:text-white">Office Room</Link></li>
-        <li><Link to="/filter?category=5" className="hover:text-white">Kitchen</Link></li>
+        <li><Link to="/filter?category=23" className="hover:text-white">Bedroom</Link></li>
+        <li><Link to="/filter?category=34" className="hover:text-white">Dining Room</Link></li>
+        <li><Link to="/filter?category=45" className="hover:text-white">Office Room</Link></li>
+        <li><Link to="/filter?category=56" className="hover:text-white">Kitchen</Link></li>
       </>
     );
   };
 
   // Step 3: Render footer
   return (
-    <footer className="bg-black text-white px-6 py-12">
+    <footer className="bg-black text-white px-3 py-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
 
         {/* Logo and description */}

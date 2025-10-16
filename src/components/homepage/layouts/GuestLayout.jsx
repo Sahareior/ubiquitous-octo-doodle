@@ -1,30 +1,36 @@
-import React from 'react';
-import Navbar from '../_components/Navbar';
-import Hero from '../_components/Hero';
-import FeaturedProducts from '../_components/FeaturedProducts';
-import WhyUs from '../_components/WhyUs';
-import Customers from '../_components/Customers';
-import Coupon from '../_components/Coupon';
-import Footer from '../_components/Footer';
-import { useLocation } from 'react-router-dom';
-import GuestFeaturedProduct from '../../others/GuestFeaturedProduct';
+import React, { Suspense } from 'react';
+
+// Lazy load components
+const Navbar = React.lazy(() => import('../_components/Navbar'));
+const Hero = React.lazy(() => import('../_components/Hero'));
+const FeaturedProducts = React.lazy(() => import('../_components/FeaturedProducts'));
+const WhyUs = React.lazy(() => import('../_components/WhyUs'));
+const Customers = React.lazy(() => import('../_components/Customers'));
+const Coupon = React.lazy(() => import('../_components/Coupon'));
+const Footer = React.lazy(() => import('../_components/Footer'));
+const GuestFeaturedProduct = React.lazy(() => import('../../others/GuestFeaturedProduct'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 const GuestLayout = () => {
-      const location = useLocation();
-
-  // ✅ Only show homepage sections on "/"
-  const isHomePage = location.pathname === '/';
-    return (
-        <div>
-             <Navbar />
-            <Hero />
-            <GuestFeaturedProduct />
-            <WhyUs />
-            <Customers />
-            <Coupon />
-            <Footer />
-        </div>
-    );
+  return (
+    <div>
+      <Suspense fallback={<LoadingFallback />}>
+        <Navbar />
+        <Hero />
+        <GuestFeaturedProduct />
+        <WhyUs />
+        <Customers />
+        <Coupon />
+        <Footer />
+      </Suspense>
+    </div>
+  );
 };
 
 export default GuestLayout;

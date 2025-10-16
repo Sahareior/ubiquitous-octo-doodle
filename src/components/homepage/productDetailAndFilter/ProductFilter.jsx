@@ -36,7 +36,7 @@ const ProductFilter = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 
-  console.log(location?.state.text,"dad")
+
 
   // Fetch products & categories
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
@@ -430,7 +430,7 @@ const colors = useMemo(() => {
             <div className="flex-1 px-4 md:px-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <div>
-                  <h2 className="text-xl md:text-2xl popbold">{location?.state.text? location?.state.text: "Search Results"}</h2>
+                  <h2 className="text-xl md:text-2xl popbold">{location?.state?.text? location?.state?.text: "Search Results"}</h2>
                   <p className="text-gray-500 popreg">{filteredProducts.length} products found</p>
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">

@@ -39,32 +39,28 @@ const ProductsTable = ({ products,path }) => {
   return catNames;
 };
 // Map API products to table format
+// Map API products to table format
 useEffect(() => {
   if (!products) return;
 
-  // If products is an object with results, use results; otherwise, assume it's an array
   const productArray = products.results ? products.results : products;
 
-const mappedData = productArray.map((p) => ({
-  key: p.id,
-  productId: p.prod_id,
-  productName: p.name,
-  category: getCategories(p).join(", "),
-  approval: p.is_approve ? 'Approved' : 'Not Approved',
-  price: parseFloat(p.active_price || p.price1 || 0),
-  stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
-  status:
-    p.status === 'approved'
-      ? 'Active'
-      : p.status === 'active'
-      ? 'Active'
-      : p.status === 'draft'
-      ? 'Draft'
-      : 'Pending',
-  fullData: p,
-  productImage: p.images && p.images.length > 0 ? p.images[0].image : null, // ✅ first image
-}));
-
+  const mappedData = productArray.map((p) => ({
+    key: p.id,
+    productId: p.prod_id,
+    productName: p.name,
+    category: getCategories(p).join(", "),
+    approval: p.is_approve ? 'Approved' : 'Not Approved',
+    price: parseFloat(p.active_price || p.price1 || 0),
+    stock: p.is_stock ? `In Stock (${p.stock_quantity})` : 'Out of Stock',
+    status: p.status, // ✅ Keep original status value
+    statusDisplay: // ✅ Add display version
+      p.status === 'approved' ? 'Active' :
+      p.status === 'active' ? 'Active' :
+      p.status === 'draft' ? 'Draft' : 'Pending',
+    fullData: p,
+    productImage: p.images && p.images.length > 0 ? p.images[0].image : null,
+  }));
 
   setDataSource(mappedData);
 }, [products, categories]);
@@ -232,46 +228,32 @@ const handleDelete = async (keys) => {
       key: 'stock',
       render: (text) => <span className="text-sm popreg">{text}</span>,
     },
-        {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (text) => <span className="text-sm popreg">{text}</span>,
-    },
-    // {
-    //   title: 'Status',
-    //   dataIndex: 'status',
-    //   key: 'status',
-    //   render: (status, record) => {
-    //     const statusColor = {
-    //       Active: 'bg-green-100 text-green-600',
-    //       Pending: 'bg-yellow-100 text-yellow-600',
-    //       Draft: 'bg-red-100 text-red-600',
-    //     };
+{
+  title: 'Status',
+  dataIndex: 'status',
+  key: 'status',
+  render: (text) => {
+    const getStatusStyle = (status) => {
+      switch (status?.toLowerCase()) {
+        case 'approved':
+          return 'bg-green-100 text-green-800 border border-green-200';
+        case 'pending':
+          return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+        case 'rejected':
+          return 'bg-red-100 text-red-800 border border-red-200';
+        default:
+          return 'bg-gray-100 text-gray-800 border border-gray-200';
+      }
+    };
 
-    //     return (
-    //       <Select
-    //         value={status}
-    //         size="small"
-    //         onChange={(value) => {
-    //           const newData = dataSource.map((item) =>
-    //             item.key === record.key ? { ...item, status: value } : item
-    //           );
-    //           setDataSource(newData);
-    //           message.success(`Status updated to ${value}`);
-    //         }}
-    //         bordered={false}
-    //         dropdownMatchSelectWidth={false}
-    //         className={`w-[110px] px-2 py-1 text-xs font-medium rounded ${statusColor[status]}`}
-    //         suffixIcon={<RiArrowDropDownLine className="text-[16px] text-gray-600" />}
-    //       >
-    //         <Option value="Active">Active</Option>
-    //         <Option value="Pending">Pending</Option>
-    //         <Option value="Draft">Draft</Option>
-    //       </Select>
-    //     );
-    //   },
-    // },
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium popreg ${getStatusStyle(text)}`}>
+        {text}
+      </span>
+    );
+  },
+},
+   
     {
       title: 'Actions',
       key: 'action',
