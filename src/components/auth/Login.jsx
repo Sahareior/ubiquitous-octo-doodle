@@ -139,7 +139,7 @@ const handleGoogleLogin = async () => {
       {/* Background image */}
       <img
         className="w-full h-full object-cover absolute inset-0"
-        src="/image/auth2.png"
+        src="/image/auth2.webp"
         alt=""
       />
 

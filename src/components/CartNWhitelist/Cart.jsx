@@ -20,7 +20,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   const hasPromotion = item.promotion_discount_type && item.promotion_discount_value;
   
   return (
-    <div className="bg-white rounded-xl mt-6 p-5 flex items-center gap-6 shadow-sm">
+    <div className="bg-white rounded-xl mt-6 p-2 md:flex items-center gap-6 shadow-sm">
       <img
         src={item.images?.[0]?.url || "https://via.placeholder.com/150"}
         alt={item.name}
@@ -53,7 +53,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end  gap-2">
         <button
           onClick={() => onDecrease(item.id)}
           className="w-8 h-8 border rounded-full hover:bg-gray-100 flex justify-center items-center"
@@ -214,15 +214,15 @@ if (!cartData?.results || cartData?.results?.length === 0) {
   }
 
   return (
-    <div className="bg-[#FAF8F2] min-h-screen pb-10">
+    <div className="bg-[#FAF8F2] min-h-screen p-3 pb-10">
       <div className="m"></div>
-      <div className="mx-auto pt-5 md:px-40">
+      <div className="mx-auto pt-2 md:px-40">
         <Breadcrumb />
         <h2 className="text-3xl font-bold mb-6">My Cart</h2>
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Cart Items */}
-          <div className="flex-1 p-5 bg-[#EAE7E1]">
+          <div className="flex-1 p-2 bg-[#EAE7E1]">
             {cartItems.map((item) => (
               <CartItem
                 key={item.id}

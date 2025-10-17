@@ -80,7 +80,7 @@ const CustomersNavbar = ({ cartCount }) => {
   };
 
   const handleProductSelect = (product) => {
-    navigate("/details", { state: product });
+    navigate(`/details?id=${product?.id}`, { state: product });
     setSearchText('');
     setShowSearchResults(false);
     setMobileMenuOpen(false);
@@ -111,7 +111,7 @@ const CustomersNavbar = ({ cartCount }) => {
     <>
       <div className="w-full px-4 md:px-8 lg:px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
         {/* Logo and Mobile Menu Button */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button 
             className="lg:hidden text-gray-700"
             onClick={() => setMobileMenuOpen(true)}
@@ -156,7 +156,7 @@ const CustomersNavbar = ({ cartCount }) => {
         </div>
 
         {/* Search Bar - Hidden on mobile when menu is open */}
-        <div className={`${mobileMenuOpen ? 'hidden' : 'flex'} md:flex hidden md:block items-center flex-1 max-w-lg mx-4 md:mx-8`}>
+        <div className={`${mobileMenuOpen ? 'hidden' : 'flex'}  hidden md:block items-center flex-1 max-w-lg mx-4 md:mx-8`}>
           <div ref={searchRef} className="relative w-full"> 
             <div className="relative">
               <input
@@ -283,11 +283,21 @@ const CustomersNavbar = ({ cartCount }) => {
         <div className={`md:hidden flex items-center gap-2 ${isSearchFocused ? 'hidden' : 'flex'}`}>
           {!isAdmin && (
             <>
-              <Link to="wishlist" className="p-1">
+              <Link to="wishlist" className="p-1 relative">
                 <FaRegHeart size={20} className="cursor-pointer hover:text-red-500 transition" />
+                  {wishLists?.count > 0 && (
+ <span className="absolute -top-2 -right-1 bg-[#CBA135] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+      {wishLists.count}
+    </span>
+  )}
               </Link>
-              <Link to="cart" className="p-1">
+              <Link to="cart" className="p-1 relative">
                 <FaCartShopping size={18} className="cursor-pointer hover:text-[#CBA135] transition" />
+                 {cartCount > 0 && (
+    <span className="absolute -top-2 -right-1 bg-[#CBA135] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+      {cartCount}
+    </span>
+  )}
               </Link>
             </>
           )}

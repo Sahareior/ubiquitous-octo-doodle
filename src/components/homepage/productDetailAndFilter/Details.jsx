@@ -59,26 +59,27 @@ const Details = () => {
   const [createCheckout] = useCreateCheckoutMutation();
      const navigate = useNavigate();
     const location = useLocation();
-  const { product}  = location.state ;
-    const searchParams = new URLSearchParams(location.search);
+ const productFromState = location.state?.productFromState|| null;
+    const searchParams = new URLSearchParams(location?.search);
   const productId = searchParams.get('id');
   const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
-const [selectedProduct, setSelectedProduct] = useState(product || null);
+const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
 
-console.log(product,'this is selectedProduct')
+// console.log(product,'this is selectedProduct')
 
 console.log('product',location.state)
 // Trigger API when productId exists
 useEffect(() => {
-  if (!product && productId) {
+  if (!productFromState&& productId) {
     getProductById(productId);
   }
-}, [productId, product, getProductById]);
+}, [productId, productFromState, getProductById]);
 
 // When API returns data, update selectedProduct
 useEffect(() => {
   if (data) {
     setSelectedProduct(data);
+    console.log(data,'adad')
   }
 }, [data]);
   // console.log('this is selectedProduct', selectedProduct)
@@ -519,7 +520,7 @@ const calculateTotal = () => {
   </div>
 </Drawer>
           {/* Main Product Section */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 lg:p-8 mb-6 md:mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-1 md:p-6 lg:p-8 mb-6 md:mb-8">
             <div className="flex flex-col lg:flex-row items-start justify-center gap-6 md:gap-8 lg:gap-9">
               {/* Product Image */}
               <div className="w-full lg:w-1/2">
@@ -553,7 +554,7 @@ const calculateTotal = () => {
         <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
   <div
     ref={zoomPaneRef}
-    className="absolute rounded-md w-full max-w-md h-96 z-50 pointer-events-none"
+    className="absolute hidden md:block rounded-md w-full max-w-md h-96 z-50 pointer-events-none"
   ></div>
 
   {/* Product Title & Brand */}
@@ -602,29 +603,36 @@ const calculateTotal = () => {
   })()}
 
   {/* Color Options */}
-  <div>
-    <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Color</h4>
-    <div className="flex gap-2 md:gap-3 flex-wrap">
-      {selectedProduct?.specifications?.color
-        ?.split(",")
-        .map((clr, index) => {
-          const colorName = clr.trim();
-          return (
-            <button
-              key={index}
-              style={{
-                backgroundColor: colorName,
-                color: ["white", "black", "blue"].includes(colorName.toLowerCase())
-                  ? "white"
-                  : "black",
-                border: "1px solid #ddd",
-              }}
-              className="h-8 md:h-10 md:w-10 text-xs md:text-sm rounded-full shadow-sm"
-            ></button>
-          );
-        })}
-    </div>
+<div>
+  <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Color</h4>
+  <div className="flex gap-2 md:gap-3 flex-wrap">
+    {selectedProduct?.specifications?.color
+      ?.split(",")
+      .map((clr, index) => {
+        const colorName = clr.trim();
+        const isLight = ["white", "#fff", "#ffffff", "beige", "ivory"].includes(
+          colorName.toLowerCase()
+        );
+        return (
+          <button
+            key={index}
+            style={{
+              backgroundColor: colorName.startsWith("#")
+                ? colorName
+                : colorName.toLowerCase(),
+              border: isLight ? "1px solid #ccc" : "1px solid transparent",
+            }}
+            className={`md:h-10 md:w-10 h-5 w-5 rounded-full shadow-sm flex items-center justify-center
+              ${isLight ? "text-gray-800" : "text-white"}`}
+          >
+            {/* Optional: add tooltip or visible label */}
+            <span className="hidden">{colorName}</span>
+          </button>
+        );
+      })}
   </div>
+</div>
+
 
   {/* Size Options */}
   <div>

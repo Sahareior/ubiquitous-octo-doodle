@@ -248,15 +248,16 @@
 /* Tablet (481px - 768px) */
 @media (max-width: 768px) {
   .floating-chat-button {
-    bottom: -40px;
+    bottom: -90px;
     right: 10px;
     padding: 9px 13px;
     font-size: 13px;
   }
     .floating-chat-window {
-     bottom: 20px;
+     bottom: -30px;
   right: 5px;
   width: 350px;
   height: 550px;
   }
 }
+

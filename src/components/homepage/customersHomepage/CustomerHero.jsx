@@ -90,7 +90,7 @@ const CustomerHero = () => {
 
       {/* Greeting Section */}
       <div className="md:px-20 py-16 bg-[#FAF8F2] text-center md:text-start">
-        <h3 className="text-[36px] popbold font-bold">
+        <h3 className="text-[28px] md:text-[36px] popbold font-bold">
           Welcome back, {userInfo?.user?.first_name || "Guest"}
         </h3>
         <p className="text-[16px] popreg mt-2">

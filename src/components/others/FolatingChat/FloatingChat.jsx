@@ -204,7 +204,7 @@ const FloatingChat = ({ targetedId }) => {
     <>
       {/* Floating Chat Button */}
 <div
-  className="floating-chat-button md:w-48 flex rounded-full relative justify-center items-center gap-1 cursor-pointer"
+  className="floating-chat-button w-16 md:w-48 flex rounded-full relative justify-center items-center gap-1 cursor-pointer"
   
   onClick={() => {
     setIsOpen(!isOpen);
