@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import ProductsTable from "./ProductsTable";
-import { Select } from "antd";
+import { Select, Spin } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import {
@@ -11,7 +11,7 @@ import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi"
 const { Option } = Select;
 
 const ProductsList = ({path}) => {
-  const { data: products } = useGetAllProductsQuery();
+  const { data: products, isLoading } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
 
   // console.log(products,'this sasasasas')
@@ -72,6 +72,15 @@ const ProductsList = ({path}) => {
 
     return filtered;
   }, [products, searchText, selectedCategory, selectedStatus, sortOption]);
+
+
+  if(isLoading){
+    return(
+      <div className="flex h-screen justify-center items-center">
+        <Spin size="large" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

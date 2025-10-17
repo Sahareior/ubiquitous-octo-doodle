@@ -1,29 +1,39 @@
 import React, { useState, useMemo } from "react";
 import PayoutTable from "./_components/PayoutTable";
 import { useGetAllPayoutsQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { Spin } from "antd";
 
 const Payouts = () => {
-  const { data: payouts } = useGetAllPayoutsQuery();
+  const { data: payouts, isLoading } = useGetAllPayoutsQuery();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
   // ✅ Memoized filtering
-  const filteredPayouts = useMemo(() => {
-    if (!payouts?.results) return [];
+  // const filteredPayouts = useMemo(() => {
+  //   if (!payouts?.results) return [];
 
-    return payouts.results.filter((item) => {
-      const matchesSearch =
-        item.note?.toLowerCase().includes(search.toLowerCase()) ||
-        item.payment_method?.toLowerCase().includes(search.toLowerCase()) ||
-        item.amount?.toString().includes(search);
+  //   return payouts.results.filter((item) => {
+  //     const matchesSearch =
+  //       item.note?.toLowerCase().includes(search.toLowerCase()) ||
+  //       item.payment_method?.toLowerCase().includes(search.toLowerCase()) ||
+  //       item.amount?.toString().includes(search);
 
-      const matchesStatus = statusFilter
-        ? item.status === statusFilter
-        : true;
+  //     const matchesStatus = statusFilter
+  //       ? item.status === statusFilter
+  //       : true;
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [payouts, search, statusFilter]);
+  //     return matchesSearch && matchesStatus;
+  //   });
+  // }, [payouts, search, statusFilter]);
+
+    if(isLoading){
+    return(
+      <div className="flex h-screen justify-center items-center">
+        <Spin size="large" />
+      </div>
+    )
+  }
+
 
   return (
     <div className="p-6">

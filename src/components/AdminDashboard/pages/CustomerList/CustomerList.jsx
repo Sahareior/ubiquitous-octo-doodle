@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Select } from 'antd';
+import { Select, Spin } from 'antd';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import { useGetAllCustomersQuery } from '../../../../redux/slices/Apis/dashboardApis';
 import CustomerTable from './CustomerTable';
@@ -7,7 +7,7 @@ import CustomerTable from './CustomerTable';
 const { Option } = Select;
 
 const CustomerList = () => {
-  const { data, refetch } = useGetAllCustomersQuery();
+  const { data,isLoading } = useGetAllCustomersQuery();
   const customers = data?.results || [];
 
   // Local states for searching & filtering
@@ -33,6 +33,15 @@ const CustomerList = () => {
       return matchesSearch && matchesStatus;
     });
   }, [customers, searchText, statusFilter]);
+
+    if(isLoading){
+      return(
+        <div className="flex h-screen justify-center items-center">
+          <Spin size="large" />
+        </div>
+      )
+    }
+  
 
   return (
     <div className="space-y-6">

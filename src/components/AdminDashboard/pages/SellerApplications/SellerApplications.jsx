@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { Select } from "antd";
+import { Select, Spin } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 
 import SellersTable from "./_components/SellersTable";
-import { useBulkSellerApplicationsUpdateMutation, useGetAllSellerApplicationQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useGetAllSellerApplicationQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 const { Option } = Select;
 
 const SellerApplications = () => {
   const { data: applicants, isLoading } = useGetAllSellerApplicationQuery();
-  const [bulkSellerApplicationsUpdate] = useBulkSellerApplicationsUpdateMutation()
+
 
   // filter states
   const [searchName, setSearchName] = useState("");
@@ -37,6 +37,16 @@ const SellerApplications = () => {
       return matchesName && matchesJob && matchesStatus;
     });
   }, [applicants, searchName, jobTitle, status]);
+
+
+    if(isLoading){
+      return(
+        <div className="flex h-screen justify-center items-center">
+          <Spin size="large" />
+        </div>
+      )
+    }
+  
 
   return (
     <div className="space-y-8">

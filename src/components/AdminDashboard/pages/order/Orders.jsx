@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Input, Select, DatePicker, Button } from 'antd';
+import { Input, Select, DatePicker, Button, Spin } from 'antd';
 import { IoSearch } from 'react-icons/io5';
 import OrdersTable from './OrdersTable';
 import { FaDownload } from 'react-icons/fa';
@@ -11,7 +11,7 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const Orders = () => {
-  const { data: ordersData } = useGetAllOrdersQuery();
+  const { data: ordersData,isLoading } = useGetAllOrdersQuery();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState([]);
@@ -52,7 +52,7 @@ const Orders = () => {
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
   const handleStatusChange = (value) => setStatusFilter(value);
-  const handleDateChange = (dates) => setDateRange(dates);
+ 
   const handleResetFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -101,6 +101,14 @@ const Orders = () => {
     link.click();
     document.body.removeChild(link);
   };
+
+    if(isLoading){
+      return(
+        <div className="flex h-screen justify-center items-center">
+          <Spin size="large" />
+        </div>
+      )
+    }
 
   return (
     <div className="px-6 py-4">

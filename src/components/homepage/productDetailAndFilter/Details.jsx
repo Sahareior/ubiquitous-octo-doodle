@@ -1,4 +1,4 @@
-import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image } from "antd";
+import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image, Spin } from "antd";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import Customers from "../_components/Customers";
@@ -67,7 +67,7 @@ const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
 
 // console.log(product,'this is selectedProduct')
 
-console.log('product',location.state)
+
 // Trigger API when productId exists
 useEffect(() => {
   if (!productFromState&& productId) {
@@ -308,6 +308,14 @@ const calculateTotal = () => {
     { id: "specifications", label: "Specifications" },
     { id: "reviews", label: "Reviews" },
   ];
+
+  if(isLoading){
+  return(
+    <div className="h-screen flex bg-[#FAF8F2] justify-center items-center">
+      <Spin className="" size="large" />
+    </div>
+  )
+}
 
 
      const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
@@ -760,14 +768,14 @@ const calculateTotal = () => {
 
           {/* Reviews Section */}
           <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'reviews' ? 'lg:block hidden' : 'block'}`}>
-            <div className="mb-4 hidden lg:block">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-base md:text-lg popmed w-28 md:w-36 pb-1">
+            <div className="mb-4 lg:block">
+              <div className="flex   justify-between items-start sm:items-center gap-2">
+                <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-xs md:text-lg popmed w-28 md:w-36 pb-1">
                   Review 
                 </p>
                 <p
                   onClick={() => setIsModalOpen(true)}
-                  className="text-[#CBA135] hover:text-yellow-700 cursor-pointer popbold text-sm md:text-base"
+                  className="text-[#CBA135] hover:text-yellow-700 cursor-pointer popbold text-xs md:text-base"
                 >
                   Write a Review
                 </p>
@@ -779,12 +787,12 @@ const calculateTotal = () => {
           {/* You Also Bought Section */}
           <div className="mb-8 md:mb-12 lg:mb-16">
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-base md:text-lg w-36 md:w-44 pb-1">
+              <div className="flex justify-between items-start sm:items-center gap-2">
+                <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-xs md:text-lg w-36 md:w-44 pb-1">
                   You also bought
                 </p>
                 <Link to="/filter">
-                  <p className="text-[#CBA135] popbold text-sm md:text-base">
+                  <p className="text-[#CBA135] popbold text-xs md:text-base">
                     View all
                   </p>
                 </Link>
@@ -796,12 +804,12 @@ const calculateTotal = () => {
           {/* Compare Similar Section */}
           <div className="mb-8 md:mb-12 lg:mb-16">
             <div className="mb-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-base md:text-lg w-36 md:w-44 pb-1">
+              <div className="flex  justify-between items-start sm:items-center gap-2">
+                <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-xs md:text-lg w-36 md:w-44 pb-1">
                   Compare Similar
                 </p>
                 <Link to="/filter">
-                  <p className="text-[#CBA135] popbold text-sm md:text-base">
+                  <p className="text-[#CBA135] popbold text-xs md:text-base">
                     View all
                   </p>
                 </Link>

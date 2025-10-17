@@ -2,7 +2,7 @@ import { LiaStarSolid } from "react-icons/lia";
 import React, { useState } from 'react';
 import DetailsModal from "../productDetailAndFilter/_components/DetailsModal";
 import Sweeper from "../../others/Sweeper";
-import { useGetReviewsQuery } from "../../../redux/slices/Apis/customersApi";
+
 
 const Customers = ({ details, reviews }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,7 +23,7 @@ const Customers = ({ details, reviews }) => {
                 }}
                 className={`${
                     details ? 'opacity-50 cursor-not-allowed hidden' : 'cursor-pointer hover:text-yellow-700'
-                } text-[#CBA135] block px-12 py-3 w-56 popbold`}
+                } text-[#CBA135] block md:px-12 py-3 w-56 popbold`}
             >
                 Write a Review
             </p>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Button, Select } from "antd";
+import { Button, Select, Spin } from "antd";
 import { FaChevronDown, FaDownload } from "react-icons/fa";
 import { useGetAllVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import VendorTable from "./VendorTable";
@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 const { Option } = Select;
 
 const VendorList = () => {
-  const { data: vendors } = useGetAllVendorsQuery();
+  const { data: vendors,isLoading } = useGetAllVendorsQuery();
 
   // State for search & filter
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,6 +74,15 @@ const VendorList = () => {
     link.click();
     document.body.removeChild(link);
   };
+
+    if(isLoading){
+      return(
+        <div className="flex h-screen justify-center items-center">
+          <Spin size="large" />
+        </div>
+      )
+    }
+  
 
   return (
     <div className="space-y-6">

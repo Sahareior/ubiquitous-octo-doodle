@@ -28,7 +28,7 @@ const Analytics = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'XAF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
@@ -84,24 +84,7 @@ const Analytics = () => {
 
   return (
     <div>
-      {/* Date Range Filter */}
-      {/* <div className="flex flex-col md:flex-row justify-between shadow-md items-center gap-4 py-6 mt-9 px-4 bg-white rounded-md ">
-        <p className="flex items-center gap-2 text-gray-700 text-[18px] popbold ">
-          <FaCalendar className="text-[#CBA135]" />
-          Date Range Filter
-        </p>
-        <Select
-          defaultValue="lucy"
-          className="w-[180px] popreg h-10 text-[16px]"
-          size="middle"
-          options={[
-            { value: 'jack', label: 'Jack' },
-            { value: 'lucy', label: 'Lucy' },
-            { value: 'Yiminghe', label: 'Yiminghe' },
-            { value: 'disabled', label: 'Disabled', disabled: true },
-          ]}
-        />
-      </div> */}
+   
 
       {/* Cards Section */}
       <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
@@ -129,17 +112,7 @@ const Analytics = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-[18px] font-semibold popbold text-gray-800">Vendor Performance</h3>
-            {/* <Select
-              defaultValue="lucy"
-              className="w-[180px] h-10 text-[16px] popreg"
-              size="middle"
-              options={[
-                { value: 'jack', label: 'Jack' },
-                { value: 'lucy', label: 'Lucy' },
-                { value: 'Yiminghe', label: 'Yiminghe' },
-                { value: 'disabled', label: 'Disabled', disabled: true },
-              ]}
-            /> */}
+           
           </div>
 
           {/* Table Head */}
@@ -158,7 +131,7 @@ const Analytics = () => {
                   {vendor?.first_name} {vendor?.last_name}
                 </p>
                 <p className="text-center">{vendor?.products_sold}</p>
-                <p className="text-center">{formatCurrency(vendor?.revenue)}</p>
+                <p className="text-center">{vendor?.revenue} XAF</p>
                 <p className={`text-center rounded-full p-2 font-medium ${
                   vendor.status === "Active" 
                     ? "bg-green-100 text-green-600" 
@@ -221,7 +194,7 @@ const Analytics = () => {
 <div className="bg-white p-6 rounded-xl mt-6 shadow-md">
   <h2 className="text-[20px] popbold mb-4">Top Products over the last month</h2>
   <hr />
-  <div className="space-y-4 mt-4">
+  <div className="space-y-4 h-[30vh] overflow-y-auto mt-4">
     {topProductsSells?.products?.length > 0 ? (
       topProductsSells.products.map((product, index) => (
         <div key={product.id}>

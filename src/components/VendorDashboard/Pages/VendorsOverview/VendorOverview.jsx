@@ -35,7 +35,7 @@ const cards = [
     change: `+ ${data?.total_products?.change}`,
     color: "#16A34A",
     icon: <FaBox className="text-[#CBA135]" size={26} />,
-    footerText: "+12.5% from last month",
+    footerText: " from last month",
   },
   {
     title: "Sales This Month",
@@ -43,7 +43,7 @@ const cards = [
     change: data?.sales_this_month?.week_change,
     color: "#16A34A",
     icon: <FaCartShopping className="text-[#2563EB]" size={26} />,
-    footerText: "+8.2% this week",
+    footerText: " this week",
   },
   {
     title: "Pending Orders",

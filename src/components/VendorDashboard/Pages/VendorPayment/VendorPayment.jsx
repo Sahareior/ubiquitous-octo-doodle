@@ -24,7 +24,7 @@ const cards = [
     change: `+ ${paymentState?.total_sales?.change}%`,
     color: "#16A34A",
     icon: <FaBox className="text-[#CBA135]" size={26} />,
-    footerText: "+12.5% from last month",
+    footerText: "from last month",
   },
   {
     title: "Paid Out",
@@ -32,7 +32,7 @@ const cards = [
     change: `+ ${paymentState?.paid_out?.week_change}%`,
     color: "#16A34A",
     icon: <IoCheckmarkDoneCircleSharp className="text-[#2563EB]" size={26} />,
-    footerText: "+8.2% this week",
+    footerText: " this week",
   },
   {
     title: "Pending Payout",
