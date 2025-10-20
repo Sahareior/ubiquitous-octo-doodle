@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Breadcrumb from "../others/Breadcrumb";
 import {
   useCartQuantityDecrementMutation,
@@ -88,6 +88,7 @@ const Cart = () => {
   const { data: cartData, refetch } = useGetAppCartQuery();
   const [deleteFromCart] = useDeleteFromCartMutation()
   const { data: productsData } = useGetAllProductsQuery();
+    const navigate = useNavigate();
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
 
@@ -213,6 +214,18 @@ if (!cartData?.results || cartData?.results?.length === 0) {
     total, subtotal, deliveryFee, data: cartData?.results, deliveryType, delivery_instructions:deliveryInstructions
   }
 
+
+  
+  const handleCheckout = async () => {
+    try {
+      const data = await refetch(); // Wait for refetch to finish
+      navigate("checkout1", { state: payLoad }); // Then navigate
+    } catch (err) {
+      console.error("Refetch failed:", err);
+    }
+  };
+
+
   return (
     <div className="bg-[#FAF8F2] min-h-screen p-3 pb-10">
       <div className="m"></div>
@@ -295,11 +308,11 @@ if (!cartData?.results || cartData?.results?.length === 0) {
 
               {/* Checkout Buttons */}
               <div className="mt-6 flex flex-col gap-3">
-                <Link to="checkout1" state={payLoad} className="w-full block">
-                  <button className="h-[56px] rounded-md w-full bg-[#CBA135] text-white font-semibold hover:bg-yellow-600">
+              
+                  <button onClick={()=> handleCheckout()} className="h-[56px] rounded-md w-full bg-[#CBA135] text-white font-semibold hover:bg-yellow-600">
                     Proceed to Checkout
                   </button>
-                </Link>
+              
               </div>
             </div>
 

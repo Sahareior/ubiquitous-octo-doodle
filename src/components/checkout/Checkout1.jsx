@@ -30,6 +30,8 @@ const Checkout1 = () => {
     delivery_instructions,
     total = 0,
   } = location.state || {};
+
+  console.log(cartData,'this is data')
   
   // console.log(delivery_instructions,'this is cartdata')
   // Format XAF currency

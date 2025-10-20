@@ -73,7 +73,7 @@ const OrderTracking = () => {
 
   return (
     <div className="bg-[#FAF8F2] pb-10">
-      <div className="mx-20 px-4">
+      <div className="md:mx-20 px-4">
         <Breadcrumb />
 
         {/* Header */}
@@ -237,11 +237,11 @@ const OrderTracking = () => {
               <p className="text-sm popreg text-gray-500">
                 Quantity: {item?.quantity}
               </p>
-              <p className="text-xs popreg text-gray-500">Price: ${item?.price}</p>
+              <p className="text-xs popreg text-gray-500">Price: XAF {item?.price}</p>
             </div>
           </div>
           <p className="text-sm text-[#666666] popreg font-semibold text-right">
-            ${(parseFloat(item?.price) * item?.quantity).toFixed(2)}
+            XAF {(parseFloat(item?.price) * item?.quantity).toFixed(2)}
           </p>
         </div>
       ))}
@@ -251,27 +251,27 @@ const OrderTracking = () => {
     <div className="border-t border-gray-300 mt-6 pt-4 space-y-2 text-[16px] popreg text-[#666666]">
       <div className="flex justify-between">
         <span>Subtotal ({items?.length} item{items?.length !== 1 ? 's' : ''})</span>
-        <span>${subtotal || '0.00'}</span>
+        <span>XAF {subtotal || '0.00'}</span>
       </div>
       <div className="flex justify-between">
         <span>Delivery fee</span>
-        <span>${delivery_fee || '0.00'}</span>
+        <span>XAF {delivery_fee || '0.00'}</span>
       </div>
       <div className="flex justify-between">
         <span>Tax</span>
-        <span>${tax_amount || '0.00'}</span>
+        <span>XAF {tax_amount || '0.00'}</span>
       </div>
       {parseFloat(discount_amount) > 0 && (
         <div className="flex justify-between">
           <span>Total Discount</span>
-          <span className="text-green-600">-${discount_amount || '0.00'}</span>
+          <span className="text-green-600">-XAF {discount_amount || '0.00'}</span>
         </div>
       )}
     </div>
     <hr className="mt-3" />
     <div className="flex justify-between items-center mt-4">
       <h4 className="text-base font-semibold">Total</h4>
-      <h4 className="text-xl font-bold text-[#CBA135]">${total_amount || '0.00'}</h4>
+      <h4 className="text-xl font-bold text-[#CBA135]">XAF {total_amount || '0.00'}</h4>
     </div>
 
     <div className="bg-[#EAE7E1] rounded-2xl space-y-2 p-5 mt-5">
