@@ -104,17 +104,17 @@ console.log(getDeleveryedProduct,'ad')
         <Breadcrumb />
       </div>
       <div className="max-w-8xl mx-auto pb-11 px-4">
-        <div className="bg-[#EAE7E1] w-full py-8 p-6 rounded-md">
+        <div className="bg-[#EAE7E1] w-full py-8 md:p-6  rounded-md">
           <h2 className="text-center popbold text-xl md:text-2xl font-semibold text-gray-800 mb-6">
             Return / Exchange Request
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1  lg:grid-cols-3 gap-6">
             {/* Left column - Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-md p-5 space-y-4">
+            <div className="lg:col-span-2 mt-5">
+              <div className="bg-white rounded-md md:p-5 space-y-4">
                 {/* Order Select */}
-                <div className="bg-white p-5 rounded-md border border-gray-200">
+                <div className="bg-white md:p-5 rounded-md border border-gray-200">
                   <label className="flex items-center gap-2 text-gray-800 font-medium mb-1">
                     <span className="bg-[#CBA135] text-white w-5 h-5 flex items-center justify-center rounded-full text-sm">
                       1

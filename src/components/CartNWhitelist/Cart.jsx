@@ -124,7 +124,7 @@ if (!cartData?.results || cartData?.results?.length === 0) {
     <div className="flex flex-col items-center h-screen justify-center py-10 px-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
       <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
       <h2 className="text-xl font-semibold text-gray-700 mb-2">
-        Your cart is empty
+        Your Cart is empty!
       </h2>
       <p className="text-gray-500 text-center mb-4">
         Looks like you haven’t added any products yet.

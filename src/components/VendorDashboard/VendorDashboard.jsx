@@ -160,6 +160,8 @@ const VendorDashboard = () => {
               className='h-16 w-16 bg-cover rounded-full'
               src={profileImage}
             />
+
+            <p className='popmed text-xl'>{profileData?.first_name}</p>
           </div>
         </div>
 

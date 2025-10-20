@@ -31,8 +31,8 @@ import { GrAnalytics } from "react-icons/gr";
 import { MdLogout } from "react-icons/md";
 import { TbCategoryPlus } from "react-icons/tb";
 import useNotificationSocket from "../../Websocket/useNotificationSocket";
-import { isLoading } from "./../../../node_modules/sweetalert2/src/utils/dom/getters";
-import { useGetAllConversationsidQuery, useGetAllNotificationQuery } from "../../redux/slices/Apis/dashboardApis";
+
+import { useGetAllConversationsidQuery } from "../../redux/slices/Apis/dashboardApis";
 import Notification from "./pages/Notifications/Notification";
 import { RxExit } from "react-icons/rx";
 import Swal from "sweetalert2"; // Import SweetAlert2
@@ -47,21 +47,18 @@ const AdminDashboard = () => {
   const location = useLocation();
   const pathKey = location.pathname.split("/")[2] || "admin-overview";
   const { data: profileData, error, refetch } = useGetProfileQuery();
-  const { data: notificationData, isLoading } = useGetAllNotificationQuery();
+ 
   const { notifications } = useNotificationSocket();
   const {
-    globalMessages,
-    sendMessage,
-    connected,
-    setUserId,
+
     setIncoming,
     incoming,
   } = useWebSocketContext();
-  console.log(incoming, "incomingggggg");
+  console.log(profileData?.first_name, "incomingggggg");
 
   localStorage.setItem("notify", JSON.stringify(notifications));
 
-  const storedRole = localStorage.getItem("user_role"); // "customer" or "vendor"
+  
 
   const userInfo = JSON.parse(localStorage.getItem("customerId"));
 
@@ -229,7 +226,7 @@ const AdminDashboard = () => {
             />
 
             <p className="popmed text-lg text-[#666666]">
-              Hi {userInfo?.user?.first_name}
+              Hi {profileData?.first_name}
             </p>
           </div>
         </div>

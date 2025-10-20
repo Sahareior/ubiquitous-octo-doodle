@@ -90,10 +90,9 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 mt-9 gap-6 py-5">
         {currentProducts.map((item) => {
           // Static values for now
-  const newPrice = item?.new_price;
-  const discount = item?.promotion_discount_value;
-  const hasDiscount = discount && discount > 0;
-
+     const newPrice = item?.new_price || item?.price1;
+      const discount = item?.promotion_discount_value;
+      const hasDiscount = discount && discount > 0;
           return (
             <div
               key={item.id}
@@ -119,10 +118,14 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
                 <h2 className="text-[16px] popreg mb-1 truncate">{item.name}</h2>
 
                 {/* Price Section */}
-                <div className="flex flex-col">
-                  <span className="text-gray-400 line-through text-sm">XAF {item.price1}</span>
-                  <span className="text-[#CBA135] text-[16px] popbold">XAF {newPrice}</span>
-                </div>
+         <div className="flex flex-col">
+              {hasDiscount && (
+                <span className="text-gray-400 line-through text-sm">
+                  XAF {item.price1}
+                </span>
+              )}
+              <span className="text-[#CBA135] text-[16px] popbold">XAF {newPrice}</span>
+            </div>
               </div>
             </div>
           );

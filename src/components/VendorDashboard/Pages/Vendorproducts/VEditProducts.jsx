@@ -89,6 +89,7 @@ const VEditProducts = () => {
     partnerDeliveryEnabled: false,
     option3: "",
     deliveryTime: "",
+    color:"",
     seoTitle: "",
     metaDescription: "",
     tag: [],
@@ -250,18 +251,47 @@ const handleSubmit = async () => {
   // Add product ID for update
   formDataToSend.append("id", productData.id);
 
-  // Append all form fields
-Object.keys(formData).forEach((key) => {
-  if (Array.isArray(formData[key])) {
-    formData[key].forEach((value) => {
-      formDataToSend.append(key, Number(value)); // 👈 force integer
+  // Append all basic form fields
+  const basicFields = [
+    'name', 'shortDescription', 'fullDescription', 'price1', 'price2', 'price3',
+    'sku', 'stockQuantity', 'is_stock', 'homeDeliveryEnabled', 'option1',
+    'pickUpEnabled', 'option2', 'partnerDeliveryEnabled', 'option3',
+    'estimated_delivery_days', 'seoTitle', 'metaDescription'
+  ];
+
+  basicFields.forEach(field => {
+    if (formData[field] !== undefined && formData[field] !== null) {
+      formDataToSend.append(field, formData[field].toString());
+    }
+  });
+
+  // Handle array fields
+  if (formData.categories && formData.categories.length > 0) {
+    formData.categories.forEach(category => {
+      formDataToSend.append('categories', category.toString());
     });
-  } else if (typeof formData[key] === "boolean") {
-    formDataToSend.append(key, formData[key].toString());
-  } else {
-    formDataToSend.append(key, formData[key]);
   }
-});
+
+  if (formData.tag && formData.tag.length > 0) {
+    formData.tag.forEach(tag => {
+      formDataToSend.append('tag', tag);
+    });
+  }
+
+  // Handle specifications - create a specifications object
+const specs = {
+  dimensions: formData.dimensions || "",
+  material: formData.material || "",
+  color: formData.color || "",
+  weight: formData.weight || "",
+  assembly_required: formData.assembly_required || false,
+  warranty: formData.warranty || "",
+  care_instructions: formData.care_instructions || "",
+  country_of_origin: formData.country_of_origin || "",
+};
+
+formDataToSend.append("specifications", JSON.stringify(specs));
+
 
   // Append new image files
   newImages.forEach((image) => {
@@ -273,8 +303,10 @@ Object.keys(formData).forEach((key) => {
   formDataToSend.append("existing_images", JSON.stringify(existingImageIds));
 
   try {
+
+    console.log(formData,'this is payload data')
     const res = await vendorEditProduct({ id: productData.id, formDataToSend });
-    refetch()
+    refetch();
     setLoading(false);
 
     // ✅ Success Swal
@@ -362,8 +394,8 @@ Object.keys(formData).forEach((key) => {
               className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
             >
 {
-  loading? <div> <div className="flex justify-center items-center">
-    <Spin />
+  loading? <div> <div className="flex popmed text-red-500 gap-2 justify-center items-center">
+    Compressing image ......<Spin />
   </div></div>:               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-8 h-8 mb-3 text-gray-500" />
                 <p className="mb-2 text-sm text-gray-500">

@@ -174,7 +174,7 @@ const DashHome = () => {
                     <div className="w-4 h-4 rounded-full bg-green-500" />
                     <p className="text-sm text-gray-700">{item?.category}</p>
                   </div>
-                  <p className="text-sm text-gray-600 font-medium">34%</p>
+                  {/* <p className="text-sm text-gray-600 font-medium">34%</p> */}
                 </div>
               ))}
             </div>

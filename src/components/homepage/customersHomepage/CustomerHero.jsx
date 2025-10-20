@@ -1,6 +1,7 @@
 import { Button } from "antd";
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useGetProfileQuery } from "../../../redux/slices/Apis/customersApi";
 
 const images = [
   // Use smaller width + lower quality for faster loading
@@ -11,7 +12,7 @@ const images = [
 
 const CustomerHero = () => {
   const [current, setCurrent] = useState(0);
-
+   const { data: profileData } = useGetProfileQuery();
   // Get user info once (memoized, prevents parsing every render)
   const userInfo = useMemo(() => {
     try {
@@ -91,7 +92,7 @@ const CustomerHero = () => {
       {/* Greeting Section */}
       <div className="md:px-20 py-16 bg-[#FAF8F2] text-center md:text-start">
         <h3 className="text-[28px] md:text-[36px] popbold font-bold">
-          Welcome back, {userInfo?.user?.first_name || "Guest"}
+          Welcome back, {profileData?.first_name || "Guest"}
         </h3>
         <p className="text-[16px] popreg mt-2">
           Here are some items you might love

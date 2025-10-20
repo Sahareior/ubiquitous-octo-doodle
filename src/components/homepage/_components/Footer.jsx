@@ -16,74 +16,51 @@ const Footer = () => {
     navigate('/regester-seller');
   };
 
-  // Define static mappings (what you *want* vs what may come from API)
+  // Step 1: Define mappings
   const categoryMappings = useMemo(() => ({
     'Living Room': ['living room', 'livingroom', 'living', 'lounge', 'sitting room'],
     'Bedroom': ['bedroom', 'bedrooms', 'bed room', 'master bedroom', 'sleeping room'],
     'Dining Room': ['dining room', 'diningroom', 'dining', 'dinner room', 'eating area'],
     'Office Room': ['office room', 'officeroom', 'office', 'workspace', 'study room', 'study'],
-    'Kitchen': ['kitchen', 'kitchens', 'cooking area', 'culinary space']
+    'Kitchen': ['kitchen', 'kitchens', 'cooking area', 'culinary space'],
   }), []);
 
-  // Step 1: Find category IDs if API has data
+  // Step 2: Match with API data
   const matchedCategories = useMemo(() => {
     if (!allCategories?.results?.length) return [];
 
-    const matches = [];
-
-    Object.entries(categoryMappings).forEach(([displayName, variations]) => {
+    return Object.entries(categoryMappings).map(([displayName, variations], index) => {
       const found = allCategories.results.find(cat => {
-        if (!cat.name) return false;
-        const catName = cat.name.toLowerCase();
+        const catName = cat?.name?.toLowerCase() || '';
         return variations.some(variation =>
           catName.includes(variation.toLowerCase()) ||
           variation.toLowerCase().includes(catName)
         );
       });
 
-      if (found) {
-        matches.push({
-          displayName,
-          id: found.id,
-        });
-      }
+      // Use API id if found, else fallback id (1001+index)
+      return {
+        displayName,
+        id: found ? found.id : 1001 + index,
+      };
     });
-
-    return matches;
   }, [allCategories, categoryMappings]);
 
-  // Step 2: Generate links
+  // Step 3: Render category links
   const renderCategoryLinks = () => {
     if (isLoading) return <li>Loading categories...</li>;
     if (isError) return <li>Failed to load categories</li>;
 
-    // If found matches, show them dynamically
-    if (matchedCategories.length > 0) {
-      return matchedCategories.map(({ displayName, id }) => (
-        <li key={id}>
-          <Link
-            to={`/filter?category=${id}`}
-            className="hover:text-white block w-full"
-          >
-            {displayName}
-          </Link>
-        </li>
-      ));
-    }
-
-    // Fallback static categories
-    return (
-      <>
-        <li><Link to="/filter?category=11" className="hover:text-white">Living Room</Link></li>
-        <li><Link to="/filter?category=23" className="hover:text-white">Bedroom</Link></li>
-        <li><Link to="/filter?category=34" className="hover:text-white">Dining Room</Link></li>
-        <li><Link to="/filter?category=45" className="hover:text-white">Office Room</Link></li>
-        <li><Link to="/filter?category=56" className="hover:text-white">Kitchen</Link></li>
-      </>
-    );
+    return matchedCategories.map(({ displayName, id }) => (
+      <li key={id}>
+        <Link to={`/filter?category=${id}`} className="hover:text-white block w-full">
+          {displayName}
+        </Link>
+      </li>
+    ));
   };
 
-  // Step 3: Render footer
+  // Step 4: Footer layout
   return (
     <footer className="bg-black text-white px-3 py-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -146,7 +123,7 @@ const Footer = () => {
       <div className="border-t border-gray-700 mt-10 pt-6 text-sm text-gray-500 flex flex-col md:flex-row justify-between items-center">
         <p>© {new Date().getFullYear()} WIROKO. All rights reserved.</p>
         <div className="flex items-center gap-6">
-          <Link to="/privacy" className="mt-2 md:mt-0 hover:text-white">Privacy Policy</Link>
+          <Link to="/privacy" className=" md:mt-0 hover:text-white">Privacy Policy</Link>
           <Link to="/terms&conditions" className="hover:text-white">Terms & Conditions</Link>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { Select } from "antd";
 
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
   <div className="flex flex-col gap-1">
@@ -14,7 +15,9 @@ const InputField = ({ label, name, placeholder, type = "text", value, onChange }
   </div>
 );
 
-const ProductSpecificationFormEdit = ({formData,setFormData}) => {
+const ProductSpecificationFormEdit = ({ formData, setFormData }) => {
+
+  console.log('this is forData', formData)
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,22 +27,25 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
     }));
   };
 
+  // ✅ Full color options same as create component
   const colorOptions = [
-  "Navy Blue",
-  "Red",
-  "White",
-  "Black",
-  "Green",
-  "Yellow",
-  "Gray",
-];
-
+    "Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray",
+    "Blue", "Brown", "Beige", "Ivory", "Cream", "Charcoal", "Slate Gray",
+    "Silver", "Gold", "Bronze", "Copper", "Orange", "Pink", "Purple",
+    "Lavender", "Teal", "Turquoise", "Maroon", "Burgundy", "Forest Green",
+    "Olive Green", "Mustard Yellow", "Royal Blue", "Sky Blue", "Navy",
+    "Dark Brown", "Light Brown", "Tan", "Off-White", "Eggshell", "Pearl White",
+    "Platinum", "Champagne", "Rose Gold", "Coral", "Salmon", "Magenta",
+    "Violet", "Indigo", "Mint Green", "Sage Green", "Khaki", "Taupe",
+    "Espresso", "Ebony", "Ash Gray", "Stone", "Sand", "Terracotta"
+  ];
 
   return (
-    <form className="bg-white p-6 rounded-2xl shadow-md space-y-4">
-      <h2 className="text-lg font-bold mb-4">Product Specifications</h2>
-
+    <form className="bg-white rounded-2xl pt-8 space-y-4">
+      <h2 className="text-lg font-bold mb-4">Edit Product Specifications</h2>
+      <hr />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         <InputField
           label="Dimensions (W×H×D)"
           name="dimensions"
@@ -47,12 +53,14 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
           value={formData.dimensions}
           onChange={handleChange}
         />
-<InputField
-  label="Assembly Required"
-  name="assembly_required"
-  value={formData.assembly_required}
-  onChange={handleChange}
-/>
+
+        <InputField
+          label="Assembly Required"
+          name="assembly_required"
+          value={formData.assembly_required}
+          onChange={handleChange}
+        />
+
         <InputField
           label="Material"
           name="material"
@@ -60,6 +68,7 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
           value={formData.material}
           onChange={handleChange}
         />
+
         <InputField
           label="Warranty"
           name="warranty"
@@ -67,20 +76,37 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
           value={formData.warranty}
           onChange={handleChange}
         />
-       <InputField
-  label="Color(s)"
-  name="color"
-  placeholder="e.g. Navy Blue, Red, White"
-  value={formData.color}
-  onChange={handleChange}
-/>
 
-<InputField
-  label="Care Instructions"
-  name="care_instructions"
-  value={formData.care_instructions}
-  onChange={handleChange}
-/>
+        {/* ✅ Multiple Select for Colors (same as create) */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Color(s)</label>
+          <Select
+            mode="multiple"
+            placeholder="Select color(s)"
+            value={formData.color ? formData.color.split(', ') : []}
+            onChange={(values) =>
+              setFormData((prev) => ({
+                ...prev,
+                color: values.join(', '), // stored as a single comma-separated string
+              }))
+            }
+            options={colorOptions.map((color) => ({ label: color, value: color }))}
+            style={{ width: "100%" }}
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            showSearch
+            allowClear
+          />
+        </div>
+
+        <InputField
+          label="Care Instructions"
+          name="care_instructions"
+          value={formData.care_instructions}
+          onChange={handleChange}
+        />
+
         <InputField
           label="Weight"
           name="weight"
@@ -88,16 +114,15 @@ const ProductSpecificationFormEdit = ({formData,setFormData}) => {
           value={formData.weight}
           onChange={handleChange}
         />
-<InputField
-  label="Country of Origin"
-  name="country_of_origin"
-  value={formData.country_of_origin}
-  onChange={handleChange}
-/>
+
+        <InputField
+          label="Country of Origin"
+          name="country_of_origin"
+          value={formData.country_of_origin}
+          onChange={handleChange}
+        />
 
       </div>
-
-
     </form>
   );
 };

@@ -661,3 +661,40 @@ color: white;
 .anticon{
   color:#1d8fcc !important
 }
+
+
+/* Fix spacing & alignment for Steps on mobile */
+.ant-steps {
+  margin-top: 10px;
+}
+
+/* Add spacing between steps for small screens */
+@media (max-width: 768px) {
+  .ant-steps-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ant-steps-item {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  /* Show line manually for mobile if missing */
+
+
+  /* Tweak the title spacing */
+  .ant-steps-item-title {
+    font-size: 14px;
+    margin-left: 8px;
+  }
+
+  /* Make the step icon smaller for mobile */
+  .ant-steps-item-icon {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 12px !important;
+  }
+}

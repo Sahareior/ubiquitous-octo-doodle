@@ -57,9 +57,7 @@ const EditAdminProducts = () => {
   const {data:categories} = useGetCategoriesQuery()
   const [deleteImage] = useDeleteImageMutation()
 
-  // console.log(productData,'this is productData')
 
-  // // console.log(productData,'adadad')
 const compressionOptions = {
   maxSizeMB: 0.6,
   maxWidthOrHeight: 1920,
@@ -68,7 +66,7 @@ const compressionOptions = {
 };
 
 
-  // 🔹 State for all form data
+
   const [formData, setFormData] = useState({
     name: "",
     categories: [],
@@ -92,10 +90,11 @@ const compressionOptions = {
     seoTitle: "",
     metaDescription: "",
     tag: [],
+    color: "",
     images: []
   });
 
-  // Initialize form data when productData is available
+
 useEffect(() => {
   if (productData) {
     setFormData({
@@ -103,7 +102,7 @@ useEffect(() => {
       name: productData.name || "",
       categories: productData.categories?.map(cat =>
         typeof cat === "object" ? cat.id : cat
-      ) || [], // ✅ always IDs
+      ) || [], 
       shortDescription: productData.short_description || "",
       fullDescription: productData.full_description || "",
       price1: productData.price1 || "",
@@ -129,7 +128,7 @@ useEffect(() => {
         url: img.image,
         createdAt: img.created_at
       })) || [],
-      // ✅ specifications
+    
       dimensions: productData.specifications?.dimensions || "",
       material: productData.specifications?.material || "",
       color: productData.specifications?.color || "",
@@ -162,17 +161,17 @@ const handleImageUpload = async (files) => {
     const compressedImages = [];
     
     for (const file of files) {
-      // Compress each image
+
       const compressedFile = await imageCompression(file, {
         ...compressionOptions,
-        fileType: file.type, // Use original file type
+        fileType: file.type,
       });
       
-      // Create a new File object with original name
+     
       const finalFile = new File(
         [compressedFile], 
-        file.name, // Keep original filename
-        { type: file.type } // Keep original type
+        file.name, 
+        { type: file.type } 
       );
       
       const preview = URL.createObjectURL(compressedFile);
@@ -207,7 +206,7 @@ const handleImageRemove = async (index, isNew, imageId) => {
     setNewImages(updatedNewImages);
   } else {
     try {
-      const res = await deleteImage(imageId).unwrap(); // 👈 call API
+      const res = await deleteImage(imageId).unwrap(); 
       refetch()
       Swal.fire({
         icon: "success",
@@ -217,7 +216,7 @@ const handleImageRemove = async (index, isNew, imageId) => {
         showConfirmButton: false,
       });
 
-      // Remove from state only after successful API call
+
       const updatedImages = formData.images.filter((img) => img.id !== imageId);
       setFormData((prev) => ({ ...prev, images: updatedImages }));
     } catch (error) {
@@ -231,7 +230,7 @@ const handleImageRemove = async (index, isNew, imageId) => {
 };
 
 
-  // 🔹 Handle generic input change
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -251,18 +250,47 @@ const handleSubmit = async () => {
   // Add product ID for update
   formDataToSend.append("id", productData.id);
 
-  // Append all form fields
-Object.keys(formData).forEach((key) => {
-  if (Array.isArray(formData[key])) {
-    formData[key].forEach((value) => {
-      formDataToSend.append(key, Number(value)); // 👈 force integer
+  // Append all basic form fields
+  const basicFields = [
+    'name', 'shortDescription', 'fullDescription', 'price1', 'price2', 'price3',
+    'sku', 'stockQuantity', 'is_stock', 'homeDeliveryEnabled', 'option1',
+    'pickUpEnabled', 'option2', 'partnerDeliveryEnabled', 'option3',
+    'estimated_delivery_days', 'seoTitle', 'metaDescription'
+  ];
+
+  basicFields.forEach(field => {
+    if (formData[field] !== undefined && formData[field] !== null) {
+      formDataToSend.append(field, formData[field].toString());
+    }
+  });
+
+  // Handle array fields
+  if (formData.categories && formData.categories.length > 0) {
+    formData.categories.forEach(category => {
+      formDataToSend.append('categories', category.toString());
     });
-  } else if (typeof formData[key] === "boolean") {
-    formDataToSend.append(key, formData[key].toString());
-  } else {
-    formDataToSend.append(key, formData[key]);
   }
-});
+
+  if (formData.tag && formData.tag.length > 0) {
+    formData.tag.forEach(tag => {
+      formDataToSend.append('tag', tag);
+    });
+  }
+
+  // Handle specifications - create a specifications object
+const specs = {
+  dimensions: formData.dimensions || "",
+  material: formData.material || "",
+  color: formData.color || "",
+  weight: formData.weight || "",
+  assembly_required: formData.assembly_required || false,
+  warranty: formData.warranty || "",
+  care_instructions: formData.care_instructions || "",
+  country_of_origin: formData.country_of_origin || "",
+};
+
+formDataToSend.append("specifications", JSON.stringify(specs));
+
 
   // Append new image files
   newImages.forEach((image) => {
@@ -274,8 +302,10 @@ Object.keys(formData).forEach((key) => {
   formDataToSend.append("existing_images", JSON.stringify(existingImageIds));
 
   try {
+
+    console.log(formData,'this is payload data')
     const res = await vendorEditProduct({ id: productData.id, formDataToSend });
-    refetch()
+    refetch();
     setLoading(false);
 
     // ✅ Success Swal
@@ -299,7 +329,7 @@ Object.keys(formData).forEach((key) => {
   }
 };
 
-  // Combine existing and new images for display
+  
   const allImages = [
     ...formData.images.map(img => ({ ...img, isNew: false })),
     ...newImages
@@ -362,8 +392,8 @@ Object.keys(formData).forEach((key) => {
               className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
             >
 {
-  loading? <div> <div className="flex justify-center items-center">
-    <Spin />
+  loading? <div> <div className="flex justify-center popmed gap-2 text-red-500 items-center">
+    Compressing image ......<Spin />
   </div></div>:               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-8 h-8 mb-3 text-gray-500" />
                 <p className="mb-2 text-sm text-gray-500">

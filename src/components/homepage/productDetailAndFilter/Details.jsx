@@ -562,7 +562,7 @@ const calculateTotal = () => {
         <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
   <div
     ref={zoomPaneRef}
-    className="absolute hidden md:block rounded-md w-full max-w-md h-96 z-50 pointer-events-none"
+    className="absolute hidden md:block rounded-md w-full max-w-md h-[550px] z-50 pointer-events-none"
   ></div>
 
   {/* Product Title & Brand */}
@@ -611,7 +611,7 @@ const calculateTotal = () => {
   })()}
 
   {/* Color Options */}
-<div>
+<div className="p-2">
   <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Color</h4>
   <div className="flex gap-2 md:gap-3 flex-wrap">
     {selectedProduct?.specifications?.color
@@ -621,6 +621,7 @@ const calculateTotal = () => {
         const isLight = ["white", "#fff", "#ffffff", "beige", "ivory"].includes(
           colorName.toLowerCase()
         );
+        
         return (
           <button
             key={index}
@@ -628,13 +629,14 @@ const calculateTotal = () => {
               backgroundColor: colorName.startsWith("#")
                 ? colorName
                 : colorName.toLowerCase(),
-              border: isLight ? "1px solid #ccc" : "1px solid transparent",
             }}
-            className={`md:h-10 md:w-10 h-5 w-5 rounded-full shadow-sm flex items-center justify-center
-              ${isLight ? "text-gray-800" : "text-white"}`}
+            className={`md:h-10 md:w-10 h-8 w-8 rounded-full flex items-center justify-center relative
+              border border-gray-300 shadow-inner
+              ${isLight ? "ring-1 ring-gray-200" : ""}`}
           >
-            {/* Optional: add tooltip or visible label */}
-            <span className="hidden">{colorName}</span>
+            {/* Inner shadow for better visibility */}
+            <div className="absolute inset-0 rounded-full shadow-inner opacity-20"></div>
+            <span className="sr-only">{colorName}</span>
           </button>
         );
       })}

@@ -268,44 +268,41 @@ const handleSubmit = async () => {
     formDataToSend.append("uploaded_images", image.file);
   });
 
-  try {
-    const res = await vendorProductCreate(formDataToSend);
-    // console.log("this is res", res);
+try {
+  const res = await vendorProductCreate(formDataToSend).unwrap();
 
-    if (res?.data?.id) {
-      Swal.fire({
-        title: "Success! 🎉",
-        text: "Product created successfully!",
-        icon: "success",
-        confirmButtonColor: "#3085d6",
-        customClass: {
-          popup: "rounded-2xl shadow-lg",
-          confirmButton: "px-4 py-2 rounded-lg",
-        },
-      });
-      refetch()
-      // ✅ Reset all fields & images
-      setFormData(initialFormData);
-      setImages([]);
-    } else {
-      Swal.fire({
-        title: "Failed!",
-        text: "Something went wrong while creating the product.",
-        icon: "error",
-        confirmButtonColor: "#d33",
-      });
-    }
-  } catch (error) {
-    console.error("Failed to create product", error);
+  if (res?.id) {
+    Swal.fire({
+      title: "Success! 🎉",
+      text: "Product created successfully!",
+      icon: "success",
+      confirmButtonColor: "#3085d6",
+    });
+    refetch();
+    setFormData(initialFormData);
+    setImages([]);
+  }
+} catch (err) {
+  console.log(err);
+
+  if (err?.data?.short_description?.[0]) {
+    Swal.fire({
+      title: "Submission Failed",
+      text: 'Short description cannot exceed 500 words',
+      icon: "error",
+      confirmButtonColor: "#d33",
+    });
+  } else {
     Swal.fire({
       title: "Error!",
       text: "Server error occurred. Please try again.",
       icon: "error",
       confirmButtonColor: "#d33",
     });
-  } finally {
-    setLoading(false);
   }
+} finally {
+  setLoading(false);
+}
 };
 
 // console.log(categories?.results,'thsi is categoried')
@@ -394,8 +391,8 @@ const handleSubmit = async () => {
           </div>
 
   {loading ? (
-  <div className="flex justify-center items-center">
-    <Spin />
+  <div className="flex gap-2 justify-center popmed text-red-500 items-center">
+   Compressing image ......<Spin />
   </div>
 ) : (
   images.length > 0 && (
