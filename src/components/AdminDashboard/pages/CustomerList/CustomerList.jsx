@@ -44,7 +44,7 @@ const CustomerList = () => {
   
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-9">
       {/* Filter and Search */}
       <div className="flex rounded-xl bg-white p-5 flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center flex-col sm:flex-row w-full gap-4">

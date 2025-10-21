@@ -5,6 +5,7 @@ import { RiArrowDropDownLine } from 'react-icons/ri';
 import { useGetRequestReturnsQuery, useReturnApproveMutation, useReturnDeleteMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 import Swal from 'sweetalert2';
 import { MdDelete } from 'react-icons/md';
+import { useRejectReturnMutation } from '../../../../../redux/slices/apiSlice';
 
 const { Option } = Select;
 
@@ -13,10 +14,12 @@ const ReturnReqTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const { data: returnReq, isLoading,refetch } = useGetRequestReturnsQuery();
-// console.log(returnReq,'aaaaaaaaaaaaa')
+  
+  const BASE_URI = "http://72.61.154.118:8000"; // Add your base URI here
 
   const [returnApprove] = useReturnApproveMutation()
   const [returnDelete] = useReturnDeleteMutation()
+  const [rejectReturn] = useRejectReturnMutation()
   
 const handleApprove = async (data) => {
   const payload = {
@@ -61,9 +64,48 @@ const handleApprove = async (data) => {
   });
 };
 
+const handleReject = (data) => {
+  const payload = {
+    order_item: data.orderItem,
+    uploaded_images: data.images.map(img => img.image), // just the URLs
+    description: data.description,
+  };
 
+  Swal.fire({
+    title: "Reject Return Request?",
+    text: "This action will permanently reject the customer's return request.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33", // red for reject
+    cancelButtonColor: "#6b7280", // gray for cancel
+    confirmButtonText: "Yes, Reject it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await rejectReturn({ id: data.id, data: payload });
+        refetch();
 
-  // Transform API data for table
+        Swal.fire({
+          title: "Rejected!",
+          text: "The return request has been rejected successfully.",
+          icon: "success",
+          confirmButtonColor: "#d33",
+        });
+      } catch (error) {
+        console.error("Reject failed:", error);
+
+        Swal.fire({
+          title: "Error!",
+          text: "Something went wrong while rejecting the request.",
+          icon: "error",
+          confirmButtonColor: "#d33",
+        });
+      }
+    }
+  });
+};
+
+  // Transform API data for table with absolute image URLs
   const dataSource = returnReq?.results?.map((request, index) => ({
     key: index + 1,
     id: request.id,
@@ -73,7 +115,10 @@ const handleApprove = async (data) => {
     description: request.description,
     status: request.status,
     createdAt: new Date(request.created_at).toLocaleDateString(),
-    images: request.uploaded_images_list,
+    images: request.uploaded_images_list?.map(img => ({
+      ...img,
+      image: img.image.startsWith('http') ? img.image : `${BASE_URI}${img.image}`
+    })) || [],
   })) || [];
 
   const showModal = (record) => {
@@ -302,7 +347,7 @@ const handleDelete = (data) => {
       <div className="flex justify-end gap-3 border-t pt-4">
         <Button
           danger
-        //   onClick={() => handleReject(selectedRequest.id)}
+          onClick={() => handleReject(selectedRequest)}
           className="px-6 py-2 rounded-lg"
         >
           Reject

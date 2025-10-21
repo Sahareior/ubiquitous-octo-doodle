@@ -291,7 +291,7 @@ const handleApply = useCallback(async () => {
       window.scrollTo(0, 0);
     }, []);
   return (
-    <div className="bg-[#FAF8F2] px-6 md:px-20 py-20 pb-28">
+    <div className="bg-[#FAF8F2] px-4 md:px-20 py-20 pb-28">
       {/* Header Section */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="flex justify-center text-[#CBA135] mb-3">

@@ -62,6 +62,18 @@ sellerApprove: build.mutation({
       body: id
     }
   }
+}),
+
+allOrders: build.query({
+  query:()=> '/orders/'
+}),
+
+rejectReturn: build.mutation({
+  query:({id,data}) => ({
+    url: `/returns/product/${id}/reject/`,
+    method: "POST",
+    body: data
+  })
 })
 
 // seller/applications/2/approve/
@@ -70,12 +82,13 @@ sellerApprove: build.mutation({
 });
 
 export const {
-
+  useRejectReturnMutation,
   useCustomerSignupMutation,
   useTopCategoryQuery,
   useCustomerLoginMutation,
   useGetCustomerProfileQuery,
   usePostSellerMutation,
   useVendorApproveQuery,
-  useSellerApproveMutation
+  useSellerApproveMutation,
+  useAllOrdersQuery
 } = apiSlice;

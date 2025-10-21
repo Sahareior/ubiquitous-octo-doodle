@@ -165,7 +165,7 @@ const Checkout1 = () => {
 
   return (
     <div className="bg-[#FAF8F2] min-h-screen pb-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className=" md:mx-20 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="pb-8 pt-6 space-y-4">
           <Breadcrumb />
@@ -177,79 +177,87 @@ const Checkout1 = () => {
           {/* Left Section: Address + Payment */}
           <div className="flex-1 space-y-6">
             {/* Address Section */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-              <h4 className="text-xl font-semibold text-gray-900 mb-6">Delivery Address</h4>
-              
-              {addressLoading ? (
-                <div className="space-y-4">
-                  {[1, 2].map(i => (
-                    <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-xl"></div>
-                  ))}
-                </div>
-              ) : address?.results?.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {address.results.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => setSelectedAddress(item)}
-                      className={`cursor-pointer transition-all duration-300 p-5 rounded-xl flex flex-col justify-between h-full border-2 ${
-                        selectedAddress?.id === item.id
-                          ? "border-[#CBA135] bg-amber-50 shadow-md"
-                          : "border-gray-200 bg-white hover:border-amber-200 hover:shadow-sm"
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-lg font-medium text-gray-900">{item?.full_name}</h3>
-                          <div className="flex gap-3">
-                            <button
-                              className="text-red-400 hover:text-red-600 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddressDelete(item.id);
-                              }}
-                            >
-                              <MdDelete size={18} />
-                            </button>
-                          </div>
-                        </div>
+<div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+  <h4 className="text-xl font-semibold text-gray-900 mb-6">Delivery Address</h4>
 
-                        <div className="text-gray-700">
-                          <p className="text-md">
-                            {item.street_address}, {item.city}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {item.landmark || "No landmark specified"}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {selectedAddress?.id === item.id && (
-                        <div className="mt-3 flex items-center text-amber-600">
-                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-xs font-medium">Selected</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                  <p className="text-gray-500 mb-4">No saved addresses found.</p>
-                </div>
-              )}
+  {addressLoading ? (
+    <div className="space-y-4">
+      {[1, 2].map((i) => (
+        <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-xl"></div>
+      ))}
+    </div>
+  ) : address?.results?.length > 0 ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {address.results.map((item) => (
+        <div
+          key={item.id}
+          onClick={() => setSelectedAddress(item)}
+          className={`cursor-pointer transition-all duration-300 p-5 rounded-xl flex flex-col justify-between min-h-[160px] border-2 ${
+            selectedAddress?.id === item.id
+              ? "border-[#CBA135] bg-amber-50 shadow-md"
+              : "border-gray-200 bg-white hover:border-amber-200 hover:shadow-sm"
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="text-lg font-medium text-gray-900 leading-snug">{item?.full_name}</h3>
+            <button
+              className="text-red-400 hover:text-red-600 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddressDelete(item.id);
+              }}
+            >
+              <MdDelete size={18} />
+            </button>
+          </div>
 
-              {/* Add Address Button */}
-              <div className="mt-6">
-                <Link className="flex justify-center" to="/checkout" state={location.state}>
-                  <button className="bg-[#CBA135] mx-auto hover:bg-yellow-600 text-white rounded-md px-16 h-[48px] text-md font-semibold">
-                    Add New Address
-                  </button>
-                </Link>
-              </div>
+          {/* Address Info */}
+          <div className="text-gray-700 space-y-1">
+            <p className="text-sm font-medium">
+              {item.street_address}, {item.city}
+            </p>
+            <p className="text-sm text-gray-500">
+              {item.landmark || "No landmark specified"}
+            </p>
+          </div>
+
+          {/* Selected Indicator */}
+          {selectedAddress?.id === item.id && (
+            <div className="mt-3 flex items-center text-amber-600">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-xs font-medium">Selected</span>
             </div>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+      <p className="text-gray-500 text-sm">No saved addresses found.</p>
+    </div>
+  )}
+
+  {/* Add Address Button */}
+  <div className="mt-8 flex justify-center">
+    <Link to="/checkout" state={location.state}>
+      <button className="bg-[#CBA135] hover:bg-yellow-600 text-white rounded-lg px-8 py-3 text-sm font-semibold transition-colors shadow-sm hover:shadow-md">
+        Add New Address
+      </button>
+    </Link>
+  </div>
+</div>
+
 
             {/* Payment Method */}
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">

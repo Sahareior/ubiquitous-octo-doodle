@@ -71,6 +71,8 @@ import Payouts from './components/AdminDashboard/pages/payouts/Payouts.jsx';
 import ReturnReq from './components/AdminDashboard/pages/return_req/ReturnReq.jsx';
 import AboutUs from './components/homepage/_components/AboutUs.jsx';
 import { WebSocketProvider } from './context/WebSocketContext.jsx';
+import AdminProtectedRoute from './components/homepage/layouts/AdminProtectedRoute.jsx';
+import VendorProtectedRoute from './components/homepage/layouts/VendorProtectedRoute.jsx';
 
 const router = createBrowserRouter([
   {
@@ -127,7 +129,11 @@ const router = createBrowserRouter([
   },
 {
   path: 'admin-dashboard',
-  element: <AdminDashboard />,
+  element:(
+    <AdminProtectedRoute>
+       <AdminDashboard />
+    </AdminProtectedRoute>
+  ),
   children: [
     { path: 'admin-overview', element: <DashHome /> },
     { path: 'seller-req', element: <ApproveSellers /> }, 
@@ -155,7 +161,11 @@ const router = createBrowserRouter([
 
 {
   path: "vendor-dashboard",
-  element: <VendorDashboard />,
+  element:(
+    <VendorProtectedRoute>
+       <VendorDashboard />
+    </VendorProtectedRoute>
+  ),
   children: [
     {
       index: true, // Default route for /vendor-dashboard

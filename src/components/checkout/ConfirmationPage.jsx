@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Breadcrumb from '../others/Breadcrumb';
 import { MdOutlineDone } from 'react-icons/md';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import { BiCopy } from "react-icons/bi";
 import { FaArrowDownLong } from 'react-icons/fa6';
 import CustomModal from './modal/CustomModal';
@@ -28,9 +28,18 @@ const ConfirmationPage = () => {
     skip: !orderId,
   });
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-  };
+const handleCopy = (text) => {
+  navigator.clipboard.writeText(text);
+
+  const popup = document.createElement("div");
+  popup.textContent = "Copied!";
+  popup.className =
+    "fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in-out";
+  document.body.appendChild(popup);
+
+  setTimeout(() => popup.remove(), 2000);
+};
+
 
   const downloadPdf = () => {
     const input = pdfRef.current;

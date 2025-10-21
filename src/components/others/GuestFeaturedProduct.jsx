@@ -1,5 +1,5 @@
-import { Button, Spin } from 'antd';
-import React from 'react';
+import { Button, Spin, Pagination } from 'antd';
+import React, { useState } from 'react';
 import { GoHeart } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -7,6 +7,9 @@ import { useGetCustomerProductsQuery } from '../../redux/slices/Apis/customersAp
 
 const GuestFeaturedProduct = () => {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
+  
   const { data: allProducts, isLoading, isError } = useGetCustomerProductsQuery();
 
   const handleGuestClick = () => {
@@ -23,6 +26,21 @@ const GuestFeaturedProduct = () => {
         navigate('/login');
       }
     });
+  };
+
+  // Calculate pagination
+  const getCurrentPageProducts = () => {
+    if (!allProducts?.results?.length) return [];
+    
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    return allProducts.results.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // ✅ Loading State
@@ -42,6 +60,10 @@ const GuestFeaturedProduct = () => {
       </div>
     );
   }
+
+  const currentProducts = getCurrentPageProducts();
+  const totalProducts = allProducts.results.length;
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
 
   return (
     <div className="md:p-20 p-3 mt-8 bg-[#FAF8F2] space-y-6">
@@ -63,7 +85,7 @@ const GuestFeaturedProduct = () => {
 
       {/* ✅ Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {allProducts.results.map((item) => {
+        {currentProducts.map((item) => {
           // ✅ Use first image or fallback placeholder
           const imageUrl =
             item.images?.length > 0
@@ -117,6 +139,22 @@ const GuestFeaturedProduct = () => {
           );
         })}
       </div>
+
+      {/* ✅ Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            current={currentPage}
+            total={totalProducts}
+            pageSize={productsPerPage}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            showQuickJumper={false}
+            responsive={true}
+            className="custom-pagination"
+          />
+        </div>
+      )}
     </div>
   );
 };

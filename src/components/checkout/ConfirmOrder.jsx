@@ -8,7 +8,7 @@ import Breadcrumb from '../others/Breadcrumb';
 const ConfirmOrder = ({ setSelectedMathod }) => {
   return (
     <div>
-      <div className="bg-[#EAE7E1] p-6 md:p-10 w-full mx-auto rounded-xl space-y-6">
+      <div className="bg-[#EAE7E1] p-2 md:p-10 w-full mx-auto rounded-xl space-y-6">
         
         {/* Header */}
         <div className='bg-white p-4'>

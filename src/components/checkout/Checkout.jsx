@@ -78,7 +78,7 @@ const onFinish = async (values) => {
 };
 
   return (
-<div className='bg-[#FAF8F2] pb-12'>
+<div className='bg-[#FAF8F2] px-4 pb-12'>
   <div className=' pb-7 md:px-20 '>
      <Breadcrumb />
    <div className='py-4 pb-6'>
@@ -120,7 +120,7 @@ const onFinish = async (values) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Form.Item name="apartment" label="Apartment name">
-            <Input className='h-[40px] custom-input' placeholder="Aqua Tower" />
+            <Input className='h-[40px] custom-input' placeholder="Enter your apartment name" />
           </Form.Item>
 
           <Form.Item name="floor" label="Floor Number">
@@ -134,7 +134,7 @@ const onFinish = async (values) => {
 
         <div className="grid w-8/12 grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item name="city" label="City">
-            <Input className='h-[40px] custom-input' placeholder="Dhaka" />
+            <Input className='h-[40px] custom-input' placeholder="Enter your city name" />
           </Form.Item>
 
           <Form.Item name="zip" label="Zip Code">

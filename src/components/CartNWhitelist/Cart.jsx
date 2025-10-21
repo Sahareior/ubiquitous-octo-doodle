@@ -15,7 +15,6 @@ import { useGetAllProductsQuery } from "../../redux/slices/Apis/vendorsApi";
 import Similar from "../homepage/productDetailAndFilter/_components/Similier";
 import { ShoppingCart } from "lucide-react";
 
-
 const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   const hasPromotion = item.promotion_discount_type && item.promotion_discount_value;
   
@@ -88,7 +87,8 @@ const Cart = () => {
   const { data: cartData, refetch } = useGetAppCartQuery();
   const [deleteFromCart] = useDeleteFromCartMutation()
   const { data: productsData } = useGetAllProductsQuery();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
 
@@ -113,33 +113,33 @@ const Cart = () => {
             id: img.id,
             url: img.image,
           })),
+          // Keep original cart item data for API calls
+          originalCartItem: cartItem
         };
       });
       setCartItems(items);
     }
   }, [cartData]);
 
+  if (!cartData?.results || cartData?.results?.length === 0) {
+    return (
+      <div className="flex flex-col items-center h-screen justify-center py-10 px-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
+        <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
+        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+          Your Cart is empty!
+        </h2>
+        <p className="text-gray-500 text-center mb-4">
+          Looks like you haven't added any products yet.
+        </p>
 
-if (!cartData?.results || cartData?.results?.length === 0) {
-  return (
-    <div className="flex flex-col items-center h-screen justify-center py-10 px-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
-      <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
-      <h2 className="text-xl font-semibold text-gray-700 mb-2">
-        Your Cart is empty!
-      </h2>
-      <p className="text-gray-500 text-center mb-4">
-        Looks like you haven’t added any products yet.
-      </p>
-
-      <Link to='/'>
-      <button className="px-5 py-2 bg-red-500 text-white rounded-xl shadow hover:bg-red-600 transition">
-        Shop Now
-      </button>
-       </Link>
-      
-    </div>
-  );
-}
+        <Link to='/'>
+        <button className="px-5 py-2 bg-red-500 text-white rounded-xl shadow hover:bg-red-600 transition">
+          Shop Now
+        </button>
+        </Link>
+      </div>
+    );
+  }
 
   const formatXAF = (amount) => `XAF ${Number(amount).toLocaleString()}`;
 
@@ -210,26 +210,46 @@ if (!cartData?.results || cartData?.results?.length === 0) {
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  const payLoad= {
-    total, subtotal, deliveryFee, data: cartData?.results, deliveryType, delivery_instructions:deliveryInstructions
-  }
+  // Prepare payload with updated cartItems data
+  const prepareCheckoutData = () => {
+    // Map the updated cartItems back to the format expected by checkout
+    const checkoutCartData = cartItems.map(item => ({
+      ...item.originalCartItem, // Keep original cart item structure
+      quantity: item.quantity, // Use updated quantity
+      // Update price snapshot if needed
+      price_snapshot: item.active_price
+    }));
 
+    return {
+      data: checkoutCartData,
+      subtotal,
+      deliveryFee,
+      deliveryType,
+      delivery_instructions: deliveryInstructions,
+      total,
+      totalItems
+    };
+  };
 
-  
   const handleCheckout = async () => {
     try {
-      const data = await refetch(); // Wait for refetch to finish
-      navigate("checkout1", { state: payLoad }); // Then navigate
+      // First refetch to ensure we have latest data
+      await refetch();
+      
+      // Prepare checkout data with updated quantities
+      const checkoutData = prepareCheckoutData();
+      
+      // Navigate with updated data
+      navigate("checkout1", { state: checkoutData });
     } catch (err) {
       console.error("Refetch failed:", err);
     }
   };
 
-
   return (
     <div className="bg-[#FAF8F2] min-h-screen p-3 pb-10">
       <div className="m"></div>
-      <div className="mx-auto pt-2 md:px-40">
+      <div className="mx-auto pt-2 md:px-20">
         <Breadcrumb />
         <h2 className="text-3xl font-bold mb-6">My Cart</h2>
 
@@ -247,7 +267,7 @@ if (!cartData?.results || cartData?.results?.length === 0) {
               />
             ))}
 
-            {cartData?.results?.length > 0 && (
+            {cartItems.length > 0 && (
               <div className="bg-white rounded-2xl mt-6 p-6 shadow-sm">
                 <h4 className="text-base font-medium text-gray-800 mb-2">
                   Delivery Instructions{" "}
@@ -272,8 +292,7 @@ if (!cartData?.results || cartData?.results?.length === 0) {
               <div className="space-y-3 text-sm text-gray-700">
                 <div className="flex justify-between">
                   <span>
-                    Subtotal ({totalItems} {totalItems === 1 ? "item" : "items"}
-                    )
+                    Subtotal ({totalItems} {totalItems === 1 ? "item" : "items"})
                   </span>
                   <span>{formatXAF(subtotal)}</span>
                 </div>
@@ -308,11 +327,12 @@ if (!cartData?.results || cartData?.results?.length === 0) {
 
               {/* Checkout Buttons */}
               <div className="mt-6 flex flex-col gap-3">
-              
-                  <button onClick={()=> handleCheckout()} className="h-[56px] rounded-md w-full bg-[#CBA135] text-white font-semibold hover:bg-yellow-600">
-                    Proceed to Checkout
-                  </button>
-              
+                <button 
+                  onClick={handleCheckout} 
+                  className="h-[56px] rounded-md w-full bg-[#CBA135] text-white font-semibold hover:bg-yellow-600"
+                >
+                  Proceed to Checkout
+                </button>
               </div>
             </div>
 
@@ -334,11 +354,11 @@ if (!cartData?.results || cartData?.results?.length === 0) {
         </div>
 
         {/* The rest of your component remains the same */}
-              <div className="flex py-9 justify-between ">
-            <h4 className="popmed text-[30px]">You may also need</h4>
-            <h5 className="popbold text-[16px] text-[#CBA135]">View All</h5>
-          </div>
-      <Similar component='cart' randomProducts={productsData?.results || []} title="You may also like" />
+        <div className="flex py-9 justify-between ">
+          <h4 className="popmed text-[30px]">You may also need</h4>
+          <h5 className="popbold text-[16px] text-[#CBA135]">View All</h5>
+        </div>
+        <Similar component='cart' randomProducts={productsData?.results || []} title="You may also like" />
       </div>
 
       <div className="flex flex-col md:flex-col lg:flex-row justify-between items-center gap-10 bg-[#E6E3DD] px-5 sm:px-10 md:px-10 lg:px-20 xl:px-60 py-12 w-full">
