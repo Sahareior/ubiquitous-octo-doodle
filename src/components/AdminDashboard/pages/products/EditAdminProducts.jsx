@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Select, Spin, Switch, message } from "antd";
 import { Upload, X } from "lucide-react";
 import imageCompression from 'browser-image-compression';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGetCategoriesQuery, useVendorEditProductMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationFormEdit from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationFormEdit";
 import Swal from "sweetalert2";
 import { useDeleteImageMutation, useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
 
-// ✅ Reusable Input
 const InputField = ({ label, name, placeholder, type = "text", value, onChange }) => (
   <div className="flex flex-col gap-1">
     <label className="popbold text-[14px] text-gray-700">{label}</label>
@@ -56,6 +55,7 @@ const EditAdminProducts = () => {
   const [vendorEditProduct] = useVendorEditProductMutation()
   const {data:categories} = useGetCategoriesQuery()
   const [deleteImage] = useDeleteImageMutation()
+  const navigate = useNavigate();
 
 
 const compressionOptions = {
@@ -305,10 +305,10 @@ formDataToSend.append("specifications", JSON.stringify(specs));
 
     console.log(formData,'this is payload data')
     const res = await vendorEditProduct({ id: productData.id, formDataToSend });
-    refetch();
+     navigate('/admin-dashboard/productslist', { state: { shouldRefetch: true } });
     setLoading(false);
 
-    // ✅ Success Swal
+
     Swal.fire({
       icon: "success",
       title: "Product Updated",
@@ -320,7 +320,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
     console.error("Failed to update product", error);
     setLoading(false);
 
-    // ❌ Error Swal
+
     Swal.fire({
       icon: "error",
       title: "Update Failed",
@@ -335,11 +335,11 @@ formDataToSend.append("specifications", JSON.stringify(specs));
     ...newImages
   ];
 
-  // console.log(allImages,'asa')
+
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg space-y-8">
-      {/* 🔹 Basic Info */}
+    
       <Section title="Basic Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <InputField 
@@ -383,7 +383,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
         />
       </Section>
 
-      {/* 🔹 Product Image */}
+
       <Section title="Product Image">
         <div className="space-y-4">
           <div className="flex items-center justify-center w-full">
@@ -435,7 +435,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
         </div>
       </Section>
 
-      {/* 🔹 Pricing */}
+
       <Section title="Pricing">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <InputField 
@@ -465,7 +465,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
         </div>
       </Section>
 
-      {/* 🔹 Inventory */}
+
 <Section title="Inventory & Variants">
   <div className="grid grid-cols-1 md:grid-cols-4 items-center justify-center gap-5">
     <InputField 
@@ -486,7 +486,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
 
   </div>
 
-  {/* ✅ Toggle for is_stock */}
+
   <div className="flex items-center gap-2 mt-4">
     <span className="font-medium">In Stock:</span>
     <Switch 
@@ -496,7 +496,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
   </div>
 </Section>
 
-      {/* 🔹 Delivery */}
+
       <Section title="Delivery Options">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -562,7 +562,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
         />
       </Section>
 
-      {/* 🔹 SEO */}
+  
       <Section title="SEO & Tags">
         <InputField 
           label="SEO Title" 

@@ -41,7 +41,7 @@ const MySwal = withReactContent(Swal);
 const Details = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderFormVisible, setOrderFormVisible] = useState(false);
-//  const {data:cartData, refetch } = useGetAppCartQuery();
+
   const [randomProducts, setRandomProducts] = useState([]);
   const [mainImage, setMainImage] = useState(null);
   const [mobileOrderDrawer, setMobileOrderDrawer] = useState(false);
@@ -65,24 +65,21 @@ const Details = () => {
   const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
 const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
 
-// console.log(product,'this is selectedProduct')
 
-
-// Trigger API when productId exists
 useEffect(() => {
   if (!productFromState&& productId) {
     getProductById(productId);
   }
 }, [productId, productFromState, getProductById]);
 
-// When API returns data, update selectedProduct
+
 useEffect(() => {
   if (data) {
     setSelectedProduct(data);
     console.log(data,'adad')
   }
 }, [data]);
-  // console.log('this is selectedProduct', selectedProduct)
+
 
 
       const checkCartData = useCallback((id) => {
@@ -103,7 +100,7 @@ useEffect(() => {
 
   const vendorId = selectedProduct?.vendor_id
 
-// console.log(product, 'this is peoduct')
+
 
 const filteredProducts = productsData?.results?.filter(
   (product) =>
@@ -115,7 +112,7 @@ const filteredProducts = productsData?.results?.filter(
 
 
 
-  // Fisher–Yates shuffle
+  
   const shuffleArray = (array) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -131,7 +128,7 @@ const filteredProducts = productsData?.results?.filter(
     }
   }, [productsData]);
 
-  // Set the initial main image when selectedProduct is available
+
   useEffect(() => {
     if (selectedProduct?.images && selectedProduct?.images?.length > 0) {
       setMainImage(selectedProduct?.images[0]);
@@ -142,7 +139,7 @@ const filteredProducts = productsData?.results?.filter(
     window.scrollTo(0, 0);
   }, [productId]);
 
-  // Function to handle image click
+ 
   const handleImageClick = (image, index) => {
     setMainImage(image);
     setActiveImageIndex(index);
@@ -190,7 +187,7 @@ const filteredProducts = productsData?.results?.filter(
     if (value === "new") {
       navigate("/checkout", {
           state:{productData:selectedProduct}
-      }); // redirect to checkout
+      }); 
     }
   };
 
@@ -221,10 +218,10 @@ const filteredProducts = productsData?.results?.filter(
       discount_amount: values.discount_amount ?? null,
       promo_code: values.promo_code ?? "",
       delivery_type: values.delivery_type ?? "express",
-      delivery_instructions: values.delivery_instructions ?? "", // 👈 double-check key
+      delivery_instructions: values.delivery_instructions ?? "",
       estimated_delivery: values.estimated_delivery ?? null,
       delivery_date: values.delivery_date 
-        ? values.delivery_date.format("YYYY-MM-DD") // 👈 convert from dayjs
+        ? values.delivery_date.format("YYYY-MM-DD") 
         : null,
       selected_shipping_address_id: values.selected_shipping_address_id ?? null,
       payment_method: values.payment_method ?? "bank",
@@ -295,14 +292,14 @@ const handleDeliveryTypeChange = (e) => {
   setDeliveryCharge(charge);
 };
 
-// Calculate total price
+
 const calculateTotal = () => {
   const productPrice = selectedProduct?.new_price || selectedProduct?.price1 || 0;
   return productPrice + deliveryCharge;
 };
 
 
-  // Navigation tabs for mobile
+ 
   const sectionTabs = [
     { id: "description", label: "Description" },
     { id: "specifications", label: "Specifications" },
@@ -318,11 +315,11 @@ const calculateTotal = () => {
 }
 
 
-     const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+     const storedRole = localStorage.getItem('user_role'); 
 
   return (
     <div className="bg-[#FAF8F2] relative overflow-hidden min-h-screen">
-      {/* Mobile Back Navigation */}
+     
       <div className="lg:hidden bg-white p-4 shadow-sm sticky top-0 z-30">
         <div className="flex items-center">
           <Link to="/" className="mr-3">
@@ -336,7 +333,7 @@ const calculateTotal = () => {
 
 
         <div className="w-full max-w-7xl mx-auto rounded-lg">
-          {/* Order Form Drawer for Mobile */}
+       
 <Drawer
   title={
     <h2 className="text-2xl font-bold text-[#5D4037] tracking-tight flex items-center gap-2">
@@ -363,12 +360,12 @@ const calculateTotal = () => {
       layout="vertical"
       onFinish={handleOrderSubmit}
      initialValues={{
-    delivery_type: "standard",  // 👈 set standard as default
+    delivery_type: "standard",
     payment_method: "cash",
   }}
       className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto"
     >
-      {/* 🏠 Shipping Address */}
+   
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
           <FaMapMarkerAlt className="text-[#8D6E63]" />
@@ -398,7 +395,7 @@ const calculateTotal = () => {
         </Form.Item>
       </div>
 
-      {/* 🚚 Delivery Details */}
+
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
           <FaTruck className="text-[#8D6E63]" />
@@ -441,7 +438,7 @@ const calculateTotal = () => {
         </Form.Item>
       </div>
 
-      {/* 💳 Payment */}
+
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
           <FaCreditCard className="text-[#8D6E63]" />
@@ -466,7 +463,7 @@ const calculateTotal = () => {
         </Form.Item>
       </div>
 
-      {/* 📝 Delivery Instructions */}
+   
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
         <Form.Item
           name="delivery_instructions"
@@ -486,8 +483,7 @@ const calculateTotal = () => {
         </Form.Item>
       </div>
 
-      {/* Order Summary */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all md:col-span-2">
+     <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all md:col-span-2">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
           <FaFileAlt className="text-[#8D6E63] popmed" />
           Order Summary
@@ -506,7 +502,7 @@ const calculateTotal = () => {
         </div>
       </div>
 
-      {/* Footer Actions */}
+
       <div className="flex justify-between gap-3 pt-5 mt-6 sticky bottom-0 backdrop-blur-lg bg-gradient-to-r from-[#F8F4EF]/95 to-[#EFEBE9]/95 p-4 rounded-t-2xl border-t border-[#D7CCC8] shadow-lg md:col-span-2">
         <Button
           onClick={handleOrderCancel}
@@ -527,16 +523,16 @@ const calculateTotal = () => {
     </Form>
   </div>
 </Drawer>
-          {/* Main Product Section */}
+        
           <div className="bg-white rounded-xl shadow-sm p-1 md:p-6 lg:p-8 mb-6 md:mb-8">
             <div className="flex flex-col lg:flex-row items-start justify-center gap-6 md:gap-8 lg:gap-9">
-              {/* Product Image */}
+           
               <div className="w-full lg:w-1/2">
                 {mainImage && (
                   <ZoomSection img={mainImage.image} zoomPaneRef={zoomPaneRef} />
                 )}
 
-                {/* Image Gallery */}
+               
                 <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2">
                   {selectedProduct?.images?.map((image, index) => (
                     <div
@@ -550,7 +546,7 @@ const calculateTotal = () => {
   className="w-full h-full object-cover"
   src={image.image}
   alt={`Product view ${index + 1}`}
-  preview={false} // Disable image preview
+  preview={false} 
 />
 
                     </div>
@@ -558,20 +554,20 @@ const calculateTotal = () => {
                 </div>
               </div>
 
-              {/* Product Info */}
+        
         <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
   <div
     ref={zoomPaneRef}
     className="absolute hidden md:block rounded-md w-full max-w-md h-[550px] z-50 pointer-events-none"
   ></div>
 
-  {/* Product Title & Brand */}
+
   <div>
     <h2 className="text-xl md:text-2xl lg:text-3xl popbold text-gray-800 mb-1">
       {selectedProduct?.name}
     </h2>
     <h3 className="text-sm md:text-base popreg text-gray-500">
-      {/* by Elegant Furniture Co. */}
+ 
     </h3>
     <div className="flex items-center mt-4 md:mt-6 gap-2">
       <Rate
@@ -584,7 +580,7 @@ const calculateTotal = () => {
     </div>
   </div>
 
-  {/* Prices & Discount */}
+
   {(() => {
     const oldPrice = selectedProduct?.price1;
     const newPrice = selectedProduct?.new_price;
@@ -610,7 +606,7 @@ const calculateTotal = () => {
     );
   })()}
 
-  {/* Color Options */}
+
 <div className="p-2">
   <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Color</h4>
   <div className="flex gap-2 md:gap-3 flex-wrap">
@@ -634,7 +630,7 @@ const calculateTotal = () => {
               border border-gray-300 shadow-inner
               ${isLight ? "ring-1 ring-gray-200" : ""}`}
           >
-            {/* Inner shadow for better visibility */}
+          
             <div className="absolute inset-0 rounded-full shadow-inner opacity-20"></div>
             <span className="sr-only">{colorName}</span>
           </button>
@@ -644,7 +640,7 @@ const calculateTotal = () => {
 </div>
 
 
-  {/* Size Options */}
+
   <div>
     <h4 className="text-sm md:text-base popmed mb-2 text-gray-700">Size</h4>
     <div className="flex flex-wrap gap-2 md:gap-3 popmed">
@@ -654,7 +650,7 @@ const calculateTotal = () => {
     </div>
   </div>
 
-  {/* Stock & Wishlist */}
+
   <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 max-w-md">
     <div className="flex items-center gap-2">
       <Tag className="popmed text-xs md:text-sm" color="green">
@@ -664,7 +660,7 @@ const calculateTotal = () => {
     </div>
   </div>
 
-  {/* Action Buttons */}
+
   <div
   className={`flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6 ${storedRole === 'admin' ? 'hidden' : ''}`}
 >
@@ -691,7 +687,7 @@ const calculateTotal = () => {
             </div>
           </div>
 
-          {/* Mobile Navigation Tabs */}
+        
           <div className="lg:hidden bg-white rounded-xl shadow-sm mb-6 sticky top-16 z-20">
             <div className="flex border-b">
               {sectionTabs.map((tab) => (
@@ -710,7 +706,7 @@ const calculateTotal = () => {
             </div>
           </div>
 
-          {/* Description Section */}
+     
           <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
             <div className="mb-4 hidden lg:block">
               <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-32 pb-1">
@@ -729,7 +725,7 @@ const calculateTotal = () => {
             </div>
           </div>
 
-          {/* Specifications Section */}
+
           <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'specifications' ? 'lg:block hidden' : 'block'}`}>
             <div className="mb-4 hidden lg:block">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -768,7 +764,7 @@ const calculateTotal = () => {
             </div>
           </div>
 
-          {/* Reviews Section */}
+
           <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'reviews' ? 'lg:block hidden' : 'block'}`}>
             <div className="mb-4 lg:block">
               <div className="flex   justify-between items-start sm:items-center gap-2">
@@ -786,7 +782,7 @@ const calculateTotal = () => {
             <Customers reviews={selectedProduct?.reviews} details={true} />
           </div>
 
-          {/* You Also Bought Section */}
+
           <div className="mb-8 md:mb-12 lg:mb-16">
             <div className="mb-4">
               <div className="flex justify-between items-start sm:items-center gap-2">
@@ -803,7 +799,6 @@ const calculateTotal = () => {
             <Similier setSelectedProduct={setSelectedProduct} randomProducts={randomProducts} />
           </div>
 
-          {/* Compare Similar Section */}
           <div className="mb-8 md:mb-12 lg:mb-16">
             <div className="mb-4">
               <div className="flex  justify-between items-start sm:items-center gap-2">
@@ -822,7 +817,7 @@ const calculateTotal = () => {
         </div>
       </div>
 
-      {/* Mobile Floating Action Buttons */}
+
                 <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
              <FloatingChat targetedId={vendorId} />
           </div>

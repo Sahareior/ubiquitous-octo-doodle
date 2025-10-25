@@ -5,7 +5,7 @@ import Footer from '../_components/Footer';
 import FloatingChat from '../../others/FolatingChat/FloatingChat';
 import { useGetAppCartQuery } from '../../../redux/slices/Apis/customersApi';
 
-// ✅ Lazy load heavy components
+
 const CustomerHero = lazy(() => import('../customersHomepage/CustomerHero'));
 const ShopCategory = lazy(() => import('../customersHomepage/ShopCategory'));
 const FeaturedProducts = lazy(() => import('../_components/FeaturedProducts'));
@@ -27,7 +27,7 @@ const CustomerLayout = () => {
 
   return (
     <div className="relative">
-      {/* Navbar always loads instantly */}
+      
       <CustomersNavbar cartCount={cartData?.count} />
 
       {isHomePage && (
@@ -40,7 +40,7 @@ const CustomerLayout = () => {
           <StayUpdated />
           <Customers />
 
-          {/* About Section */}
+ 
           <div className="bg-[#E6E3DD] space-y-4 py-16">
             <h2 className="text-center popmed text-[30px] font-semibold">About Us</h2>
             <p className="text-center popreg max-w-5xl mx-auto text-[16px]">
@@ -51,7 +51,7 @@ const CustomerLayout = () => {
             </p>
           </div>
 
-          {/* Floating chat is light, no need for suspense */}
+     
    {
     storedRole === 'customer' &&       <div className="fixed bottom-52 md:right-6 right-0 animate-float z-50">
             <FloatingChat />
@@ -60,10 +60,10 @@ const CustomerLayout = () => {
         </Suspense>
       )}
 
-      {/* Dynamic pages (Cart, Checkout, etc.) */}
+
       <Outlet />
 
-      {/* Footer always visible */}
+
       <Footer />
     </div>
   );

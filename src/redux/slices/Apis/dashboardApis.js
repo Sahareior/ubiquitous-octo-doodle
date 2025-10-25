@@ -21,9 +21,10 @@ export const dashboardApis = createApi({
       query: (name) => `pokemon/${name}`,
     }),
     
-    getAllProducts: build.query({
-      query: () => "products/",
-    }),
+ // In your dashboardApis.js
+getAllProducts: build.query({
+  query: () => `/products/`,
+}),
 
     getTopVendors: build.query({
       query: ()=> 'admin/vendor-performance/'

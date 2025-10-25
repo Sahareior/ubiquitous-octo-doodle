@@ -19,7 +19,7 @@ const SellersLayout = () => {
           window.scrollTo(0, 0);
         }, []);
 
-  // ✅ Only show homepage sections on "/"
+
   const isHomePage = location.pathname === '/';
     return (
         <div>

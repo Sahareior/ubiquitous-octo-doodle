@@ -80,27 +80,15 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: "/", // default homepage layout
-        element: <Homepage />, // this handles Guest/Customer/Seller layout
+        path: "/", 
+        element: <Homepage />,
         children: [
-        {
-      path: "filter",
-      element: <ProductFilter />,
-      children: [
-        {
-          path: "details", // now `/filter/details` will work
-          element: <Details />,
-        },
-      ],
-    },
-    {path:"aboutUs", element: <AboutUs />},
+          { path: "filter", element: <ProductFilter /> },
+          
           { path: "wishlist", element: <WhiteList /> },
           { path: "cart", element: <Cart /> },
           { path: "checkout", element: <Checkout /> },
-           {
-          path: "details", // now `/filter/details` will work
-          element: <Details />,
-        },
+          { path: "details", element: <Details /> },
           { path: "cart/checkout1", element: <Checkout1 /> },
           { path: "confirm-order", element: <ConfirmOrder /> },
           { path: "order-track", element: <OrderTracking /> },
@@ -108,118 +96,83 @@ const router = createBrowserRouter([
           { path: "active", element: <ActiveUsers /> },
           { path: "profile", element: <Profile /> },
           { path: "regester-seller", element: <SellerReg /> }, 
-          {path: "return",  element: <ReturnExchangeForm />},
-          {path: 'return-policy', element: <ReturnPolicyOverview />},
-          {path: "terms&conditions", element: <TermsAndConditions />},
-          {path: "privacy", element: <PrivacyPolicy />}
+          { path: "return", element: <ReturnExchangeForm /> },
         ],
       },
-      // ✅ These are outside Homepage layout
+
+      // ✅ Make these PUBLIC (guest-accessible) routes:
+      { path: "return-policy", element: <ReturnPolicyOverview /> },
+      { path: "terms&conditions", element: <TermsAndConditions /> },
+      { path: "privacy", element: <PrivacyPolicy /> },
+      { path: "aboutUs", element: <AboutUs /> },
+
+      // ✅ Authentication routes
       { path: "login", element: <Login /> },
       { path: "signup", element: <Signup /> },
       { path: "verify", element: <VerifyCode /> },
-        {
-          path: "/details", 
-          element: <Details />,
-        },
       { path: "forget", element: <ForgetPass /> },
       { path: "reset", element: <ResetPass /> },
       { path: "congratulations", element: <Congratulations /> },
     ],
   },
-{
-  path: 'admin-dashboard',
-  element:(
-    <AdminProtectedRoute>
-       <AdminDashboard />
-    </AdminProtectedRoute>
-  ),
-  children: [
-    { path: 'admin-overview', element: <DashHome /> },
-    { path: 'seller-req', element: <ApproveSellers /> }, 
-    { path: 'admin-orders', element: <Orders /> },
-    { path: 'return', element: <ReturnReq /> },
-    { path: 'analytics', element: <Analytics /> },
-    { path: 'customers', element: <CustomerList /> },
-    { path: 'category', element: <CategoryManagement /> },
-    { path: 'vendors', element: <VendorList /> },
-    { path: 'create-category', element: <CreateCategory /> },
-    { path: 'edit-category/:id', element: <EditCategory /> },
-    { path: 'sellers-apply', element: <SellerApplications /> },
-    { path: 'productslist', element: <ProductsList /> },
-    { path: 'add-product', element: <AddnewProducts /> }, // ✅ fixed
-    { path: 'editAdminProducts', element: <EditAdminProducts /> },
-    { path: 'payouts', element: <Payouts /> },
-    { path: 'messages', element: <AllMessages /> },
-    { path: 'content', element: <Content /> },
-    { path: 'edit-banner', element: <EditContent /> },
-    { path: 'admin-profile', element: <AdminProfile /> },
-    { path: 'terms', element: <TermsConditions /> },
-    { path: 'privacy', element: <PrivacyPolicySettings /> },
-  ]
-},
 
-{
-  path: "vendor-dashboard",
-  element:(
-    <VendorProtectedRoute>
-       <VendorDashboard />
-    </VendorProtectedRoute>
-  ),
-  children: [
-    {
-      index: true, // Default route for /vendor-dashboard
-      element: <Navigate to="vendor-overview" replace />
-    },
-    {
-      path: 'vendor-overview',
-      element: <VendorOverview />
-    },
-    {
-      path: "vendor-order",
-      element: <VOrders />
-    },
-    {
-      path: 'vendor-payment',
-      element: <VendorPayment />
-    },
-    {
-      path: 'addproducts',
-      element: <NewVendorAddProducts />
-    },
-    {
-      path: 'editproducts',
-      element: <VEditProducts />
-    },
-    {
-      path: 'vendor-products',
-      element: <VProductsList />
-    },
-    {
-      path: 'promotion',
-      element: <PromotionsList />
-    },
-    {
-  path: 'd',
-  element: <ApproveSellers />
-},
-    {
-      path: 'create-promotion',
-      element: <CreatePromotion />
-    },
-    {
-      path: 'vendor-message',
-      element: <VendorMessages />
-    },
-    {
-      path: 'vendor-profile',
-      element: <VendorProfile />
-    }
-  ]
-},
+  // ✅ Admin Dashboard
+  {
+    path: "admin-dashboard",
+    element: (
+      <AdminProtectedRoute>
+        <AdminDashboard />
+      </AdminProtectedRoute>
+    ),
+    children: [
+      { path: "admin-overview", element: <DashHome /> },
+      { path: "seller-req", element: <ApproveSellers /> },
+      { path: "admin-orders", element: <Orders /> },
+      { path: "return", element: <ReturnReq /> },
+      { path: "analytics", element: <Analytics /> },
+      { path: "customers", element: <CustomerList /> },
+      { path: "category", element: <CategoryManagement /> },
+      { path: "vendors", element: <VendorList /> },
+      { path: "create-category", element: <CreateCategory /> },
+      { path: "edit-category/:id", element: <EditCategory /> },
+      { path: "sellers-apply", element: <SellerApplications /> },
+      { path: "productslist", element: <ProductsList /> },
+      { path: "add-product", element: <AddnewProducts /> },
+      { path: "editAdminProducts", element: <EditAdminProducts /> },
+      { path: "payouts", element: <Payouts /> },
+      { path: "messages", element: <AllMessages /> },
+      { path: "content", element: <Content /> },
+      { path: "edit-banner", element: <EditContent /> },
+      { path: "admin-profile", element: <AdminProfile /> },
+      { path: "terms", element: <TermsConditions /> },
+      { path: "privacy", element: <PrivacyPolicySettings /> },
+    ],
+  },
 
-
+  // ✅ Vendor Dashboard
+  {
+    path: "vendor-dashboard",
+    element: (
+      <VendorProtectedRoute>
+        <VendorDashboard />
+      </VendorProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="vendor-overview" replace /> },
+      { path: "vendor-overview", element: <VendorOverview /> },
+      { path: "vendor-order", element: <VOrders /> },
+      { path: "vendor-payment", element: <VendorPayment /> },
+      { path: "addproducts", element: <NewVendorAddProducts /> },
+      { path: "editproducts", element: <VEditProducts /> },
+      { path: "vendor-products", element: <VProductsList /> },
+      { path: "promotion", element: <PromotionsList /> },
+      { path: "create-promotion", element: <CreatePromotion /> },
+      { path: "vendor-message", element: <VendorMessages /> },
+      { path: "vendor-profile", element: <VendorProfile /> },
+    ],
+  },
 ]);
+
 
 
 

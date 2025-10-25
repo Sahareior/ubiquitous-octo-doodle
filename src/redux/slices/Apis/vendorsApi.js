@@ -37,7 +37,11 @@ export const vendorsApi = createApi({
         url: `products/${id}/`,
         method: "PATCH",
         body: formDataToSend
-      })
+      }),
+       invalidatesTags: (result, error, { id }) => [
+    { type: 'Product', id },
+    'Product',
+  ],
     }),
 
     deleteProduct: build.mutation({

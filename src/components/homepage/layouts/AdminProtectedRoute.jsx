@@ -7,11 +7,11 @@ const AdminProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (role !== "admin") {
-      navigate("/"); // redirect if not admin
+      navigate("/"); 
     }
   }, [role, navigate]);
 
-  if (role !== "admin") return null; // avoid flashing content before redirect
+  if (role !== "admin") return null; 
 
   return <>{children}</>;
 };

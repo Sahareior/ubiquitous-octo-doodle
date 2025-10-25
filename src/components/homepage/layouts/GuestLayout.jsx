@@ -10,7 +10,7 @@ const Coupon = React.lazy(() => import('../_components/Coupon'));
 const Footer = React.lazy(() => import('../_components/Footer'));
 const GuestFeaturedProduct = React.lazy(() => import('../../others/GuestFeaturedProduct'));
 
-// Loading fallback component
+
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

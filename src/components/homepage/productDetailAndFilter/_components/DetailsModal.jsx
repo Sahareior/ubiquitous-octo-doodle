@@ -24,7 +24,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     
-    // Check if adding these files would exceed the maximum
+   
     if (uploadedImages.length + files.length > MAX_IMAGES) {
       message.error(`You can only upload up to ${MAX_IMAGES} images`);
       return;
@@ -74,10 +74,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   };
 
   const handleOk = async () => {
-    // if (!selectedProduct) {
-    //   Swal.fire("No Product Selected", "Please select a product before submitting your review.", "warning");
-    //   return;
-    // }
+
     if (!review.trim()) {
       Swal.fire("Review Required", "Please write a review before submitting.", "warning");
       return;
@@ -98,7 +95,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
       uploadedImages.forEach(image => formData.append("uploaded_images", image.file));
 
       await postReviews(formData).unwrap();
-      refetch(); // Refresh reviews after successful submission
+      refetch(); 
       Swal.fire("Success!", "Your review has been submitted successfully.", "success").then(resetForm);
     } catch (err) {
       console.error("Error submitting review:", err);
@@ -130,7 +127,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
         bodyStyle={{ padding: '2rem' }}
       >
         <div className="space-y-6">
-          {/* Product Select */}
+
 {
   !id && (          <div>
             <label className="block text-sm font-medium mb-2">Select Product</label>
@@ -155,7 +152,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   )
 }
 
-          {/* Review Textarea */}
+         
           <div>
             <label className="block text-sm font-medium mb-2">Your Review</label>
             <textarea
@@ -167,7 +164,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
             />
           </div>
 
-          {/* Rating */}
+        
           <div>
             <label className="block text-sm font-medium mb-2">Your Rating</label>
             <Rate
@@ -177,7 +174,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
             />
           </div>
 
-          {/* Image Upload */}
+
           <div>
             <label className="block text-sm font-medium mb-2">
               Upload Product Images (Optional)
@@ -259,7 +256,7 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
         </div>
       </Modal>
 
-      {/* Image Preview Modal */}
+
       <Modal
         visible={previewVisible}
         footer={null}

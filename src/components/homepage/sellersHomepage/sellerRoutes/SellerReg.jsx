@@ -292,7 +292,7 @@ const handleApply = useCallback(async () => {
     }, []);
   return (
     <div className="bg-[#FAF8F2] px-4 md:px-20 py-20 pb-28">
-      {/* Header Section */}
+    
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="flex justify-center text-[#CBA135] mb-3">
           <FaHandshakeSimple size={48} />
@@ -303,7 +303,7 @@ const handleApply = useCallback(async () => {
         </p>
       </div>
 
-      {/* Steps */}
+      
       <div className="max-w-4xl mx-auto mb-12">
         <Steps current={currentStep}>
           {steps.map((item) => (
@@ -312,12 +312,11 @@ const handleApply = useCallback(async () => {
         </Steps>
       </div>
 
-      {/* Current Step Content */}
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-xl">
         {steps[currentStep].content}
       </div>
 
-      {/* Navigation Buttons */}
+    
       <div className="flex justify-between max-w-3xl mx-auto mt-6">
         {currentStep > 0 && (
           <Button onClick={prevStep} className="bg-gray-200 hover:bg-gray-300 py-4 px-8">
@@ -341,7 +340,7 @@ const handleApply = useCallback(async () => {
   );
 };
 
-// Step Components
+
 const ContactInfoStep = ({ formData, setFormData }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -390,7 +389,7 @@ const ContactInfoStep = ({ formData, setFormData }) => {
   className="w-full h-[44px]"
   suffixIcon={<FiChevronDown className="text-gray-500" />}
   onChange={(value) => handleSelect('jobTitle', value)}
-  value={formData.jobTitle || "Select One"} // Ensure value is empty or undefined initially
+  value={formData.jobTitle || "Select One"} 
 >
 
   <Option value="owner">Owner</Option>

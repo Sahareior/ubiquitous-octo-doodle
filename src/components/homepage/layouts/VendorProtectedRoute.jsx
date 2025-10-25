@@ -7,7 +7,7 @@ const VendorProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (role !== "vendor") {
-      navigate("/"); // redirect if not vendor
+      navigate("/");
     }
   }, [role, navigate]);
 

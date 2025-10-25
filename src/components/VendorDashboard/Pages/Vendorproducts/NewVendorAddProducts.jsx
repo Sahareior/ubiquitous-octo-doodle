@@ -94,7 +94,7 @@ const [formData, setFormData] = useState({
   material: "",
   color: "",
   weight: "",
-  assembly_required: false,
+  assembly_required: "",
   warranty: "",
   care_instructions: "",
   country_of_origin: "",
@@ -177,7 +177,7 @@ const initialFormData = {
   full_description: "",
   price1: "",
   care_instructions: "",
-  assembly_required: false,
+  assembly_required: "",
   price2: "",
   price3: "",
   sku: "",
@@ -237,7 +237,7 @@ const handleSubmit = async () => {
     material: material || "",
     color: color || "",
     weight: weight || "",
-    assembly_required: assembly_required === "true" || assembly_required === true, // Convert to boolean
+    assembly_required: assembly_required || " ", // Convert to boolean
     warranty: warranty || "",
     care_instructions: care_instructions || "",
     country_of_origin: country_of_origin || "",

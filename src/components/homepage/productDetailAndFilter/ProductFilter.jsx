@@ -23,10 +23,10 @@ const ProductFilter = () => {
       const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
     const [savetoWishList] = useSavetoWishListMutation();
   
-  // Create a ref for the product list section
+
   const productListRef = useRef(null);
   
-  // Filters state
+
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
@@ -38,15 +38,14 @@ const ProductFilter = () => {
 
 
 
-  // Fetch products & categories
+  
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const { data: fetchedCategories } = useGetCategoriesQuery();
 
-  // Set initial category from URL parameter
+ 
   useEffect(() => {
     if (categoryFromUrl) {
-      // If categoryFromUrl is a number (ID), use it directly
-      // If it's a name, find the corresponding ID
+
       const categoryId = isNaN(categoryFromUrl) 
         ? Object.entries(categoryMap).find(([id, name]) => name === categoryFromUrl)?.[0]
         : parseInt(categoryFromUrl);
@@ -62,13 +61,13 @@ const ProductFilter = () => {
       return cartData.results.some(items => items.product.id === id)
     },[cartData])
   
-    // Fixed checkWishList function
+
     const checkWishList = useCallback((id) => {
       if (!wishLists?.results) return false;
       return wishLists.results.some(item => item.product.id === id || item.id === id);
     }, [wishLists]);
 
-  // Category map
+
   const categoryMap = useMemo(() => {
     const map = {};
     fetchedCategories?.results?.forEach(cat => {
@@ -77,7 +76,7 @@ const ProductFilter = () => {
     return map;
   }, [fetchedCategories]);
 
-  // Get category names for display
+
   const categories = useMemo(() => {
     if (!allProducts?.results) return [];
     const allCatIds = allProducts.results.map(p => p.categories || []).flat();
@@ -88,7 +87,7 @@ const ProductFilter = () => {
     })).filter(cat => cat.name);
   }, [allProducts, categoryMap]);
 
-  // Extract colors from product specifications
+
 const colors = useMemo(() => {
   if (!allProducts?.results) return [];
 
@@ -98,14 +97,14 @@ const colors = useMemo(() => {
     if (product.specifications?.color) {
       const colorList = product.specifications.color
         .split(/[,/]/)
-        .map(color => color.trim().toLowerCase()) // normalize
+        .map(color => color.trim().toLowerCase()) 
         .filter(color => color.length > 0);
 
       colorList.forEach(color => colorSet.add(color));
     }
   });
 
-  // Capitalize first letter for display but keep lowercase for filtering
+
   return Array.from(colorSet)
     .sort()
     .map(color => ({
@@ -114,12 +113,12 @@ const colors = useMemo(() => {
     }));
 }, [allProducts]);
 
-// ✅ Build available colors only from filtered products
 
 
 
 
-  // Filtered products
+
+
   const filteredProducts = useMemo(() => {
     if (!allProducts?.results) return [];
     return allProducts.results
@@ -172,14 +171,14 @@ const colors = useMemo(() => {
     }
   });
 
-  // Capitalize for display
+
   return Array.from(colorSet)
     .sort()
     .map(c => ({
       label: c.charAt(0).toUpperCase() + c.slice(1),
       value: c
     }));
-}, [filteredProducts]); // 👈 depend on filteredProducts
+}, [filteredProducts]); 
 
   // Paginated products
   const paginatedProducts = useMemo(() => {
@@ -188,7 +187,7 @@ const colors = useMemo(() => {
     return filteredProducts.slice(startIndex, endIndex);
   }, [filteredProducts, currentPage]);
 
-  // Reset page when filters change
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
@@ -246,17 +245,17 @@ const colors = useMemo(() => {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "auto", // instant scroll
+      behavior: "auto", 
     });
   }, []);
 
-  // Handle page change with scroll to product list
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
     
-    // Scroll to the product list section instead of the top of the page
+   
     if (productListRef.current) {
-      const yOffset = -60; // Adjust this value as needed
+      const yOffset = -60; 
       const y = productListRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
       
       window.scrollTo({
@@ -266,7 +265,7 @@ const colors = useMemo(() => {
     }
   };
 
-  // Filter sidebar component
+
   const FilterSidebar = () => (
     <div className="bg-white p-4 h-full">
       <div className='flex justify-between '>
@@ -280,7 +279,7 @@ const colors = useMemo(() => {
         }}>Clear All</Button>
       </div>
 
-      {/* Category */}
+
       <div className="my-4">
         <p className="popmed mb-2">Category</p>
         <div className="max-h-34 popreg text-[#666666] overflow-y-auto space-y-1 bg-white rounded-md px-2">
@@ -304,7 +303,7 @@ const colors = useMemo(() => {
         </div>
       </div>
 
-      {/* Price */}
+
       <div className="my-4">
         <p className="popmed mb-2">Price Range</p>
         <Slider
@@ -321,7 +320,7 @@ const colors = useMemo(() => {
         </div>
       </div>
 
-      {/* Colors */}
+
       <div className="my-4">
         <p className="font-medium popmed mb-2">Colors</p>
         <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
@@ -354,7 +353,7 @@ const colors = useMemo(() => {
         </div>
       </div>
 
-      {/* Rating */}
+
       <div className="my-4">
         <p className="popmed mb-2">Customer Rating</p>
         <div className="space-y-2">
@@ -375,8 +374,7 @@ const colors = useMemo(() => {
         </div>
       </div>
 
-      {/* Availability */}
-      <div className="my-7">
+    <div className="my-7">
         <p className="popmed mb-2">Availability</p>
         <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
           In Stock Only
@@ -385,7 +383,7 @@ const colors = useMemo(() => {
     </div>
   );
 
-       const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+       const storedRole = localStorage.getItem('user_role'); 
 
   return (
     <div className='bg-[#FAF8F2] min-h-screen'>
@@ -395,7 +393,7 @@ const colors = useMemo(() => {
 
       {location.pathname === "/filter" && (
         <div className="pb-12 md:px-6 lg:px-20">
-          {/* Mobile filter button */}
+        
           <div className="px-4 md:hidden mb-4">
             <Button 
               icon={<FaFilter />} 
@@ -408,12 +406,12 @@ const colors = useMemo(() => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Desktop Filters */}
+       
             <div className="hidden md:block md:w-72 lg:w-80 flex-shrink-0">
               <FilterSidebar />
             </div>
 
-            {/* Mobile Filters Drawer */}
+           
             <Drawer
               title="Filters"
               placement="left"
@@ -426,7 +424,7 @@ const colors = useMemo(() => {
               <FilterSidebar />
             </Drawer>
 
-            {/* Products */}
+          
             <div className="flex-1 px-4 md:px-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <div>
@@ -490,7 +488,7 @@ const colors = useMemo(() => {
     />
   </Link>
 
-  {/* Wishlist */}
+
   <div
     onClick={(e) => {
       e.stopPropagation();
@@ -515,14 +513,7 @@ const colors = useMemo(() => {
       <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
     </div>
 
-    {/* Display product colors if available */}
-    {/* {product.specifications?.color && (
-      <div className="text-xs text-gray-500">
-        Colors: {product.specifications.color}
-      </div>
-    )} */}
 
-    {/* Price & Discount */}
     <div className="flex justify-between items-center gap-2">
       <div className="flex flex-col">
         {product.promotion_discount_value > 0 ? (
@@ -562,7 +553,7 @@ const colors = useMemo(() => {
                 )}
               </div>
 
-              {/* Pagination */}
+          
               {filteredProducts.length > 0 && (
                 <div className="mt-6 flex gap-9 justify-center">
                   <Pagination
