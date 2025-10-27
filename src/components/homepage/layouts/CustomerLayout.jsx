@@ -4,6 +4,8 @@ import CustomersNavbar from '../customersHomepage/CustomersNavbar';
 import Footer from '../_components/Footer';
 import FloatingChat from '../../others/FolatingChat/FloatingChat';
 import { useGetAppCartQuery } from '../../../redux/slices/Apis/customersApi';
+import CategoryDropdown from '../customersHomepage/Category/CategorySection';
+import CategoryNavigation from '../../profile/CategoryNavigation';
 
 
 const CustomerHero = lazy(() => import('../customersHomepage/CustomerHero'));
@@ -29,10 +31,12 @@ const CustomerLayout = () => {
     <div className="relative">
       
       <CustomersNavbar cartCount={cartData?.count} />
+      <CategoryDropdown />
 
       {isHomePage && (
         <Suspense fallback={<div className="p-6 text-center">Loading homepage...</div>}>
           <CustomerHero />
+          {/* <CategoryNavigation /> */}
           <ShopCategory />
           <FeaturedProducts />
           <Banner />

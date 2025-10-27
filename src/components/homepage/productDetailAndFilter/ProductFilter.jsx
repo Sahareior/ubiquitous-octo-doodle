@@ -1,578 +1,446 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin, Drawer } from 'antd';
-import { FaRegHeart, FaFilter } from "react-icons/fa6";
-import Breadcrumb from '../../others/Breadcrumb';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { RiArrowDropDownLine } from "react-icons/ri";
-import { useDispatch } from 'react-redux';
-import { addToCart, addToWishList } from '../../../redux/slices/customerSlice';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
-import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useGetCategoriesQuery, useGetCustomerProductsQuery, useSavetoWishListMutation } from '../../../redux/slices/Apis/customersApi';
-
-const MySwal = withReactContent(Swal);
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 const ProductFilter = () => {
-  const dispatch = useDispatch();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const categoryFromUrl = queryParams.get('category'); 
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-    const [addProductToCart] = useAddProductToCartMutation();
-      const {data:cartData, refetch } = useGetAppCartQuery();
-      const { data: wishLists, refetch:wishListRefetch } = useGetAllWishListQuery();
-    const [savetoWishList] = useSavetoWishListMutation();
-  
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
+  const [selectedNestedId, setSelectedNestedId] = useState("");
+  const [filterOptions, setFilterOptions] = useState([]);
+  const [selectedFilters, setSelectedFilters] = useState({});
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const productListRef = useRef(null);
-  
+  const location = useLocation()
 
-  const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedRating, setSelectedRating] = useState(null);
-  const [availability, setAvailability] = useState(false);
-  const [sort, setSort] = useState('Newest');
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 6;
-
-
-
-  
-  const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
-  const { data: fetchedCategories } = useGetCategoriesQuery();
-
- 
-  useEffect(() => {
-    if (categoryFromUrl) {
-
-      const categoryId = isNaN(categoryFromUrl) 
-        ? Object.entries(categoryMap).find(([id, name]) => name === categoryFromUrl)?.[0]
-        : parseInt(categoryFromUrl);
-      
-      if (categoryId) {
-        setSelectedCategoryIds([categoryId]);
-      }
-    }
-  }, [categoryFromUrl, fetchedCategories]);
-
-
-    const checkCartData = useCallback((id) => {
-      return cartData.results.some(items => items.product.id === id)
-    },[cartData])
-  
-
-    const checkWishList = useCallback((id) => {
-      if (!wishLists?.results) return false;
-      return wishLists.results.some(item => item.product.id === id || item.id === id);
-    }, [wishLists]);
-
-
-  const categoryMap = useMemo(() => {
-    const map = {};
-    fetchedCategories?.results?.forEach(cat => {
-      map[cat.id] = cat.name;
-    });
-    return map;
-  }, [fetchedCategories]);
-
-
-  const categories = useMemo(() => {
-    if (!allProducts?.results) return [];
-    const allCatIds = allProducts.results.map(p => p.categories || []).flat();
-    const uniqueCatIds = [...new Set(allCatIds.filter(Boolean))];
-    return uniqueCatIds.map(id => ({
-      id,
-      name: categoryMap[id]
-    })).filter(cat => cat.name);
-  }, [allProducts, categoryMap]);
-
-
-const colors = useMemo(() => {
-  if (!allProducts?.results) return [];
-
-  const colorSet = new Set();
-
-  allProducts.results.forEach(product => {
-    if (product.specifications?.color) {
-      const colorList = product.specifications.color
-        .split(/[,/]/)
-        .map(color => color.trim().toLowerCase()) 
-        .filter(color => color.length > 0);
-
-      colorList.forEach(color => colorSet.add(color));
-    }
-  });
-
-
-  return Array.from(colorSet)
-    .sort()
-    .map(color => ({
-      label: color.charAt(0).toUpperCase() + color.slice(1),
-      value: color
-    }));
-}, [allProducts]);
-
-
-
-
-
-
-
-  const filteredProducts = useMemo(() => {
-    if (!allProducts?.results) return [];
-    return allProducts.results
-      .filter(p => {
-        const productCategories = p.categories || [];
-        return !selectedCategoryIds.length || productCategories.some(c => selectedCategoryIds.includes(c));
-      })
-.filter(p => {
-  if (!selectedColors.length) return true;
-  if (!p.specifications?.color) return false;
-
-  const productColors = p.specifications.color
-    .split(/[,/]/)
-    .map(c => c.trim().toLowerCase());
-
-  return productColors.some(c => selectedColors.includes(c));
-})
-
-
-      .filter(p => !selectedRating || (p.average_rating || 0) >= selectedRating)
-      .filter(p => !availability || p.is_stock)
-      .filter(p => {
-        const price = p.active_price || parseFloat(p.price1) || 0;
-        return price >= priceRange[0] && price <= priceRange[1];
-      })
-      .sort((a, b) => {
-        const priceA = a.active_price || parseFloat(a.price1) || 0;
-        const priceB = b.active_price || parseFloat(b.price1) || 0;
-        if (sort === 'Price: Low to High') return priceA - priceB;
-        if (sort === 'Price: High to Low') return priceB - priceA;
-        return new Date(b.created_at) - new Date(a.created_at);
-      });
-  }, [allProducts, selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
-
-
-
-  const availableColors = useMemo(() => {
-  if (!filteredProducts || filteredProducts.length === 0) return [];
-
-  const colorSet = new Set();
-
-  filteredProducts.forEach(product => {
-    if (product.specifications?.color) {
-      const colorList = product.specifications.color
-        .split(/[,/]/)
-        .map(c => c.trim().toLowerCase())
-        .filter(c => c.length > 0);
-
-      colorList.forEach(c => colorSet.add(c));
-    }
-  });
-
-
-  return Array.from(colorSet)
-    .sort()
-    .map(c => ({
-      label: c.charAt(0).toUpperCase() + c.slice(1),
-      value: c
-    }));
-}, [filteredProducts]); 
-
-  // Paginated products
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredProducts.slice(startIndex, endIndex);
-  }, [filteredProducts, currentPage]);
-
+  console.log('this is location', location.state)
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
-
-  const handleCart = useCallback(async (product) => {
-    const payload = { ...product, id: product.id, quantity: 1, product_id: product.id };
-    delete payload.prod_id;
-
-    await addProductToCart(payload);
-    refetch();
-    dispatch(addToCart(payload));
-
-    MySwal.fire({
-      position: 'top-end',
-      icon: 'success',
-      title: 'Item added to cart!',
-      showConfirmButton: false,
-      timer: 1800,
-      toast: true,
-    });
-  }, [addProductToCart, dispatch, refetch]);
-
-
-    const handleWishlist = async (item) => {
-    const payload = {
-      item,
-      product_id: item.id,
-    };
-
-    try {
-      await savetoWishList(payload).unwrap();
-      wishListRefetch();
-      MySwal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "Item added to wishlist!",
-        showConfirmButton: false,
-        timer: 1800,
-        toast: true,
-      });
-    } catch (error) {
-      console.error("Wishlist error:", error);
-      MySwal.fire({
-        position: "top-end",
-        icon: "error",
-        title: "Failed to add to wishlist",
-        showConfirmButton: false,
-        timer: 1800,
-        toast: true,
-      });
-    }
-  };
-
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "auto", 
-    });
+    fetchCategories();
+    fetchProducts();
   }, []);
 
+  useEffect(() => {
+    updateFilterOptions();
+    setSelectedFilters({});
+  }, [selectedCategoryId, selectedSubCategoryId, selectedNestedId]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    
-   
-    if (productListRef.current) {
-      const yOffset = -60; 
-      const y = productListRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      
-      window.scrollTo({
-        top: y,
-        behavior: 'smooth'
-      });
+  useEffect(() => {
+    applyFilters();
+  }, [selectedFilters, products]);
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:8000/categories");
+      setCategories(data);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:8000/products");
+      setProducts(data);
+      setFilteredProducts(data);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+  };
 
-  const FilterSidebar = () => (
-    <div className="bg-white p-4 h-full">
-      <div className='flex justify-between '>
-        <h3 className="text-lg popbold mb-2">Filters</h3>
-        <Button className='border-none popmed' onClick={() => {
-          setSelectedCategoryIds([]);
-          setSelectedColors([]);
-          setSelectedRating(null);
-          setPriceRange([0, 5000]);
-          setAvailability(false);
-        }}>Clear All</Button>
-      </div>
+  // Helper function to get string ID for comparison
+  const getSubCategoryIdString = (sub) => {
+    const id = sub.id || sub._id;
+    return id ? id.toString() : "";
+  };
 
+  // Find category hierarchy
+  const findCategoryHierarchy = () => {
+    if (!selectedCategoryId) return null;
 
-      <div className="my-4">
-        <p className="popmed mb-2">Category</p>
-        <div className="max-h-34 popreg text-[#666666] overflow-y-auto space-y-1 bg-white rounded-md px-2">
-          {categories?.map((item) => (
-            <label key={item.id} className="flex items-center space-x-2 py-1 cursor-pointer">
-              <input
-                type="checkbox"
-                value={item.id}
-                checked={selectedCategoryIds.includes(item.id)}
-                onChange={e => {
-                  const val = parseInt(e.target.value);
-                  setSelectedCategoryIds(prev => prev.includes(val) 
-                    ? prev.filter(i => i !== val) 
-                    : [...prev, val]);
-                }}
-                className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
-              />
-              <span>{item.name}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+    const mainCategory = categories.find((cat) => cat._id === selectedCategoryId);
+    if (!mainCategory) return null;
 
+    let subCategory = null;
+    let nestedSubCategory = null;
 
-      <div className="my-4">
-        <p className="popmed mb-2">Price Range</p>
-        <Slider
-          range
-          min={0}
-          max={5000}
-          step={100}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-        <div className="flex justify-between popreg text-sm">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
-        </div>
-      </div>
+    if (selectedSubCategoryId && mainCategory.subcategories) {
+      subCategory = mainCategory.subcategories.find(
+        (sub) => getSubCategoryIdString(sub) === selectedSubCategoryId
+      );
 
+      if (subCategory && selectedNestedId && subCategory.subcategories) {
+        nestedSubCategory = subCategory.subcategories.find(
+          (nested) => getSubCategoryIdString(nested) === selectedNestedId
+        );
+      }
+    }
 
-      <div className="my-4">
-        <p className="font-medium popmed mb-2">Colors</p>
-        <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
-{availableColors.length > 0 ? (
-  availableColors.map(({ label, value }) => (
-    <label
-      key={value}
-      className="flex items-center space-x-2 py-1 cursor-pointer popreg"
-    >
-      <input
-        type="checkbox"
-        value={value}
-        checked={selectedColors.includes(value)}
-        onChange={e => {
-          const val = e.target.value;
-          setSelectedColors(prev =>
-            prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]
+    return {
+      main: mainCategory,
+      sub: subCategory,
+      nested: nestedSubCategory
+    };
+  };
+
+  // Update filter options based on selected category hierarchy
+  const updateFilterOptions = () => {
+    const hierarchy = findCategoryHierarchy();
+    
+    if (!hierarchy) {
+      setFilterOptions([]);
+      return;
+    }
+
+    let finalCategory = null;
+    
+    if (hierarchy.nested && hierarchy.nested.filterOptions) {
+      finalCategory = hierarchy.nested;
+    } else if (hierarchy.sub && hierarchy.sub.filterOptions) {
+      finalCategory = hierarchy.sub;
+    } else if (hierarchy.main && hierarchy.main.filterOptions) {
+      finalCategory = hierarchy.main;
+    }
+
+    if (finalCategory && finalCategory.filterOptions) {
+      setFilterOptions(finalCategory.filterOptions);
+    } else {
+      setFilterOptions([]);
+    }
+  };
+
+  // Handle filter selection
+  const handleFilterChange = (filterName, value, type) => {
+    setSelectedFilters(prev => {
+      const newFilters = { ...prev };
+      
+      if (type === 'checkbox') {
+        const currentValues = newFilters[filterName] || [];
+        if (currentValues.includes(value)) {
+          newFilters[filterName] = currentValues.filter(v => v !== value);
+        } else {
+          newFilters[filterName] = [...currentValues, value];
+        }
+      } else {
+        newFilters[filterName] = value;
+      }
+      
+      // Remove empty filter entries
+      Object.keys(newFilters).forEach(key => {
+        if (!newFilters[key] || (Array.isArray(newFilters[key]) && newFilters[key].length === 0)) {
+          delete newFilters[key];
+        }
+      });
+      
+      return newFilters;
+    });
+  };
+
+  // Check if a filter option is selected
+  const isFilterSelected = (filterName, value, type) => {
+    if (type === 'checkbox') {
+      return (selectedFilters[filterName] || []).includes(value);
+    } else {
+      return selectedFilters[filterName] === value;
+    }
+  };
+
+  // Apply filters to products
+  const applyFilters = () => {
+    if (Object.keys(selectedFilters).length === 0) {
+      setFilteredProducts(products);
+      return;
+    }
+
+    const filtered = products.filter(product => {
+      // Check if product belongs to selected category hierarchy
+      const matchesCategory = 
+        product.category === selectedCategoryId &&
+        (!selectedSubCategoryId || product.subcategory === selectedSubCategoryId) &&
+        (!selectedNestedId || product.nestedSubcategory === selectedNestedId);
+
+      if (!matchesCategory) return false;
+
+      // Check if product matches all selected filters
+      return Object.entries(selectedFilters).every(([filterName, filterValue]) => {
+        const productSpec = product.specification?.find(spec => spec.name === filterName);
+        
+        if (!productSpec) return false;
+
+        if (Array.isArray(filterValue)) {
+          // Checkbox filter - product must have at least one of the selected values
+          return filterValue.some(value => 
+            productSpec.values.includes(value)
           );
-        }}
-        className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
-      />
-      <span>{label}</span>
-    </label>
-  ))
-) : (
-  <p className="text-gray-400 text-sm">No color data available</p>
-)}
+        } else {
+          // Radio filter - product must have the exact value
+          return productSpec.values.includes(filterValue);
+        }
+      });
+    });
 
+    setFilteredProducts(filtered);
+  };
 
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedFilters({});
+  };
+
+  // Get available subcategories
+  const getSubcategories = () => {
+    if (!selectedCategoryId) return [];
+    const mainCategory = categories.find((cat) => cat._id === selectedCategoryId);
+    return mainCategory?.subcategories || [];
+  };
+
+  // Get nested subcategories
+  const getNestedSubcategories = () => {
+    if (!selectedCategoryId || !selectedSubCategoryId) return [];
+
+    const mainCategory = categories.find((cat) => cat._id === selectedCategoryId);
+    if (!mainCategory || !mainCategory.subcategories) return [];
+
+    const subCategory = mainCategory.subcategories.find(
+      (sub) => getSubCategoryIdString(sub) === selectedSubCategoryId
+    );
+    
+    return subCategory?.subcategories || [];
+  };
+
+  // Render filter options
+  const renderFilterOptions = () => {
+    if (filterOptions.length === 0) return null;
+
+    return (
+      <div className="space-y-6 p-4 border rounded-lg bg-white shadow-sm">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-700">Filters</h3>
+          <button
+            onClick={clearAllFilters}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            Clear All
+          </button>
         </div>
+        
+        {filterOptions.map((filter) => (
+          <div key={filter._id} className="space-y-3">
+            <label className="block font-medium text-gray-700">
+              {filter.name}
+            </label>
+            
+            {filter.type === 'checkbox' && (
+              <div className="space-y-2">
+                {filter.options.map((option) => (
+                  <label key={option} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={isFilterSelected(filter.name, option, 'checkbox')}
+                      onChange={() => handleFilterChange(filter.name, option, 'checkbox')}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {filter.type === 'radio' && (
+              <div className="space-y-2">
+                {filter.options.map((option) => (
+                  <label key={option} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name={filter.name}
+                      checked={isFilterSelected(filter.name, option, 'radio')}
+                      onChange={() => handleFilterChange(filter.name, option, 'radio')}
+                      className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 text-sm">{option}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
+    );
+  };
 
+  // Render selected filters
+  const renderSelectedFilters = () => {
+    if (Object.keys(selectedFilters).length === 0) return null;
 
-      <div className="my-4">
-        <p className="popmed mb-2">Customer Rating</p>
-        <div className="space-y-2">
-          {[5, 4, 3].map(stars => (
-            <div
-              key={stars}
-              onClick={() =>
-                setSelectedRating(selectedRating === stars ? null : stars)
-              }
-              className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
-                selectedRating === stars ? 'bg-yellow-100' : ''
-              }`}
+    return (
+      <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-lg">
+        <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+        {Object.entries(selectedFilters).map(([filterName, filterValue]) => {
+          const values = Array.isArray(filterValue) ? filterValue : [filterValue];
+          return values.map(value => (
+            <span
+              key={`${filterName}-${value}`}
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
             >
-              <Rate className="text-sm" disabled defaultValue={stars} />
-              <p className="text-[#666666] popreg">{stars} stars</p>
-            </div>
-          ))}
-        </div>
+              {filterName}: {value}
+              <button
+                onClick={() => {
+                  if (Array.isArray(filterValue)) {
+                    handleFilterChange(filterName, value, 'checkbox');
+                  } else {
+                    setSelectedFilters(prev => {
+                      const newFilters = { ...prev };
+                      delete newFilters[filterName];
+                      return newFilters;
+                    });
+                  }
+                }}
+                className="ml-2 text-blue-600 hover:text-blue-800"
+              >
+                ×
+              </button>
+            </span>
+          ));
+        })}
       </div>
-
-    <div className="my-7">
-        <p className="popmed mb-2">Availability</p>
-        <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
-          In Stock Only
-        </Checkbox>
-      </div>
-    </div>
-  );
-
-       const storedRole = localStorage.getItem('user_role'); 
+    );
+  };
 
   return (
-    <div className='bg-[#FAF8F2] min-h-screen'>
-      <div className='flex p-4 md:p-6 gap-2 md:px-6 lg:px-20 pb-6 pt-1'>
-        <Breadcrumb />
-      </div>
-
-      {location.pathname === "/filter" && (
-        <div className="pb-12 md:px-6 lg:px-20">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Product Filter</h1>
         
-          <div className="px-4 md:hidden mb-4">
-            <Button 
-              icon={<FaFilter />} 
-              onClick={() => setMobileFiltersOpen(true)}
-              className="w-full flex items-center justify-center gap-2"
-              size="large"
-            >
-              Filters {filteredProducts.length > 0 && `(${filteredProducts.length} results)`}
-            </Button>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar - Category Selection & Filters */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Category Selection */}
+            <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700">Categories</h3>
+              
+              <div className="space-y-3">
+                <select
+                  value={selectedCategoryId}
+                  onChange={(e) => {
+                    setSelectedCategoryId(e.target.value);
+                    setSelectedSubCategoryId("");
+                    setSelectedNestedId("");
+                  }}
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="">Select Main Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
 
-          <div className="flex flex-col md:flex-row gap-6">
-       
-            <div className="hidden md:block md:w-72 lg:w-80 flex-shrink-0">
-              <FilterSidebar />
-            </div>
+                {selectedCategoryId && (
+                  <select
+                    value={selectedSubCategoryId}
+                    onChange={(e) => {
+                      setSelectedSubCategoryId(e.target.value);
+                      setSelectedNestedId("");
+                    }}
+                    className="w-full border rounded-md px-3 py-2 text-sm"
+                  >
+                    <option value="">Select Sub Category</option>
+                    {getSubcategories().map((sub) => (
+                      <option key={getSubCategoryIdString(sub)} value={getSubCategoryIdString(sub)}>
+                        {sub.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
 
-           
-            <Drawer
-              title="Filters"
-              placement="left"
-              onClose={() => setMobileFiltersOpen(false)}
-              open={mobileFiltersOpen}
-              className='pb-11'
-              width={300}
-              bodyStyle={{ padding: 0, paddingBottom: '20px' }}
-            >
-              <FilterSidebar />
-            </Drawer>
-
-          
-            <div className="flex-1 px-4 md:px-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                <div>
-                  <h2 className="text-xl md:text-2xl popbold">{location?.state?.text? location?.state?.text: "Search Results"}</h2>
-                  <p className="text-gray-500 popreg">{filteredProducts.length} products found</p>
-                </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <span className="text-sm text-[#666666] popreg whitespace-nowrap">Sort by:</span>
-                  <div className='relative flex-1 md:flex-initial'>
-                    <Select 
-                      className='w-full md:w-36 popreg relative' 
-                      value={sort} 
-                      onChange={setSort} 
-                      options={[
-                        { value: 'Newest' }, 
-                        { value: 'Price: Low to High' }, 
-                        { value: 'Price: High to Low' }
-                      ]} 
-                    />
-                    <RiArrowDropDownLine size={20} className='absolute top-2 right-2 pointer-events-none' />
-                  </div>
-                </div>
-              </div>
-
-              <div ref={productListRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {isLoading ? (
-                  <div className="col-span-3 flex justify-center py-10">
-                    <Spin size="large" />
-                  </div>
-                ) : paginatedProducts.length === 0 ? (
-                  <div className="col-span-3 text-center py-10">
-                    <p className="text-gray-500">No products found matching your criteria</p>
-                    <Button 
-                      className="mt-4" 
-                      onClick={() => {
-                        setSelectedCategoryIds([]);
-                        setSelectedColors([]);
-                        setSelectedRating(null);
-                        setPriceRange([0, 5000]);
-                        setAvailability(false);
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                ) : (
-                  paginatedProducts.map(product => {
-                    const price = product.active_price || parseFloat(product.price1) || 0;
-                    const rating = product.average_rating || 0;
-
-                    return (
-<div
-  key={product.id}
-  className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]"
->
-  <Link to={`/details?id=${product.id}`} state={product}>
-    <img
-      src={product.images?.[0]?.image || "https://via.placeholder.com/400x300"}
-      alt={product.name}
-      className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover"
-    />
-  </Link>
-
-
-  <div
-    onClick={(e) => {
-      e.stopPropagation();
-      dispatch(handleWishlist(product));
-      MySwal.fire({
-        position: 'top-end',
-        icon: 'success',
-        title: 'Item added to Wishlist!',
-        showConfirmButton: false,
-        timer: 1800,
-        toast: true,
-      });
-    }}
-    className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
-  >
-    <FaRegHeart  className={checkWishList(product.id) ? "text-red-500" : "text-gray-300"}  size={15} />
-  </div>
-
-  <div className="p-4 space-y-2">
-    <h3 className="popmed text-base md:text-lg line-clamp-1">{product.name}</h3>
-    <div className="flex gap-2">
-      <Rate disabled defaultValue={rating} className="text-yellow-500 text-xs md:text-sm" />
-    </div>
-
-
-    <div className="flex justify-between items-center gap-2">
-      <div className="flex flex-col">
-        {product.promotion_discount_value > 0 ? (
-          <>
-            <span className="text-gray-400 line-through text-sm">
-              XAF {product.price1}
-            </span>
-            <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
-              XAF {product.new_price}
-            </span>
-            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
-              -{product.promotion_discount_value}{product.promotion_discount_type === 'percentage' ? ' %' : ' XAF'}
-            </span>
-          </>
-        ) : (
-          <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
-            XAF  {product.price1}
-          </span>
-        )}
-      </div>
-
-      <Button
-  onClick={() => handleCart(product)}
-  className={`rounded-md popbold text-white border-none px-4 py-1 
-    ${checkCartData(product.id) ? "bg-green-500" : "bg-[#CBA135]"} 
-    ${storedRole === 'admin' ? 'hidden' : ''}`}
->
-  {checkCartData(product.id) ? 'Added' : 'Add to Cart'}
-</Button>
-
-    </div>
-  </div>
-</div>
-
-                    );
-                  })
+                {selectedSubCategoryId && getNestedSubcategories().length > 0 && (
+                  <select
+                    value={selectedNestedId}
+                    onChange={(e) => setSelectedNestedId(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 text-sm"
+                  >
+                    <option value="">Select Nested Category</option>
+                    {getNestedSubcategories().map((nested) => (
+                      <option key={getSubCategoryIdString(nested)} value={getSubCategoryIdString(nested)}>
+                        {nested.name}
+                      </option>
+                    ))}
+                  </select>
                 )}
               </div>
-
-          
-              {filteredProducts.length > 0 && (
-                <div className="mt-6 flex gap-9 justify-center">
-                  <Pagination
-                    current={currentPage}
-                    total={filteredProducts.length}
-                    pageSize={pageSize}
-                    className='space-x-2'
-                    onChange={handlePageChange}
-                    responsive
-                    showSizeChanger={false}
-                  />
-                </div>
-              )}
             </div>
+
+            {/* Filter Options */}
+            {renderFilterOptions()}
+          </div>
+
+          {/* Main Content - Products */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Selected Filters */}
+            {renderSelectedFilters()}
+
+            {/* Results Count */}
+            <div className="flex justify-between items-center">
+              <p className="text-gray-600">
+                Showing {filteredProducts.length} of {products.length} products
+                {selectedCategoryId && ` in selected category`}
+              </p>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+                    <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-2xl font-bold text-blue-600">${product.price}</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                      </span>
+                    </div>
+                    
+                    {/* Product Specifications */}
+                    {product.specification && product.specification.length > 0 && (
+                      <div className="border-t pt-3">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Specifications:</h4>
+                        <div className="space-y-1">
+                          {product.specification.map((spec, index) => (
+                            <div key={index} className="flex justify-between text-xs">
+                              <span className="text-gray-600">{spec.name}:</span>
+                              <span className="text-gray-900 font-medium">
+                                {Array.isArray(spec.values) ? spec.values.join(', ') : spec.values}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No products found matching your filters.</p>
+                <button
+                  onClick={clearAllFilters}
+                  className="mt-4 text-blue-600 hover:text-blue-800"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      <Outlet />
+      </div>
     </div>
   );
 };

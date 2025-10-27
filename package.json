@@ -13,6 +13,7 @@
     "@fullhuman/postcss-purgecss": "^7.0.2",
     "@reduxjs/toolkit": "^2.8.2",
     "antd": "^5.26.6",
+    "axios": "^1.12.2",
     "browser-image-compression": "^2.0.2",
     "drift-zoom": "^1.5.1",
     "firebase": "^12.2.1",
@@ -33,7 +34,8 @@
     "save-dev": "^0.0.1-security",
     "sweetalert2": "^11.22.2",
     "sweetalert2-react-content": "^5.1.0",
-    "swiper": "^11.2.10"
+    "swiper": "^11.2.10",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

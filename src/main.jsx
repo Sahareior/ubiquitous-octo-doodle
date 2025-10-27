@@ -84,7 +84,12 @@ const router = createBrowserRouter([
         element: <Homepage />,
         children: [
           { path: "filter", element: <ProductFilter /> },
-          
+      // ✅ Make these PUBLIC (guest-accessible) routes:
+                { path: "return-policy", element: <ReturnPolicyOverview /> },
+      { path: "terms&conditions", element: <TermsAndConditions /> },
+      { path: "privacy", element: <PrivacyPolicy /> },
+      { path: "aboutUs", element: <AboutUs /> },
+
           { path: "wishlist", element: <WhiteList /> },
           { path: "cart", element: <Cart /> },
           { path: "checkout", element: <Checkout /> },
