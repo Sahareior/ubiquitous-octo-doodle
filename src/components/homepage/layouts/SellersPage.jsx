@@ -11,7 +11,7 @@ import SellersNavbar from '../sellersHomepage/SellersNavbar';
 import SellerVideo from '../sellersHomepage/SellerVideo';
 import { Outlet, useLocation } from 'react-router-dom';
 
-const SellersLayout = () => {
+const SellersPage = () => {
 
       const location = useLocation();
 
@@ -24,8 +24,8 @@ const SellersLayout = () => {
     return (
         <div>
             <SellersNavbar />
-         {
-            isHomePage && (
+
+         
                 <>
                    <SellersHero />
             <WhySell />
@@ -41,12 +41,11 @@ const SellersLayout = () => {
                 </p>
               </div>
                 </>
-            )
-         }
+     
          <Outlet />
              <Footer />
         </div>
     );
 };
 
-export default SellersLayout;
+export default SellersPage;

@@ -115,7 +115,7 @@ const ShopCategory = () => {
 
   return (
     <section className="px-6 md:px-16 py-8 bg-gray-50">
-      <h3 className="text-center text-[30px] popmed pb-9">Shop by Category</h3>
+      <h3 className="text-center popbold font-extrabold text-[30px] pb-9">Shop by Category</h3>
 
       <CategoryCarousel
         categories={cate?.results || []}

@@ -6,6 +6,7 @@ import FloatingChat from '../../others/FolatingChat/FloatingChat';
 import { useGetAppCartQuery } from '../../../redux/slices/Apis/customersApi';
 import CategoryDropdown from '../customersHomepage/Category/CategorySection';
 import CategoryNavigation from '../../profile/CategoryNavigation';
+import FlashDeals from '../_components/FlashDeals';
 
 
 const CustomerHero = lazy(() => import('../customersHomepage/CustomerHero'));
@@ -37,6 +38,7 @@ const CustomerLayout = () => {
         <Suspense fallback={<div className="p-6 text-center">Loading homepage...</div>}>
           <CustomerHero />
           {/* <CategoryNavigation /> */}
+          <FlashDeals />
           <ShopCategory />
           <FeaturedProducts />
           <Banner />

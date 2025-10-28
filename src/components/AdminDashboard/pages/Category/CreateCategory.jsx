@@ -893,6 +893,8 @@ const getAllLevel2Subcategories = (subcategories, basePath = 'subcategories') =>
       });
     }
   });
+
+  console.log(level2Subcategories,'level2 subs')
   
   return level2Subcategories;
 };

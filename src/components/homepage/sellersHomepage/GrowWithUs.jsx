@@ -5,17 +5,12 @@ const GrowWithUs = () => {
   return (
     <div className="bg-[#CBA135] py-16 px-6 text-center">
       <h2 className="text-white text-3xl md:text-4xl popbold font-bold mb-4">
-        Ready to Grow Your Furniture Brand?
+        Ready to Showcase Your Furniture to Thousands?
       </h2>
-      <p className="text-white popreg text-lg mb-6">
-        Get started in less than 5 minutes.
+      <p className="text-white popreg text-lg mb-6 max-w-2xl mx-auto">
+        List your products today and start reaching customers who appreciate quality craftsmanship
       </p>
-      <Button
-        type="primary"
-        className="bg-white text-[#CBA135] popmed px-10 py-7 hover:opacity-90  border-none shadow-md"
-      >
-        Apply Now
-      </Button>
+
     </div>
   );
 };

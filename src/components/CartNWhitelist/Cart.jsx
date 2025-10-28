@@ -1,5 +1,5 @@
 import { Button, Radio } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
@@ -14,14 +14,25 @@ import {
 import { useGetAllProductsQuery } from "../../redux/slices/Apis/vendorsApi";
 import Similar from "../homepage/productDetailAndFilter/_components/Similier";
 import { ShoppingCart } from "lucide-react";
+import { useWebSocketContext } from "../../context/WebSocketContext";
 
 const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
+  // Handle both data structures - API response and localStorage structure
   const hasPromotion = item.promotion_discount_type && item.promotion_discount_value;
   
+  // Handle image URL - check both possible structures
+  const imageUrl = item.images?.[0]?.url || item.images?.[0]?.image || "https://via.placeholder.com/150";
+  
+  // Handle prices - check multiple possible fields
+  const displayPrice = item.new_price || item.active_price || item.price1;
+  const oldPrice = item.old_price;
+  
+  console.log(item, 'this is item');
+
   return (
     <div className="bg-white rounded-xl mt-6 p-2 md:flex items-center gap-6 shadow-sm">
       <img
-        src={item.images?.[0]?.url || "https://via.placeholder.com/150"}
+        src={imageUrl}
         alt={item.name}
         className="h-32 w-32 object-cover rounded-lg"
       />
@@ -33,10 +44,10 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
         {hasPromotion ? (
           <div className="flex items-center gap-2 mt-2">
             <p className="text-xl font-bold text-[#CBA135]">
-              {formatXAF(parseFloat(item.new_price))}
+              {formatXAF(parseFloat(displayPrice))}
             </p>
             <p className="text-md text-gray-500 line-through">
-              {formatXAF(parseFloat(item.old_price))}
+              {formatXAF(parseFloat(oldPrice))}
             </p>
             <span className="text-sm bg-red-100 text-red-600 px-2 py-1 rounded">
               {item.promotion_discount_type === 'flat' 
@@ -47,27 +58,27 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
           </div>
         ) : (
           <p className="text-xl font-bold text-[#CBA135] mt-2">
-            {formatXAF(parseFloat(item.active_price))}
+            {formatXAF(parseFloat(displayPrice))}
           </p>
         )}
       </div>
 
-      <div className="flex items-center justify-end  gap-2">
+      <div className="flex items-center justify-end gap-2">
         <button
-          onClick={() => onDecrease(item.id)}
+          onClick={() => onDecrease(item.id || item.product_id)}
           className="w-8 h-8 border rounded-full hover:bg-gray-100 flex justify-center items-center"
         >
           <AiOutlineMinus size={16} />
         </button>
         <span className="px-2 font-medium">{item.quantity}</span>
         <button
-          onClick={() => onIncrease(item.id)}
+          onClick={() => onIncrease(item.id || item.product_id)}
           className="w-8 h-8 border rounded-full hover:bg-gray-100 flex justify-center items-center"
         >
           <AiOutlinePlus size={16} />
         </button>
         <button
-          onClick={() => onRemove(item.id)}
+          onClick={() => onRemove(item.id || item.product_id)}
           className="ml-3 text-gray-400 hover:text-red-500"
         >
           <AiOutlineClose size={20} />
@@ -87,24 +98,50 @@ const Cart = () => {
   const { data: cartData, refetch } = useGetAppCartQuery();
   const [deleteFromCart] = useDeleteFromCartMutation()
   const { data: productsData } = useGetAllProductsQuery();
+   const {add,setAdd} = useWebSocketContext()
   const navigate = useNavigate();
+  const token = localStorage.getItem('access_token');
   
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
 
-  React.useEffect(() => {
+  // Get guest cart from localStorage
+  const getGuestCart = () => {
+    try {
+      return JSON.parse(localStorage.getItem('guest_cart')) || [];
+    } catch (error) {
+      console.error("Error parsing guest cart:", error);
+      return [];
+    }
+  };
+
+  // Update guest cart in localStorage
+  const updateGuestCart = (cart) => {
+    try {
+      localStorage.setItem('guest_cart', JSON.stringify(cart));
+    } catch (error) {
+      console.error("Error saving guest cart:", error);
+    }
+  };
+
+useEffect(() => {
+  if (token) {
+    // 🧾 Logged-in user → use API cart data
     if (cartData?.results) {
-      const items = cartData?.results.map((cartItem) => {
+      const items = cartData.results.map((cartItem) => {
         const product = cartItem.product;
-        const hasPromotion = product.promotion_discount_type && product.promotion_discount_value;
-        
+        const hasPromotion =
+          product.promotion_discount_type && product.promotion_discount_value;
+
         return {
-          id: cartItem.id, // keep cart item id for remove/update
+          id: cartItem.id,
           productId: product.id,
           name: product.name,
           sku: product.sku,
           quantity: cartItem.quantity,
-          active_price: hasPromotion ? product.new_price : (cartItem.price_snapshot || product.price1),
+          active_price: hasPromotion
+            ? product.new_price
+            : cartItem.price_snapshot || product.price1,
           old_price: hasPromotion ? product.old_price : null,
           new_price: hasPromotion ? product.new_price : null,
           promotion_discount_type: product.promotion_discount_type,
@@ -113,15 +150,44 @@ const Cart = () => {
             id: img.id,
             url: img.image,
           })),
-          // Keep original cart item data for API calls
-          originalCartItem: cartItem
+          originalCartItem: cartItem,
         };
       });
       setCartItems(items);
     }
-  }, [cartData]);
+  } else {
+    // 🛒 Guest user → use localStorage cart
+    const guestCart = getGuestCart();
+    // Transform localStorage data to match expected structure
+    const transformedCart = guestCart.map(item => ({
+      id: item.id || item.product_id, // Use product_id if id doesn't exist
+      productId: item.id || item.product_id,
+      name: item.name,
+      sku: item.sku,
+      quantity: item.quantity,
+      active_price: item.active_price || item.price1,
+      old_price: item.old_price,
+      new_price: item.new_price,
+      promotion_discount_type: item.promotion_discount_type,
+      promotion_discount_value: item.promotion_discount_value,
+      images: item.images || [],
+      // Store original item for reference
+      originalItem: item
+    }));
+    setCartItems(transformedCart);
+  }
+}, [token, cartData]);
 
-  if (!cartData?.results || cartData?.results?.length === 0) {
+  // Check if cart is empty (for both authenticated and guest users)
+  const isCartEmpty = () => {
+    if (token) {
+      return !cartData?.results || cartData.results.length === 0;
+    } else {
+      return cartItems.length === 0;
+    }
+  };
+
+  if (isCartEmpty()) {
     return (
       <div className="flex flex-col items-center h-screen justify-center py-10 px-6 bg-gray-50 rounded-2xl shadow-md border border-gray-200">
         <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
@@ -133,9 +199,9 @@ const Cart = () => {
         </p>
 
         <Link to='/'>
-        <button className="px-5 py-2 bg-red-500 text-white rounded-xl shadow hover:bg-red-600 transition">
-          Shop Now
-        </button>
+          <button className="px-5 py-2 bg-red-500 text-white rounded-xl shadow hover:bg-red-600 transition">
+            Shop Now
+          </button>
         </Link>
       </div>
     );
@@ -143,25 +209,30 @@ const Cart = () => {
 
   const formatXAF = (amount) => `XAF ${Number(amount).toLocaleString()}`;
 
-  const calculateItemPrice = (item) => {
-    if (item.promotion_discount_type && item.promotion_discount_value) {
-      return parseFloat(item.new_price);
-    }
-    return parseFloat(item.active_price || 0);
-  };
+const calculateItemPrice = (item) => {
+  if (item.promotion_discount_type && item.promotion_discount_value) {
+    return parseFloat(item.new_price || item.active_price || item.price1);
+  }
+  return parseFloat(item.active_price || item.price1 || 0);
+};
 
   const increaseQuantity = async (id) => {
     const item = cartItems.find(i => i.id === id);
     if (!item) return;
 
     try {
-      // call backend to increase quantity
-      const res = await cartQuantityIncrease({ id, quantity: item.quantity + 1 }).unwrap();
-
-      // update local state after success
-      setCartItems(prev =>
-        prev.map(it => it.id === id ? { ...it, quantity: it.quantity + 1 } : it)
-      );
+      if (token) {
+        // Call backend to increase quantity for authenticated user
+        await cartQuantityIncrease({ id, quantity: item.quantity + 1 }).unwrap();
+        await refetch();
+      } else {
+        // Update localStorage for guest user
+        const updatedCart = cartItems.map(it => 
+          it.id === id ? { ...it, quantity: it.quantity + 1 } : it
+        );
+        setCartItems(updatedCart);
+        updateGuestCart(updatedCart);
+      }
     } catch (error) {
       console.error("Failed to increase quantity:", error);
     }
@@ -172,19 +243,39 @@ const Cart = () => {
     if (!item || item.quantity <= 1) return;
 
     try {
-      const res = await cartQuantityDecrement({ id, quantity: item.quantity - 1 }).unwrap();
-
-      setCartItems(prev =>
-        prev.map(it => it.id === id ? { ...it, quantity: it.quantity - 1 } : it)
-      );
+      if (token) {
+        // Call backend to decrease quantity for authenticated user
+        await cartQuantityDecrement({ id, quantity: item.quantity - 1 }).unwrap();
+        await refetch();
+      } else {
+        // Update localStorage for guest user
+        const updatedCart = cartItems.map(it => 
+          it.id === id ? { ...it, quantity: it.quantity - 1 } : it
+        );
+        setCartItems(updatedCart);
+        updateGuestCart(updatedCart);
+      }
     } catch (error) {
       console.error("Failed to decrease quantity:", error);
     }
   };
 
   const removeItem = async (id) => {
-    const res = await deleteFromCart(id)
-    refetch()
+    try {
+      if (token) {
+        // Remove from backend for authenticated user
+        await deleteFromCart(id).unwrap();
+        await refetch();
+      } else {
+        // Remove from localStorage for guest user
+        const updatedCart = cartItems.filter(item => item.id !== id);
+        setCartItems(updatedCart);
+        updateGuestCart(updatedCart);
+        setAdd(items => !items)
+      }
+    } catch (error) {
+      console.error("Failed to remove item:", error);
+    }
   };
 
   const subtotal = cartItems.reduce(
@@ -211,30 +302,48 @@ const Cart = () => {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   // Prepare payload with updated cartItems data
-  const prepareCheckoutData = () => {
-    // Map the updated cartItems back to the format expected by checkout
-    const checkoutCartData = cartItems.map(item => ({
-      ...item.originalCartItem, // Keep original cart item structure
-      quantity: item.quantity, // Use updated quantity
-      // Update price snapshot if needed
+const prepareCheckoutData = () => {
+  let checkoutCartData;
+  
+  if (token) {
+    // For authenticated users, use the original cart item structure
+    checkoutCartData = cartItems.map(item => ({
+      ...item.originalCartItem,
+      quantity: item.quantity,
       price_snapshot: item.active_price
     }));
+  } else {
+    // For guest users, use the original localStorage structure
+    checkoutCartData = cartItems.map(item => ({
+      ...item.originalItem, // Use the original localStorage item
+      quantity: item.quantity,
+    }));
+  }
 
-    return {
-      data: checkoutCartData,
-      subtotal,
-      deliveryFee,
-      deliveryType,
-      delivery_instructions: deliveryInstructions,
-      total,
-      totalItems
-    };
+  return {
+    data: checkoutCartData,
+    subtotal,
+    deliveryFee,
+    deliveryType,
+    delivery_instructions: deliveryInstructions,
+    total,
+    totalItems,
+    isGuest: !token // Add flag to identify guest checkout
   };
+};
 
   const handleCheckout = async () => {
+
+         if (!token) {
+        // Refetch for authenticated users to ensure latest data
+        navigate('/login',{
+          state: getGuestCart()
+        })
+        return
+      }
+
     try {
-      // First refetch to ensure we have latest data
-      await refetch();
+ 
       
       // Prepare checkout data with updated quantities
       const checkoutData = prepareCheckoutData();
@@ -242,7 +351,7 @@ const Cart = () => {
       // Navigate with updated data
       navigate("checkout1", { state: checkoutData });
     } catch (err) {
-      console.error("Refetch failed:", err);
+      console.error("Checkout preparation failed:", err);
     }
   };
 
@@ -253,9 +362,9 @@ const Cart = () => {
         <Breadcrumb />
         <h2 className="text-3xl font-bold mb-6">My Cart</h2>
 
-        <div className="flex flex-col lg:flex-row gap-10">
+        <div className="flex flex-col  lg:flex-row gap-10">
           {/* Cart Items */}
-          <div className="flex-1 p-2 bg-[#EAE7E1]">
+          <div className="flex-1 md:p-9 bg-[#EAE7E1]">
             {cartItems.map((item) => (
               <CartItem
                 key={item.id}
@@ -333,6 +442,11 @@ const Cart = () => {
                 >
                   Proceed to Checkout
                 </button>
+                {!token && (
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    You're checking out as a guest. <Link to="/login" className="text-blue-500 hover:underline">Sign in</Link> for a faster experience.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -361,7 +475,7 @@ const Cart = () => {
         <Similar component='cart' randomProducts={productsData?.results || []} title="You may also like" />
       </div>
 
-      <div className="flex flex-col md:flex-col lg:flex-row justify-between items-center gap-10 bg-[#E6E3DD] px-5 sm:px-10 md:px-10 lg:px-20 xl:px-60 py-12 w-full">
+      <div className="flex flex-col md:flex-col mt-9 lg:flex-row justify-between items-center gap-10 bg-[#E6E3DD] px-5 sm:px-10 md:px-10 lg:px-20 xl:px-60 py-12 w-full">
         {/* Left Block */}
         <div className="flex flex-col gap-4 w-full lg:max-w-md text-center lg:text-left">
           <div className="flex items-center justify-center lg:justify-start gap-3">

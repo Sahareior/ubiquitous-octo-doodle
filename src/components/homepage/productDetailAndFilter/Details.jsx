@@ -41,6 +41,7 @@ const MySwal = withReactContent(Swal);
 const Details = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderFormVisible, setOrderFormVisible] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(null);
 
   const [randomProducts, setRandomProducts] = useState([]);
   const [mainImage, setMainImage] = useState(null);
@@ -64,6 +65,9 @@ const Details = () => {
   const productId = searchParams.get('id');
   const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
 const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
+
+
+
 
 
 useEffect(() => {
@@ -319,7 +323,9 @@ const calculateTotal = () => {
 
   return (
     <div className="bg-[#FAF8F2] relative overflow-hidden min-h-screen">
-     
+     <div className="md:mx-44">
+      <Breadcrumb />
+     </div>
       <div className="lg:hidden bg-white p-4 shadow-sm sticky top-0 z-30">
         <div className="flex items-center">
           <Link to="/" className="mr-3">
@@ -614,30 +620,46 @@ const calculateTotal = () => {
       ?.split(",")
       .map((clr, index) => {
         const colorName = clr.trim();
+
         const isLight = ["white", "#fff", "#ffffff", "beige", "ivory"].includes(
           colorName.toLowerCase()
         );
-        
+
+        const isSelected = selectedColor === colorName; // 👈 add state for selected color
+
         return (
           <button
             key={index}
+            onClick={() => setSelectedColor(colorName)} // 👈 set selected color
+            className={`relative h-10 w-10 md:h-12 md:w-12 rounded-md overflow-hidden
+              border-2 transition-all duration-200
+              ${isSelected ? "border-purple-500" : "border-gray-300"}
+              hover:scale-105`}
             style={{
               backgroundColor: colorName.startsWith("#")
                 ? colorName
                 : colorName.toLowerCase(),
             }}
-            className={`md:h-10 md:w-10 h-8 w-8 rounded-full flex items-center justify-center relative
-              border border-gray-300 shadow-inner
-              ${isLight ? "ring-1 ring-gray-200" : ""}`}
           >
-          
-            <div className="absolute inset-0 rounded-full shadow-inner opacity-20"></div>
+            {/* Light color border fix */}
+            {isLight && (
+              <div className="absolute inset-0 rounded-md ring-1 ring-gray-200"></div>
+            )}
+
+            {/* Optional diagonal line overlay for unavailable colors */}
+            {false && (
+              <div className="absolute inset-0">
+                <div className="w-[2px] bg-gray-400 rotate-45 h-full mx-auto opacity-70"></div>
+              </div>
+            )}
+
             <span className="sr-only">{colorName}</span>
           </button>
         );
       })}
   </div>
 </div>
+
 
 
 

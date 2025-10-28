@@ -128,32 +128,7 @@ const CustomersNavbar = ({ cartCount }) => {
           </Link>
         </div>
 
-        {/* Desktop Category Dropdown */}
-        <div className="hidden lg:block" ref={dropdownRef}>
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1 cursor-pointer hover:text-[#CBA135] transition"
-          >
-            <h4 className="font-medium text-sm">Category</h4>
-            <IoMdArrowDropdown size={16} />
-          </div>
 
-          {isOpen && (
-            <div className="absolute mt-2 w-40 bg-[#FAF8F2] shadow-lg rounded-md border border-gray-200 z-10">
-              {allCategories?.results?.map((category) => (
-                <Link 
-                  to={`/filter?category=${category.id}`} 
-                  className="w-full flex justify-center"
-                  key={category.id}
-                >
-                  <button className="px-4 py-2 text-sm text-gray-700 popmed hover:bg-gray-100 cursor-pointer w-full text-left">
-                    {category.name}
-                  </button>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Search Bar - Hidden on mobile when menu is open */}
         <div className={`${mobileMenuOpen ? 'hidden' : 'flex'}  hidden md:block items-center flex-1 max-w-lg mx-4 md:mx-8`}>

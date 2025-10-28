@@ -13,7 +13,7 @@ const Footer = () => {
   const { data: allCategories, isLoading, isError } = useGetCategoriesQuery();
 
   const handelClick = () => {
-    navigate('/regester-seller');
+    navigate('/vendorpage');
   };
 
   // Step 1: Define mappings

@@ -73,6 +73,8 @@ import AboutUs from './components/homepage/_components/AboutUs.jsx';
 import { WebSocketProvider } from './context/WebSocketContext.jsx';
 import AdminProtectedRoute from './components/homepage/layouts/AdminProtectedRoute.jsx';
 import VendorProtectedRoute from './components/homepage/layouts/VendorProtectedRoute.jsx';
+import GuestLayout from './components/homepage/layouts/GuestLayout.jsx';
+import SellersPage from './components/homepage/layouts/SellersPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -100,8 +102,8 @@ const router = createBrowserRouter([
           { path: "payments/success", element: <ConfirmationPage /> },
           { path: "active", element: <ActiveUsers /> },
           { path: "profile", element: <Profile /> },
-          { path: "regester-seller", element: <SellerReg /> }, 
           { path: "return", element: <ReturnExchangeForm /> },
+          { path: "regester-seller", element: <SellerReg /> }, 
         ],
       },
 
@@ -110,6 +112,10 @@ const router = createBrowserRouter([
       { path: "terms&conditions", element: <TermsAndConditions /> },
       { path: "privacy", element: <PrivacyPolicy /> },
       { path: "aboutUs", element: <AboutUs /> },
+      { path: "wishlist", element: <WhiteList /> },
+      {
+        path:'vendorpage', element: <SellersPage />
+      },
 
       // ✅ Authentication routes
       { path: "login", element: <Login /> },

@@ -1,7 +1,7 @@
 import { Button, Input } from 'antd';
 import { MdOutlineRemoveRedEye, MdOutlineVisibilityOff } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { use, useEffect, useState } from 'react';
 import { addCustomerId, selectedLocation } from '../../redux/slices/customerSlice';
 import { useCustomerLoginMutation } from '../../redux/slices/apiSlice';
@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 // Firebase
 import { signInWithPopup, onAuthStateChanged, signOut, GoogleAuthProvider } from "firebase/auth";
 import { auth, googleProvider } from '../../firebase/auth';
+import { useAddProductToCartMutation } from '../../redux/slices/Apis/customersApi';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -17,75 +18,129 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [addProductToCart] = useAddProductToCartMutation();
+  const location = useLocation();
+
+  console.log('Location state:', location.state);
+
+  // Function to add guest cart items to user cart after login
+  const addGuestCartToUserCart = async () => {
+    if (!location.state || !Array.isArray(location.state)) {
+      console.log('No guest cart items found');
+      return;
+    }
+
+    try {
+      console.log('Processing guest cart items:', location.state.length);
+      
+      for (let item of location.state) {
+        // Use the direct item structure since there's no originalItem
+        const payload = {
+          product_id: item.id, // Use item.id directly
+          quantity: item.quantity || 1, // Use item.quantity, default to 1 if not present
+          price_snapshot: item.price1 || item.active_price // Use price1 or active_price
+        };
+
+        console.log('Adding item to cart:', payload);
+        await addProductToCart(payload).unwrap();
+        
+        // Small delay to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Clear guest cart from localStorage after successful transfer
+      localStorage.removeItem('guest_cart');
+      
+      Swal.fire({
+        icon: "success",
+        title: "Cart Items Moved",
+        text: "Your guest cart items have been added to your account!",
+        confirmButtonColor: "#CBA135",
+      });
+
+    } catch (error) {
+      console.error('Error adding guest cart items:', error);
+      Swal.fire({
+        icon: "warning",
+        title: "Cart Transfer Incomplete",
+        text: "Some items couldn't be added to your cart. You can add them manually later.",
+        confirmButtonColor: "#CBA135",
+      });
+    }
+  };
 
   // ✅ Google Sign-In - Modified to get ID token
-const handleGoogleLogin = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
 
-    // Get the Google ID token
-    const idToken = await user.getIdToken();
-    
-    // Prepare userInfo object with necessary details from Firebase
-    const userInfo = {
-      uid: user.uid,
-      email: user.email,
-      display_name: user.displayName,
-      photo_url: user.photoURL,
-      phone_number: user.phoneNumber || null,
-      email_verified: user.emailVerified,
-      provider_data: user.providerData.map(provider => ({
-        provider_id: provider.providerId,
-        uid: provider.uid,
-        display_name: provider.displayName,
-        email: provider.email,
-        phone_number: provider.phoneNumber,
-        photo_url: provider.photoURL
-      }))
-    };
-    
-    // Send to your backend for verification
-    const googleLoginData = {
-      email: user.email,
-      id_token: idToken,
-      user_info: userInfo  // Include the userInfo object
-    };
-    
-    // Call your backend API with Google credentials
-    const res = await customerLogin(googleLoginData).unwrap();
-    
-    // Save tokens and user data
-    localStorage.setItem("access_token", res.access_token);
-    localStorage.setItem("refresh_token", res.refresh_token);
-    localStorage.setItem("user_role", res.user.role);
-    localStorage.setItem("customerId", JSON.stringify(res));
+      // Get the Google ID token
+      const idToken = await user.getIdToken();
+      
+      // Prepare userInfo object with necessary details from Firebase
+      const userInfo = {
+        uid: user.uid,
+        email: user.email,
+        display_name: user.displayName,
+        photo_url: user.photoURL,
+        phone_number: user.phoneNumber || null,
+        email_verified: user.emailVerified,
+        provider_data: user.providerData.map(provider => ({
+          provider_id: provider.providerId,
+          uid: provider.uid,
+          display_name: provider.displayName,
+          email: provider.email,
+          phone_number: provider.phoneNumber,
+          photo_url: provider.photoURL
+        }))
+      };
+      
+      // Send to your backend for verification
+      const googleLoginData = {
+        email: user.email,
+        id_token: idToken,
+        user_info: userInfo
+      };
+      
+      // Call your backend API with Google credentials
+      const res = await customerLogin(googleLoginData).unwrap();
+      
+      // Save tokens and user data
+      localStorage.setItem("access_token", res.access_token);
+      localStorage.setItem("refresh_token", res.refresh_token);
+      localStorage.setItem("user_role", res.user.role);
+      localStorage.setItem("customerId", JSON.stringify(res));
 
-    Swal.fire({
-      icon: "success",
-      title: "Google Login Successful",
-      text: `Welcome, ${res?.user?.first_name || user.displayName || "Customer"}!`,
-      confirmButtonColor: "#CBA135",
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Google Login Successful",
+        text: `Welcome, ${res?.user?.first_name || user.displayName || "Customer"}!`,
+        confirmButtonColor: "#CBA135",
+      });
 
-    dispatch(selectedLocation(res?.user?.role));
-    dispatch(addCustomerId(res?.user?.id));
-    navigate("/");
-    
-  } catch (error) {
-    console.error("Google Login Error:", error);
-    
-    // If backend login fails, sign out from Firebase
-    await signOut(auth);
-    
-    Swal.fire({
-      icon: "error",
-      title: "Google Login Failed",
-      text: error.data?.message || "Authentication failed. Please try again.",
-      confirmButtonColor: "#CBA135",
-    });
-  }
-};
+      dispatch(selectedLocation(res?.user?.role));
+      dispatch(addCustomerId(res?.user?.id));
+
+      // Add guest cart items to user cart after Google login
+      await addGuestCartToUserCart();
+      
+      navigate("/");
+      
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      
+      // If backend login fails, sign out from Firebase
+      await signOut(auth);
+      
+      Swal.fire({
+        icon: "error",
+        title: "Google Login Failed",
+        text: error.data?.message || "Authentication failed. Please try again.",
+        confirmButtonColor: "#CBA135",
+      });
+    }
+  };
 
   // ✅ Auth Watcher (keeps login state on refresh)
   useEffect(() => {
@@ -93,7 +148,6 @@ const handleGoogleLogin = async () => {
       if (user) {
         // Only maintain Firebase state if needed for other purposes
         // Your actual authentication is now handled by your backend
-        // console.log("Firebase user logged in:", user);
       } else {
         // console.log("Firebase user logged out");
       }
@@ -123,6 +177,10 @@ const handleGoogleLogin = async () => {
 
       dispatch(selectedLocation(res?.user?.role));
       dispatch(addCustomerId(res?.user?.id));
+
+      // Add guest cart items to user cart after successful login
+      await addGuestCartToUserCart();
+      
       navigate("/");
     } catch (error) {
       Swal.fire({
@@ -164,6 +222,15 @@ const handleGoogleLogin = async () => {
         <h2 className="text-2xl sm:text-3xl md:text-[34px] font-semibold text-center">
           Welcome Back
         </h2>
+
+        {/* Show guest cart notification if items exist */}
+        {location.state && location.state.length > 0 && (
+          <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 text-center">
+            <p className="text-sm">
+              You have {location.state.length} item(s) in your guest cart that will be saved to your account after login.
+            </p>
+          </div>
+        )}
 
         <p className="text-xs sm:text-sm text-center">
           Don't have an account?{" "}

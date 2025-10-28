@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import CustomerLayout from './layouts/CustomerLayout';
 import GuestLayout from './layouts/GuestLayout';
 import SellersLayout from './layouts/SellersLayout';
@@ -30,27 +29,16 @@ const Homepage = () => {
     }
   }, []);
 
-  // Render layouts based on role
-  if (role === 'customer') {
-    return (
-      <CustomerLayout>
-        <Outlet />
-      </CustomerLayout>
-    );
-  }
-
-  if (role === 'vendor') {
-    return (
-      <SellersLayout>
-        <Outlet />
-      </SellersLayout>
-    );
-  }
-
   return (
-    <GuestLayout>
-      <Outlet />
-    </GuestLayout>
+    <div>
+      {role === 'vendor' ? (
+        <SellersLayout />
+      ) : role === 'customer' ? (
+        <CustomerLayout />
+      ) : (
+        <GuestLayout />
+      )}
+    </div>
   );
 };
 

@@ -15,7 +15,7 @@ const ProductFilter = () => {
 
   const location = useLocation()
 
-  console.log('this is location', location.state)
+  console.log(location.state.categoryData.selectedCategory.name,'asssss')
 
   useEffect(() => {
     fetchCategories();
