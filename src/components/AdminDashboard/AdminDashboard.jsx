@@ -25,7 +25,7 @@ import {
   FaFantasyFlightGames,
 } from "react-icons/fa";
 import { IoIosPeople } from "react-icons/io";
-import { IoPricetagSharp } from "react-icons/io5";
+import { IoPricetagSharp, IoPricetagsSharp } from "react-icons/io5";
 import { LuMessageSquareText } from "react-icons/lu";
 import { GrAnalytics } from "react-icons/gr";
 import { MdLogout } from "react-icons/md";
@@ -38,6 +38,7 @@ import { RxExit } from "react-icons/rx";
 import Swal from "sweetalert2"; // Import SweetAlert2
 import { useGetProfileQuery } from "../../redux/slices/Apis/customersApi";
 import { useWebSocketContext } from "../../context/WebSocketContext";
+import { BsLightning } from "react-icons/bs";
 
 const { Header, Content, Sider } = Layout;
 
@@ -134,9 +135,26 @@ const AdminDashboard = () => {
       label: <Link to="analytics">Analytics</Link>,
     },
     {
+      key: "featuredManagement",
+      icon: <GrAnalytics size={16} />,
+      label: <Link to="featuredManagement">Analytics</Link>,
+    },
+    {
       key: "payouts",
       icon: <FaMoneyBill size={16} />,
       label: <Link to="payouts">Payouts</Link>,
+    },
+        {
+     
+      icon: <BsLightning size={16} />,
+      label: <Link to="flashDeals">Flash Deals</Link>,
+      key: 'flashDeals',
+    },
+        {
+     
+      icon: <IoPricetagsSharp size={16} />,
+      label: <Link to="promotion">Promotions</Link>,
+      key: 'promotion',
     },
     {
       key: "content",
@@ -232,7 +250,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="flex flex-col">
-          <div className="flex-1 overflow-auto ">
+          <div className=" h-[80vh] overflow-y-auto py-7 pb-14 ">
             <Menu
               theme="light"
               mode="inline"

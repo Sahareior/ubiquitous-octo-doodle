@@ -305,9 +305,9 @@ formDataToSend.append("specifications", JSON.stringify(specs));
 
     console.log(formData,'this is payload data')
     const res = await vendorEditProduct({ id: productData.id, formDataToSend });
-     navigate('/admin-dashboard/productslist', { state: { shouldRefetch: true } });
+    
     setLoading(false);
-
+    refetch()
 
     Swal.fire({
       icon: "success",

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FaStar, FaRegHeart, FaFire, FaShoppingCart, FaEye } from "react-icons/fa";
+import { FaStar, FaRegHeart, FaFire, FaShoppingCart, FaEye, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { IoFlash } from "react-icons/io5";
 
 const FlashDeals = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 34, seconds: 56 });
   const [isHovered, setIsHovered] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(4); // Show 4 products per page
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -80,17 +82,100 @@ const FlashDeals = () => {
     },
     {
       id: 5,
-      name: "Home Decor Accessories",
-      price: 149.99,
-      oldPrice: 249.99,
-      discount: 40,
-      rating: 4.6,
-      reviews: 567,
+      name: "Modern Office Desk",
+      price: 299.99,
+      oldPrice: 449.99,
+      discount: 33,
+      rating: 4.4,
+      reviews: 123,
       image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      sold: 89,
+      sold: 67,
+      total: 100,
+    },
+    {
+      id: 6,
+      name: "Comfortable Armchair",
+      price: 199.99,
+      oldPrice: 299.99,
+      discount: 33,
+      rating: 4.7,
+      reviews: 89,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      sold: 91,
+      total: 100,
+    },
+    {
+      id: 7,
+      name: "Bookshelf Storage Unit",
+      price: 159.99,
+      oldPrice: 229.99,
+      discount: 30,
+      rating: 4.3,
+      reviews: 67,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      sold: 42,
+      total: 100,
+    },
+    {
+      id: 8,
+      name: "Coffee Table Set",
+      price: 179.99,
+      oldPrice: 259.99,
+      discount: 31,
+      rating: 4.5,
+      reviews: 156,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      sold: 58,
+      total: 100,
+    },
+    {
+      id: 9,
+      name: "Outdoor Patio Set",
+      price: 499.99,
+      oldPrice: 749.99,
+      discount: 33,
+      rating: 4.6,
+      reviews: 234,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      sold: 23,
+      total: 100,
+    },
+    {
+      id: 10,
+      name: "Bedside Nightstand",
+      price: 89.99,
+      oldPrice: 129.99,
+      discount: 31,
+      rating: 4.2,
+      reviews: 78,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+      sold: 76,
       total: 100,
     },
   ];
+
+  // Calculate pagination
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(products.length / productsPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   const ProgressBar = ({ sold, total }) => {
     const percentage = (sold / total) * 100;
@@ -114,6 +199,27 @@ const FlashDeals = () => {
       <span className="text-white/80 text-xs mt-1">{label}</span>
     </div>
   );
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    
+    return pageNumbers;
+  };
 
   return (
     <section className="bg-gradient-to-br bg-[#a87f15c3] py-12 px-4 md:px-8 lg:px-6">
@@ -149,8 +255,8 @@ const FlashDeals = () => {
         </div>
 
         {/* Product Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {products.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {currentProducts.map((item) => (
             <div
               key={item.id}
               className="group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-2"
@@ -250,11 +356,55 @@ const FlashDeals = () => {
           ))}
         </div>
 
-        {/* View All Button */}
-        <div className="text-center mt-10">
-          <button className="bg-white text-orange-500 px-8 py-3 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl border border-orange-500">
-            View All Deals
+        {/* Pagination */}
+        <div className="flex justify-center items-center space-x-2 mt-8">
+          {/* Previous Button */}
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+              currentPage === 1
+                ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                : 'bg-white text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg'
+            }`}
+          >
+            <FaChevronLeft size={14} />
           </button>
+
+          {/* Page Numbers */}
+          {getPageNumbers().map((number) => (
+            <button
+              key={number}
+              onClick={() => paginate(number)}
+              className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-200 ${
+                currentPage === number
+                  ? 'bg-white text-orange-500 shadow-lg scale-110'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              {number}
+            </button>
+          ))}
+
+          {/* Next Button */}
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages}
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+              currentPage === totalPages
+                ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                : 'bg-white text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg'
+            }`}
+          >
+            <FaChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* Page Info */}
+        <div className="text-center mt-4">
+          <p className="text-white/80 text-sm">
+            Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, products.length)} of {products.length} products
+          </p>
         </div>
       </div>
     </section>

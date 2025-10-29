@@ -125,7 +125,7 @@ const CategoryDropdown = () => {
       <div className={`subcategory-column level-${level}`}>
         <h4 
           onClick={() => handleSubcategoryClick(subcategory)} 
-          className="subcategory-name hover:cursor-pointer flex gap-3 items-center popmed hover:text-blue-600 transition-colors"
+          className="subcategory-name w-[230px] hover:cursor-pointer flex gap-3 items-center popmed hover:text-blue-600 transition-colors"
         >
           {subcategory.name}
           {hasNestedSubcategories && <FaArrowRight size={12} />}
@@ -285,7 +285,7 @@ const CategoryDropdown = () => {
                   <p className="promo-description">
                     {activeCategory.promo.description}
                   </p>
-                  <button className="promo-button">Shop Now</button>
+                 
                 </div>
               </div>
               

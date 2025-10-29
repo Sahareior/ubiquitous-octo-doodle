@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Button, Select, Spin } from "antd";
-import { FaChevronDown, FaDownload } from "react-icons/fa";
+import { FaChevronDown, FaDownload, FaPlus } from "react-icons/fa";
 import { useGetAllVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import VendorTable from "./VendorTable";
 import dayjs from "dayjs";
@@ -87,18 +87,29 @@ const VendorList = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between mt-3 px-2 items-center">
+<div>
+        <div className="flex justify-between mt-3 px-2 items-center">
         <h2 className="popbold flex items-center gap-2 text-[28px] sm:text-[34px]">
           Vendor list
         </h2>
 
-        <Button
+<div className="flex gap-3">
+          <Button
           onClick={handleExportVendors}
           className="bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5"
         >
-          <FaDownload /> Vendor Data
+          <FaDownload /> 
         </Button>
+                <Button
+          onClick={handleExportVendors}
+          className="bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5"
+        >
+          <FaPlus /> Add a vendor
+        </Button>
+</div>
       </div>
+      
+</div>
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-md shadow-sm">

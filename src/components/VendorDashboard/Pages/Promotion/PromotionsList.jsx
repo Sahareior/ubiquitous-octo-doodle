@@ -16,6 +16,8 @@ const PromotionsList = () => {
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(6); // Show 6 promotions initially
 
+  const userType =localStorage.getItem('user_role')
+
   // Handle delete
   const handelDelete = async (id) => {
     const result = await Swal.fire({
@@ -79,7 +81,13 @@ const PromotionsList = () => {
           <h2 className="text-lg popreg text-gray-700">
             Manage your promotional campaigns and boost sales
           </h2>
-          <Link to="/vendor-dashboard/create-promotion">
+        <Link
+  to={
+    userType === "admin"
+      ? "/admin-dashboard/create-promotion"
+      : "/vendor-dashboard/create-promotion"
+  }
+>
             <button className="bg-yellow-600 popmed text-[16px] text-white font-medium px-4 py-2 rounded-md hover:bg-yellow-700">
               + Create New Promotion
             </button>
@@ -111,7 +119,13 @@ const PromotionsList = () => {
               Create your first promotion to attract more customers and boost your sales. 
               Offer discounts, special deals, and limited-time offers to increase engagement.
             </p>
-            <Link to="/vendor-dashboard/create-promotion">
+          <Link
+  to={
+    userType === "admin"
+      ? "/admin-dashboard/create-promotion"
+      : "/vendor-dashboard/create-promotion"
+  }
+>
               <button className="bg-[#CBA135] hover:bg-[#b8912f] text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200">
                 Create Your First Promotion
               </button>
@@ -128,7 +142,13 @@ const PromotionsList = () => {
         <h2 className="text-lg popreg text-gray-700">
           Manage your promotional campaigns and boost sales
         </h2>
-        <Link to="/vendor-dashboard/create-promotion">
+      <Link
+  to={
+    userType === "admin"
+      ? "/admin-dashboard/create-promotion"
+      : "/vendor-dashboard/create-promotion"
+  }
+>
           <button className="bg-yellow-600 popmed text-[16px] text-white font-medium px-4 py-2 rounded-md hover:bg-yellow-700">
             + Create New Promotion
           </button>

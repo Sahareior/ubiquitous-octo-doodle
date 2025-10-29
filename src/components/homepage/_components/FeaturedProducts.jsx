@@ -123,13 +123,23 @@ const FeaturedProducts = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const localStorageCart = JSON.parse(localStorage.getItem('guest_cart')) || []
+
+  console.log(localStorageCart.length,'this')
+
   // Create refs for scrolling
   const componentTopRef = useRef(null);
   const productsGridRef = useRef(null);
 
   const checkCartData = useCallback(
     (id) => {
-      return cartData?.results?.some((items) => items.product.id === id);
+      // console.log('insude ', id)
+     if(localStorageCart.length > 0){
+       return localStorageCart.some((items) => items.id === id);
+     }
+     else{
+       return cartData?.results?.some((items) => items.product.id === id);
+     }
     },
     [cartData]
   );
@@ -226,7 +236,7 @@ const FeaturedProducts = () => {
 
     if (!token) {
       Swal.fire({
-        title: "Access Denied",
+        title: "Please Sign In Your Account!",
         text: "You need to log in to access this page.",
         icon: "warning",
         confirmButtonText: "Go to Login",

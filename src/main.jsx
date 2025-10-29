@@ -75,6 +75,8 @@ import AdminProtectedRoute from './components/homepage/layouts/AdminProtectedRou
 import VendorProtectedRoute from './components/homepage/layouts/VendorProtectedRoute.jsx';
 import GuestLayout from './components/homepage/layouts/GuestLayout.jsx';
 import SellersPage from './components/homepage/layouts/SellersPage.jsx';
+import FlashDealsAdmin from './components/AdminDashboard/pages/flashDeals/FlashDealsAdmin.jsx';
+import Featured_Management from './components/AdminDashboard/pages/featuredProduct/Featured_Management.jsx';
 
 const router = createBrowserRouter([
   {
@@ -103,11 +105,11 @@ const router = createBrowserRouter([
           { path: "active", element: <ActiveUsers /> },
           { path: "profile", element: <Profile /> },
           { path: "return", element: <ReturnExchangeForm /> },
-          { path: "regester-seller", element: <SellerReg /> }, 
         ],
       },
-
+      
       // ✅ Make these PUBLIC (guest-accessible) routes:
+      { path: "regester-seller", element: <SellerReg /> }, 
       { path: "return-policy", element: <ReturnPolicyOverview /> },
       { path: "terms&conditions", element: <TermsAndConditions /> },
       { path: "privacy", element: <PrivacyPolicy /> },
@@ -140,6 +142,12 @@ const router = createBrowserRouter([
       { path: "seller-req", element: <ApproveSellers /> },
       { path: "admin-orders", element: <Orders /> },
       { path: "return", element: <ReturnReq /> },
+      {
+        path:'flashDeals', element: <FlashDealsAdmin />
+      },
+    {
+      path:'featuredManagement', element: <Featured_Management />
+    },
       { path: "analytics", element: <Analytics /> },
       { path: "customers", element: <CustomerList /> },
       { path: "category", element: <CategoryManagement /> },
@@ -151,6 +159,8 @@ const router = createBrowserRouter([
       { path: "add-product", element: <AddnewProducts /> },
       { path: "editAdminProducts", element: <EditAdminProducts /> },
       { path: "payouts", element: <Payouts /> },
+       { path: "promotion", element: <PromotionsList /> },
+        { path: "create-promotion", element: <CreatePromotion /> },
       { path: "messages", element: <AllMessages /> },
       { path: "content", element: <Content /> },
       { path: "edit-banner", element: <EditContent /> },

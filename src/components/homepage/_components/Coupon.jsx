@@ -17,7 +17,7 @@ const Coupon = () => {
                     <Link to='/signup'>
                     <Button className='bg-[#CBA135] popreg px-7 py-6 text-white border-none'>Create Account</Button>
                     </Link>
-                    <Button className='bg-[#2B2B2B] popreg px-7 py-6 text-white border-none'>Start Shopping</Button>
+                   
                 </div>
             </div>
         </div>

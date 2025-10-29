@@ -15,6 +15,7 @@ import { useGetAllProductsQuery } from "../../redux/slices/Apis/vendorsApi";
 import Similar from "../homepage/productDetailAndFilter/_components/Similier";
 import { ShoppingCart } from "lucide-react";
 import { useWebSocketContext } from "../../context/WebSocketContext";
+import Swal from "sweetalert2";
 
 const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   // Handle both data structures - API response and localStorage structure
@@ -334,13 +335,25 @@ const prepareCheckoutData = () => {
 
   const handleCheckout = async () => {
 
-         if (!token) {
-        // Refetch for authenticated users to ensure latest data
-        navigate('/login',{
-          state: getGuestCart()
-        })
-        return
-      }
+if (!token) {
+  Swal.fire({
+    title: 'Please log in first!',
+    text: 'You need to log in to make purchase.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Go to Login',
+    cancelButtonText: 'Stay Here',
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      navigate('/login', {
+        state: getGuestCart(),
+      });
+    }
+  });
+  return;
+}
 
     try {
  

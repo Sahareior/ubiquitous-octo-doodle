@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, Link } from "react-router-dom";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
-import { Rate, Button } from "antd";
+import { Rate, Button, Slider } from "antd";
 import Swal from "sweetalert2";
 
 const ProductFilter = () => {
@@ -16,6 +16,7 @@ const ProductFilter = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState([]);
+   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [cart, setCart] = useState([]);
 
   const location = useLocation();
@@ -294,6 +295,9 @@ const ProductFilter = () => {
     console.log('Cleared all filters');
   };
 
+
+  
+
   // Get available subcategories
   const getSubcategories = () => {
     if (!selectedCategoryId) return [];
@@ -342,71 +346,150 @@ const ProductFilter = () => {
   });
 
   // Render filter options
-  const renderFilterOptions = () => {
-    if (filterOptions.length === 0) {
-      return (
-        <div className="p-4 border rounded-2xl bg-white shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Filters</h3>
-          <p className="text-gray-500 text-sm">No filters available for this category.</p>
-        </div>
-      );
-    }
-
+const renderFilterOptions = () => {
+  if (filterOptions.length === 0) {
     return (
-      <div className="space-y-6 p-4 border rounded-2xl bg-white shadow-sm">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-700">Filters</h3>
-          <button
-            onClick={clearAllFilters}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Clear All
-          </button>
+      <div className="p-8 text-center border border-gray-200 rounded-lg bg-white">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
+          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
         </div>
-        
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Filters Available</h3>
+        <p className="text-gray-600 text-sm">We're preparing filter options for this category.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-6 border border-gray-200 rounded-lg bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+        <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+        <button
+          onClick={clearAllFilters}
+          className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 font-normal"
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div>
+          <div className="my-4">
+        <p className="popmed mb-2">Price Range</p>
+        <Slider
+          range
+          min={0}
+          max={5000}
+          step={100}
+          value={priceRange}
+          onChange={setPriceRange}
+        />
+        <div className="flex justify-between popreg text-sm">
+          <span>${priceRange[0]}</span>
+          <span>${priceRange[1]}</span>
+        </div>
+      </div>
+      </div>
+      
+      {/* Filter Sections */}
+      <div className="space-y-6">
         {filterOptions.map((filter) => (
-          <div key={filter._id || filter.id} className="space-y-3 border-b pb-4 last:border-b-0">
-            <label className="block font-medium text-gray-700">
+          <div 
+            key={filter._id || filter.id} 
+            className="space-y-4"
+          >
+            <label className="block text-sm font-medium text-gray-700 uppercase tracking-wide">
               {filter.name}
             </label>
             
+            {/* Checkbox Filter */}
             {filter.type === 'checkbox' && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {filter.options.map((option) => (
-                  <label key={option} className="flex items-center space-x-2">
+                  <label key={option} className="flex items-center group cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isFilterSelected(filter.name, option, 'checkbox')}
                       onChange={() => handleFilterChange(filter.name, option, 'checkbox')}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
                     />
-                    <span className="text-gray-700 text-sm">{option}</span>
+                    <span className="ml-3 popmed text-sm  text-yellow-700 group-hover:text-gray-900 transition-colors">
+                      {option}
+                    </span>
                   </label>
                 ))}
               </div>
             )}
 
+            {/* Radio Filter */}
             {filter.type === 'radio' && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {filter.options.map((option) => (
-                  <label key={option} className="flex items-center space-x-2">
+                  <label key={option} className="flex items-center group cursor-pointer">
                     <input
                       type="radio"
                       name={filter.name}
                       checked={isFilterSelected(filter.name, option, 'radio')}
                       onChange={() => handleFilterChange(filter.name, option, 'radio')}
-                      className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
                     />
-                    <span className="text-gray-700 text-sm">{option}</span>
+                    <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                      {option}
+                    </span>
                   </label>
                 ))}
+              </div>
+            )}
+
+            {/* Color Swatch Filter - Common in home decor */}
+            {filter.type === 'color' && (
+              <div className="flex flex-wrap gap-3">
+                {filter.options.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => handleFilterChange(filter.name, option, 'color')}
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
+                      isFilterSelected(filter.name, option, 'color') 
+                        ? 'border-gray-900 ring-2 ring-gray-200' 
+                        : 'border-gray-200'
+                    }`}
+                    style={{ backgroundColor: option.toLowerCase() }}
+                    title={option}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Price Range Filter - Common in home decor */}
+            {filter.type === 'range' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>${filter.min}</span>
+                  <span>${filter.max}</span>
+                </div>
+                <input
+                  type="range"
+                  min={filter.min}
+                  max={filter.max}
+                  // Add your range handling logic here
+                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
               </div>
             )}
           </div>
         ))}
       </div>
-    );
-  };
+
+      {/* Results Count */}
+      <div className="pt-4 border-t border-gray-100">
+        <p className="text-sm text-gray-600">
+          Showing <span className="font-medium text-gray-900">24</span> products
+        </p>
+      </div>
+    </div>
+  );
+};
 
   // Render selected filters
   const renderSelectedFilters = () => {
@@ -435,7 +518,7 @@ const ProductFilter = () => {
                     });
                   }
                 }}
-                className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                className="ml-2 text-red-600 hover:text-red-800  font-bold"
               >
                 ×
               </button>
@@ -448,6 +531,8 @@ const ProductFilter = () => {
 
   // Render product card
   const renderProductCard = (product) => {
+
+    console.log(product.Responsed_products,'ghf')
     const rating = calculateRating(product);
     const isInWishlist = checkWishlist(product.id);
     const isInCart = checkCart(product.id);
@@ -459,7 +544,7 @@ const ProductFilter = () => {
       >
         <Link to={`/details?id=${product.id || product._id}`} state={product}>
           <img
-            src={product.images?.[0]?.image || product.image || "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=658"}
+            src={product.images?.[0]?.image ||product.Responsed_products.images[0].image || "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=658"}
             alt={product.name}
             className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover"
           />
@@ -560,52 +645,20 @@ const ProductFilter = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-8xl mx-40">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{getCurrentCategoryName()}</h1>
-        <p className="text-gray-600 mb-8">Browse our collection of {getCurrentCategoryName().toLowerCase()}</p>
+        {/* <p className="text-gray-600 mb-8">Browse our collection of {getCurrentCategoryName().toLowerCase()}</p> */}
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid  grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Category Selection & Filters */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 h-[80vh] overflow-y-auto space-y-6">
             {/* Category Selection */}
             <div className="bg-white p-4 rounded-2xl shadow-sm space-y-4">
               <h3 className="text-lg font-semibold text-gray-700">Categories</h3>
               
-              <div className="space-y-3">
+              <div className="space-y-3 ">
                 {/* Main Category Selector */}
-                <select
-                  value={selectedCategoryId}
-                  onChange={(e) => {
-                    setSelectedCategoryId(e.target.value);
-                    setSelectedSubCategoryId("");
-                    setSelectedNestedId("");
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select Main Category</option>
-                  {categories.map((category) => (
-                    <option key={getSubCategoryIdString(category)} value={getSubCategoryIdString(category)}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
 
-                {/* Sub Category Selector */}
-                {selectedCategoryId && getSubcategories().length > 0 && (
-                  <select
-                    value={selectedSubCategoryId}
-                    onChange={(e) => {
-                      setSelectedSubCategoryId(e.target.value);
-                      setSelectedNestedId("");
-                    }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select Sub Category</option>
-                    {getSubcategories().map((sub) => (
-                      <option key={getSubCategoryIdString(sub)} value={getSubCategoryIdString(sub)}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
+
+
 
                 {/* Nested Sub Category Selector */}
                 {selectedSubCategoryId && getNestedSubcategories().length > 0 && (
@@ -630,7 +683,7 @@ const ProductFilter = () => {
           </div>
 
           {/* Main Content - Products */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 h-[80vh] overflow-y-auto space-y-6">
             {/* Selected Filters */}
             {renderSelectedFilters()}
 
@@ -654,7 +707,7 @@ const ProductFilter = () => {
 
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(renderProductCard)}
               </div>
             ) : (

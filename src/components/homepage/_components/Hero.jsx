@@ -44,9 +44,7 @@ const Hero = () => {
           <button className="bg-[#CBA135] hover:bg-[#b18c2c] text-white px-4 sm:px-10 py-5 sm:py-6 rounded-lg text-sm sm:text-base transition-all duration-300">
             Shop New Arrivals
           </button>
-          <button className="bg-[#2B2B2B] hover:bg-[#1a1a1a] text-white px-4 sm:px-12 py-5 sm:py-6 rounded-lg text-sm sm:text-base transition-all duration-300">
-            View Wishlist
-          </button>
+         
         </div>
       </div>
     </section>
