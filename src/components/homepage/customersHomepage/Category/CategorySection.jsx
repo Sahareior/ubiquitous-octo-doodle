@@ -34,95 +34,141 @@ const CategoryDropdown = () => {
     fetchCategories();
   }, []);
 
-  // Recursive function to transform nested subcategories (only names, no filter options)
-  const transformSubcategories = (subcategories) => {
-    return subcategories.map(subcat => {
-      const transformedSubcat = {
-        name: subcat.name,
-        slug: subcat.slug,
-        description: subcat.description,
-        subcategories: subcat.subcategories && subcat.subcategories.length > 0 
-          ? transformSubcategories(subcat.subcategories)
-          : []
-      };
-
-      return transformedSubcat;
-    });
+  // Recursive function to find category hierarchy
+  const findCategoryHierarchy = (subcategoryId, level = 0) => {
+    for (const category of categories) {
+      // Check if this is the main category
+      if (category._id === subcategoryId) {
+        return {
+          main: category,
+          sub: null,
+          nested: null
+        };
+      }
+      
+      // Check subcategories
+      if (category.subcategories) {
+        for (const sub of category.subcategories) {
+          // Check if this subcategory matches
+          if (sub._id === subcategoryId || sub.id === subcategoryId) {
+            return {
+              main: category,
+              sub: sub,
+              nested: null
+            };
+          }
+          
+          // Check nested subcategories
+          if (sub.subcategories) {
+            for (const nested of sub.subcategories) {
+              if (nested._id === subcategoryId || nested.id === subcategoryId) {
+                return {
+                  main: category,
+                  sub: sub,
+                  nested: nested
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   };
 
-  // Transform API data to match component structure
-  const transformCategories = (apiCategories) => {
-    return apiCategories.map(category => {
-      const subcategories = transformSubcategories(category.subcategories || []);
+  // Handle subcategory click
+  const handleSubcategoryClick = (subcategory) => {
+    console.log('Clicked subcategory:', subcategory);
+    
+    // Use the original category ID from API data
+    const subcategoryId = subcategory._id || subcategory.id;
+    
+    if (!subcategoryId) {
+      console.error('No ID found for subcategory:', subcategory);
+      return;
+    }
 
-      const promo = {
-        title: `${category.name} Collection`,
-        description: category.description || `Explore our ${category.name} collection`,
-        imageText: category.name
-      };
+    const hierarchy = findCategoryHierarchy(subcategoryId);
+    
+    if (!hierarchy) {
+      console.error('Could not find category hierarchy for:', subcategory);
+      return;
+    }
 
-      return {
-        id: category._id,
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-        subcategories: subcategories,
-        promo: promo,
-        imagePreview: category.imagePreview
-      };
+    console.log('Found hierarchy:', hierarchy);
+
+    // Prepare navigation data
+    const navigationData = {
+      selectedCategoryId: hierarchy.main?._id,
+      selectedSubCategoryId: hierarchy.sub?._id || hierarchy.sub?.id,
+      selectedNestedId: hierarchy.nested?._id || hierarchy.nested?.id,
+      categoryHierarchy: hierarchy
+    };
+
+    console.log('Navigating with data:', navigationData);
+
+    // Navigate to filter page
+    navigate('/filter', { 
+      state: navigationData
     });
+
+    // Close dropdown
+    setIsVisible(false);
+    setActiveCategory(null);
   };
 
   // Component to render nested subcategories
-  const SubcategoryColumn = ({ subcategory, level = 0, parentCategory = null }) => {
+  const SubcategoryColumn = ({ subcategory, level = 0 }) => {
     const hasNestedSubcategories = subcategory.subcategories && subcategory.subcategories.length > 0;
-
-    const handleSubcategoryClick = () => {
-      // Prepare the category data to pass to filter page
-      const categoryData = {
-        selectedCategory: parentCategory || activeCategory,
-        selectedSubcategory: subcategory,
-        level: level
-      };
-
-      // Navigate to filter page with state
-      navigate('/filter', { 
-        state: { 
-          categoryData,
-          categoryHierarchy: {
-            main: activeCategory,
-            sub: level === 0 ? subcategory : null,
-            nested: level === 1 ? subcategory : null
-          }
-        }
-      });
-    };
 
     return (
       <div className={`subcategory-column level-${level}`}>
         <h4 
-          onClick={handleSubcategoryClick} 
-          className="subcategory-name hover:cursor-pointer flex gap-3 items-center popmed"
+          onClick={() => handleSubcategoryClick(subcategory)} 
+          className="subcategory-name hover:cursor-pointer flex gap-3 items-center popmed hover:text-blue-600 transition-colors"
         >
           {subcategory.name}
-          {level === 1 && <FaArrowRight />}
+          {hasNestedSubcategories && <FaArrowRight size={12} />}
         </h4>
         
         {/* Display nested subcategories if they exist */}
         {hasNestedSubcategories && (
-          <div className="text-[40px]">
+          <div className="nested-subcategories ml-4 mt-2 space-y-2">
             {subcategory.subcategories.map((nestedSubcat, nestedIndex) => (
               <SubcategoryColumn 
                 key={nestedIndex} 
                 subcategory={nestedSubcat} 
                 level={level + 1}
-                parentCategory={activeCategory} // Pass the main category as parent
               />
             ))}
           </div>
         )}
       </div>
     );
+  };
+
+  // Transform API data to match component structure
+  const transformCategories = (apiCategories) => {
+    return apiCategories.map(category => {
+      // Create transformed category structure
+      const transformedCategory = {
+        id: category._id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        subcategories: category.subcategories || [],
+        imagePreview: category.image
+      };
+
+      // Add promo section
+      transformedCategory.promo = {
+        title: `${category.name} Collection`,
+        description: category.description || `Explore our ${category.name} collection`,
+        imageText: category.name
+      };
+
+      return transformedCategory;
+    });
   };
 
   const transformedCategories = transformCategories(categories);
@@ -220,7 +266,6 @@ const CategoryDropdown = () => {
                     key={index} 
                     subcategory={subcategory} 
                     level={0}
-                    parentCategory={activeCategory}
                   />
                 ))}
               </div>
@@ -228,11 +273,13 @@ const CategoryDropdown = () => {
             
             <div className="promotional-section">
               <div className="promo-card">
-                <img className='w-full h-60' src={activeCategory?.imagePreview} alt="" />
-                <div className="promo-image">
-                  <div className="placeholder-image">
+                {activeCategory?.imagePreview ? (
+                  <img className='w-full h-60 object-cover' src={activeCategory.imagePreview} alt={activeCategory.name} />
+                ) : (
+                  <div className="w-full h-60 bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500">No Image</span>
                   </div>
-                </div>
+                )}
                 <div className="promo-content">
                   <h4 className="promo-title">{activeCategory.promo.title}</h4>
                   <p className="promo-description">
