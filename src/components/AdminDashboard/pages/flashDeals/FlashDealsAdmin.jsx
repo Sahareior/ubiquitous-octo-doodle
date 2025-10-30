@@ -3,70 +3,80 @@ import {
   FaPlus, 
   FaEdit, 
   FaTrash, 
-  FaSave, 
-  FaTimes, 
   FaUpload,
   FaImage,
   FaFire,
-  FaClock
+  FaClock,
+  FaBox,
+  FaDollarSign,
+  FaPercent
 } from 'react-icons/fa';
 import { IoFlash } from 'react-icons/io5';
+import { useGetAllProductsQuery } from '../../../../redux/slices/Apis/vendorsApi';
+import FlashDealModal from './Modal/FlashDealModal';
+import { useAllFlashDealsQuery, useDeleteFlashDealsMutation } from '../../../../redux/slices/Apis/dashboardApis';
 
 const FlashDealsAdmin = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const { data, refetch } = useGetAllProductsQuery();
+  const [deleteFlashDeals] = useDeleteFlashDealsMutation();
+  const { data: flashDeals, refetch: refetchFlashDeals } = useAllFlashDealsQuery();
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [timerSettings, setTimerSettings] = useState({
-    hours: 12,
-    minutes: 34,
-    seconds: 56
-  });
+  const [countdowns, setCountdowns] = useState({});
 
-  // Load initial data
+  // Calculate countdowns for each flash deal
   useEffect(() => {
-    const initialProducts = [
-      {
-        id: 1,
-        name: "Modern Bedroom Set",
-        price: 899.99,
-        oldPrice: 1289.99,
-        discount: 30,
-        rating: 4.5,
-        reviews: 234,
-        image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-        sold: 45,
-        total: 100,
-        active: true
-      },
-      {
-        id: 2,
-        name: "Luxury Sofa Collection",
-        price: 1299.99,
-        oldPrice: 1899.99,
-        discount: 35,
-        rating: 4.8,
-        reviews: 456,
-        image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-        sold: 78,
-        total: 100,
-        active: true
-      },
-      {
-        id: 3,
-        name: "Dining Table Set",
-        price: 749.99,
-        oldPrice: 999.99,
-        discount: 25,
-        rating: 4.2,
-        reviews: 189,
-        image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-        sold: 32,
-        total: 100,
-        active: false
-      },
-    ];
-    setProducts(initialProducts);
-  }, []);
+    if (!flashDeals?.results) return;
+
+    const calculateCountdowns = () => {
+      const newCountdowns = {};
+      
+      flashDeals.results.forEach(deal => {
+        const now = new Date().getTime();
+        const startDate = new Date(deal.start_date).getTime();
+        const endDate = new Date(deal.end_date).getTime();
+
+        if (now < startDate) {
+          // Deal hasn't started yet
+          const distance = startDate - now;
+          newCountdowns[deal.id] = {
+            status: 'upcoming',
+            days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+            minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+            seconds: Math.floor((distance % (1000 * 60)) / 1000)
+          };
+        } else if (now <= endDate) {
+          // Deal is active
+          const distance = endDate - now;
+          newCountdowns[deal.id] = {
+            status: 'active',
+            days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+            minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+            seconds: Math.floor((distance % (1000 * 60)) / 1000)
+          };
+        } else {
+          // Deal has ended
+          newCountdowns[deal.id] = {
+            status: 'ended',
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+          };
+        }
+      });
+
+      setCountdowns(newCountdowns);
+    };
+
+    calculateCountdowns();
+    const interval = setInterval(calculateCountdowns, 1000);
+
+    return () => clearInterval(interval);
+  }, [flashDeals]);
 
   const handleAddProduct = () => {
     setIsAddingNew(true);
@@ -96,14 +106,12 @@ const FlashDealsAdmin = () => {
     } else {
       setProducts(prev => prev.map(p => p.id === editingProduct.id ? editingProduct : p));
     }
-    setEditingProduct(null);
-    setIsAddingNew(false);
+    handleCloseModal();
   };
 
-  const handleDeleteProduct = (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(prev => prev.filter(p => p.id !== id));
-    }
+  const handleCloseModal = () => {
+    setEditingProduct(null);
+    setIsAddingNew(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -113,216 +121,107 @@ const FlashDealsAdmin = () => {
     }));
   };
 
-  const handleTimerChange = (field, value) => {
-    setTimerSettings(prev => ({
-      ...prev,
-      [field]: parseInt(value) || 0
-    }));
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('Are you sure you want to delete this flash deal?')) {
+      try {
+        await deleteFlashDeals(id).unwrap();
+        refetchFlashDeals();
+      } catch (error) {
+        console.error('Failed to delete flash deal:', error);
+      }
+    }
   };
 
-  const toggleProductStatus = (id) => {
-    setProducts(prev => prev.map(p => 
-      p.id === id ? { ...p, active: !p.active } : p
-    ));
+  const toggleProductStatus = async (id, currentStatus) => {
+    // You might want to implement an API call here to update the status
+    console.log(`Toggling status for product ${id} from ${currentStatus}`);
   };
 
-  const ProductForm = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800">
-            {isAddingNew ? 'Add New Product' : 'Edit Product'}
-          </h3>
-          <button
-            onClick={() => setEditingProduct(null)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <FaTimes size={20} />
-          </button>
+  // Countdown Timer Component for each deal
+  const CountdownTimer = ({ dealId }) => {
+    const countdown = countdowns[dealId];
+    
+    if (!countdown) return <div className="text-gray-500">Loading...</div>;
+
+    const getStatusColor = () => {
+      switch (countdown.status) {
+        case 'active': return 'text-green-600 bg-green-100';
+        case 'upcoming': return 'text-blue-600 bg-blue-100';
+        case 'ended': return 'text-red-600 bg-red-100';
+        default: return 'text-gray-600 bg-gray-100';
+      }
+    };
+
+    const getStatusText = () => {
+      switch (countdown.status) {
+        case 'active': return 'Active';
+        case 'upcoming': return 'Upcoming';
+        case 'ended': return 'Ended';
+        default: return 'Unknown';
+      }
+    };
+
+    if (countdown.status === 'ended') {
+      return (
+        <div className="text-center">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
+            Deal Ended
+          </span>
         </div>
+      );
+    }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-            <input
-              type="text"
-              value={editingProduct.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter product name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-            <input
-              type="url"
-              value={editingProduct.image}
-              onChange={(e) => handleInputChange('image', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter image URL"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Current Price ($)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={editingProduct.price}
-              onChange={(e) => handleInputChange('price', parseFloat(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Original Price ($)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={editingProduct.oldPrice}
-              onChange={(e) => handleInputChange('oldPrice', parseFloat(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
-            <input
-              type="number"
-              value={editingProduct.discount}
-              onChange={(e) => handleInputChange('discount', parseInt(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              max="5"
-              value={editingProduct.rating}
-              onChange={(e) => handleInputChange('rating', parseFloat(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Reviews Count</label>
-            <input
-              type="number"
-              value={editingProduct.reviews}
-              onChange={(e) => handleInputChange('reviews', parseInt(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sold Items</label>
-            <input
-              type="number"
-              value={editingProduct.sold}
-              onChange={(e) => handleInputChange('sold', parseInt(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Total Stock</label>
-            <input
-              type="number"
-              value={editingProduct.total}
-              onChange={(e) => handleInputChange('total', parseInt(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={editingProduct.active}
-                onChange={(e) => handleInputChange('active', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Active in Flash Deals</span>
-            </label>
-          </div>
+    return (
+      <div className="space-y-2">
+        <div className={`px-2 py-1 rounded-full text-xs font-medium text-center ${getStatusColor()}`}>
+          {getStatusText()}
         </div>
-
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={() => setEditingProduct(null)}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSaveProduct}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <FaSave size={16} />
-            Save Product
-          </button>
+        <div className="flex gap-1 justify-center">
+          <div className="text-center">
+            <div className="bg-gray-100 rounded-lg px-2 py-1 min-w-8">
+              <span className="text-sm font-bold text-gray-800">{countdown.days}</span>
+            </div>
+            <span className="text-xs text-gray-500">Days</span>
+          </div>
+          <div className="text-gray-400 pt-1">:</div>
+          <div className="text-center">
+            <div className="bg-gray-100 rounded-lg px-2 py-1 min-w-8">
+              <span className="text-sm font-bold text-gray-800">{countdown.hours}</span>
+            </div>
+            <span className="text-xs text-gray-500">Hours</span>
+          </div>
+          <div className="text-gray-400 pt-1">:</div>
+          <div className="text-center">
+            <div className="bg-gray-100 rounded-lg px-2 py-1 min-w-8">
+              <span className="text-sm font-bold text-gray-800">{countdown.minutes}</span>
+            </div>
+            <span className="text-xs text-gray-500">Min</span>
+          </div>
+          <div className="text-gray-400 pt-1">:</div>
+          <div className="text-center">
+            <div className="bg-gray-100 rounded-lg px-2 py-1 min-w-8">
+              <span className="text-sm font-bold text-gray-800">{countdown.seconds}</span>
+            </div>
+            <span className="text-xs text-gray-500">Sec</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const TimerSettings = () => (
-    <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-      <div className="flex items-center gap-3 mb-4">
-        <FaClock className="text-blue-600 text-xl" />
-        <h3 className="text-lg font-bold text-gray-800">Timer Settings</h3>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Hours</label>
-          <input
-            type="number"
-            value={timerSettings.hours}
-            onChange={(e) => handleTimerChange('hours', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            min="0"
-            max="23"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Minutes</label>
-          <input
-            type="number"
-            value={timerSettings.minutes}
-            onChange={(e) => handleTimerChange('minutes', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            min="0"
-            max="59"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Seconds</label>
-          <input
-            type="number"
-            value={timerSettings.seconds}
-            onChange={(e) => handleTimerChange('seconds', e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            min="0"
-            max="59"
-          />
-        </div>
-      </div>
-      
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600">
-          Current timer display: {String(timerSettings.hours).padStart(2, '0')}:
-          {String(timerSettings.minutes).padStart(2, '0')}:
-          {String(timerSettings.seconds).padStart(2, '0')}
-        </p>
-      </div>
-    </div>
-  );
+  // Calculate statistics from flash deals data
+  const calculateStats = () => {
+    if (!flashDeals?.results) return { total: 0, active: 0, totalSales: 0, totalStock: 0 };
+
+    const total = flashDeals.results.length;
+    const active = flashDeals.results.filter(deal => deal.is_active).length;
+    const totalSales = flashDeals.results.reduce((sum, deal) => sum + parseFloat(deal.total_sales || 0), 0);
+    const totalStock = flashDeals.results.reduce((sum, deal) => sum + (deal.available_stock || 0), 0);
+
+    return { total, active, totalSales, totalStock };
+  };
+
+  const stats = calculateStats();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -335,26 +234,27 @@ const FlashDealsAdmin = () => {
               <IoFlash className="text-white text-2xl" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Flash Deals </h1>
+              <h1 className="text-3xl font-bold text-gray-900">Flash Deals</h1>
               <p className="text-gray-600">Manage your flash deals and timer settings</p>
             </div>
           </div>
           
           <button
             onClick={handleAddProduct}
-            className="bg-yellow-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg"
+            className="bg-yellow-600 text-white px-6 py-3 rounded-xl hover:bg-yellow-700 transition-colors flex items-center gap-2 shadow-lg"
           >
             <FaPlus size={16} />
-            Add New Flash Deals
+            Add New Flash Deal
           </button>
         </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 mb-9 gap-6 mt-6">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 mb-9 gap-6 mt-6">
           <div className="bg-white p-6 rounded-2xl shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Products</p>
-                <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                <p className="text-sm text-gray-600">Total Deals</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <FaFire className="text-orange-500 text-xl" />
             </div>
@@ -364,9 +264,7 @@ const FlashDealsAdmin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Active Deals</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {products.filter(p => p.active).length}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
               </div>
               <IoFlash className="text-green-500 text-xl" />
             </div>
@@ -375,42 +273,34 @@ const FlashDealsAdmin = () => {
           <div className="bg-white p-6 rounded-2xl shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Avg Discount</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {Math.round(products.reduce((acc, p) => acc + p.discount, 0) / products.length)}%
-                </p>
+                <p className="text-sm text-gray-600">Total Sales</p>
+                <p className="text-2xl font-bold text-blue-600">${stats.totalSales.toFixed(2)}</p>
               </div>
-              <FaUpload className="text-blue-500 text-xl" />
+              <FaDollarSign className="text-blue-500 text-xl" />
             </div>
           </div>
           
           <div className="bg-white p-6 rounded-2xl shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Sold</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {products.reduce((acc, p) => acc + p.sold, 0)}
-                </p>
+                <p className="text-sm text-gray-600">Available Stock</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.totalStock}</p>
               </div>
-              <FaImage className="text-purple-500 text-xl" />
+              <FaBox className="text-purple-500 text-xl" />
             </div>
           </div>
         </div>
-
-        {/* Timer Settings */}
-        <TimerSettings />
 
         {/* Products Grid */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800">Flash Deal Products</h2>
             <p className="text-gray-600 text-sm">
-              {products.filter(p => p.active).length} active products
+              {stats.active} active deals out of {stats.total}
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -418,13 +308,13 @@ const FlashDealsAdmin = () => {
                     Product
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
+                    Price & Discount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Discount
+                    Countdown Timer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
+                    Stock & Sales
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -435,62 +325,78 @@ const FlashDealsAdmin = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                {flashDeals?.results?.map((deal) => (
+                  <tr key={deal.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={product.image}
-                          alt={product.name}
+                          src={deal.upload_image || deal.product.images[0]?.image}
+                          alt={deal.product.name}
                           className="h-12 w-12 rounded-lg object-cover"
                         />
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {deal.product.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {product.rating} ★ ({product.reviews} reviews)
+                            SKU: {deal.product.sku}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${product.price}</div>
+                      <div className="text-sm font-bold text-gray-900">${deal.offer_price}</div>
                       <div className="text-sm text-gray-500 line-through">
-                        ${product.oldPrice}
+                        ${deal.product.old_price}
+                      </div>
+                      {deal.product.new_price !== deal.product.old_price && (
+                        <div className="text-xs text-green-600 font-medium">
+                          Save ${(deal.product.old_price - deal.product.new_price).toFixed(2)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <CountdownTimer dealId={deal.id} />
+                      <div className="text-xs text-gray-500 mt-1">
+                        Ends: {new Date(deal.end_date).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        -{product.discount}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.sold} / {product.total} sold
+                      <div className="text-sm text-gray-900">
+                        Available: {deal.available_stock}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Sold: {deal.sold_count}
+                      </div>
+                      <div className="text-sm text-green-600 font-medium">
+                        Sales: ${deal.total_sales}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
-                        onClick={() => toggleProductStatus(product.id)}
+                        onClick={() => toggleProductStatus(deal.id, deal.is_active)}
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          product.active
+                          deal.is_active
                             ? 'bg-green-100 text-green-800 hover:bg-green-200'
                             : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                         }`}
                       >
-                        {product.active ? 'Active' : 'Inactive'}
+                        {deal.is_active ? 'Active' : 'Inactive'}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleEditProduct(product)}
+                          onClick={() => handleEditProduct(deal)}
                           className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Edit Deal"
                         >
                           <FaEdit size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProduct(deal.id)}
                           className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Delete Deal"
                         >
                           <FaTrash size={16} />
                         </button>
@@ -500,15 +406,31 @@ const FlashDealsAdmin = () => {
                 ))}
               </tbody>
             </table>
+            
+            {!flashDeals?.results?.length && (
+              <div className="text-center py-8">
+                <IoFlash className="mx-auto text-gray-400 text-4xl mb-4" />
+                <p className="text-gray-500">No flash deals found</p>
+                <button
+                  onClick={handleAddProduct}
+                  className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+                >
+                  Create Your First Flash Deal
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Stats Summary */}
-
       </div>
 
       {/* Product Form Modal */}
-      {editingProduct && <ProductForm />}
+      <FlashDealModal
+        editingProduct={editingProduct}
+        isAddingNew={isAddingNew}
+        onClose={handleCloseModal}
+        onSave={handleSaveProduct}
+        onInputChange={handleInputChange}
+      />
     </div>
   );
 };

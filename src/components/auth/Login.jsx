@@ -21,7 +21,7 @@ const Login = () => {
   const [addProductToCart] = useAddProductToCartMutation();
   const location = useLocation();
 
-  console.log('Location state:', location.state);
+  console.log('Location state:', location.pathname);
 
   // Function to add guest cart items to user cart after login
   const addGuestCartToUserCart = async () => {

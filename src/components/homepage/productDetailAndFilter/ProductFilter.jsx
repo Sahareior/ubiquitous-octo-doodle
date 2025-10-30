@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useLocation, Link } from "react-router-dom";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { Rate, Button, Slider } from "antd";
 import Swal from "sweetalert2";
+import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useSavetoWishListMutation } from "../../../redux/slices/Apis/customersApi";
 
 const ProductFilter = () => {
   const [categories, setCategories] = useState([]);
@@ -17,7 +18,13 @@ const ProductFilter = () => {
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 5000]);
+   const { data: cartData, refetch } = useGetAppCartQuery();
   const [cart, setCart] = useState([]);
+    const [addProductToCart] = useAddProductToCartMutation();
+    const [savetoWishList] = useSavetoWishListMutation();
+      const { data: wishLists, refetch: wishListRefetch } =
+        useGetAllWishListQuery();
+    
 
   const location = useLocation();
 
@@ -84,6 +91,32 @@ const ProductFilter = () => {
     }
   };
 
+    const localStorageCart = JSON.parse(localStorage.getItem('guest_cart')) || []
+
+    const checkCartData = useCallback(
+    (id) => {
+      // console.log('insude ', id)
+     if(localStorageCart.length > 0){
+       return localStorageCart.some((items) => items.id === id);
+     }
+     else{
+       return cartData?.results?.some((items) => items.product.id === id);
+     }
+    },
+    [cartData]
+  );
+
+
+    const checkWishList = useCallback(
+      (id) => {
+        if (!wishLists?.results) return false;
+        return wishLists?.results?.some(
+          (item) => item.product.id === id || item.id === id
+        );
+      },
+      [wishLists]
+    );
+
   const fetchProducts = async () => {
     try {
       const { data } = await axios.get("http://localhost:8000/products");
@@ -96,36 +129,134 @@ const ProductFilter = () => {
   };
 
   // Wishlist functions
-  const handleWishlist = (product) => {
-    setWishlist(prev => {
-      const isInWishlist = prev.some(item => item.id === product.id);
-      if (isInWishlist) {
-        return prev.filter(item => item.id !== product.id);
-      } else {
-        return [...prev, product];
-      }
-    });
+  const handleWishlist = async (item) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      Swal.fire({
+        title: "Please Sign In Your Account!",
+        text: "You need to log in to access this page.",
+        icon: "warning",
+        confirmButtonText: "Go to Login",
+        confirmButtonColor: "#3085d6",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+
+      return null; // prevent rendering children until after Swal closes
+    }
+
+    const payload = {
+      item,
+      product_id: item.id,
+    };
+
+    try {
+      await savetoWishList(payload).unwrap();
+      wishListRefetch();
+      MySwal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Item added to wishlist!",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    } catch (error) {
+      console.error("Wishlist error:", error);
+      MySwal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Failed to add to wishlist",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    }
   };
 
   const checkWishlist = (productId) => {
     return wishlist.some(item => item.id === productId);
   };
 
-  // Cart functions
-  const handleCart = (product) => {
-    setCart(prev => {
-      const isInCart = prev.some(item => item.id === product.id);
-      if (isInCart) {
-        return prev.filter(item => item.id !== product.id);
-      } else {
-        return [...prev, { ...product, quantity: 1 }];
-      }
-    });
-  };
+    const handleCart = useCallback(
+      async (data) => {
+        const payload = {
+          ...data,
+          id: data.id,
+          quantity: 1,
+          product_id: data.id,
+        };
+        delete payload.prod_id;
+  
+        const token = localStorage.getItem("access_token");
+  
+        if (!token) {
+          // 🛒 Handle guest cart (store in localStorage)
+          const existingCart =
+            JSON.parse(localStorage.getItem("guest_cart")) || [];
+  
+          // Check if product already exists in guest cart
+          const existingItemIndex = existingCart.findIndex(
+            (item) => item.id === payload.id
+          );
+  
+          if (existingItemIndex !== -1) {
+            // Update quantity if it already exists
+            existingCart[existingItemIndex].quantity += 1;
+          } else {
+            existingCart.push(payload);
+          }
+  
+          localStorage.setItem("guest_cart", JSON.stringify(existingCart));
+  
+          MySwal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Item added to cart!",
+            showConfirmButton: false,
+            timer: 1800,
+            toast: true,
+          });
+  
+          setAdd((items) => !items);
+  
+          return; // Exit function since user is not logged in
+        }
+  
+        // 🧾 Handle logged-in cart
+        await addProductToCart(payload);
+        refetch();
+  
+        MySwal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Item added to cart!",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+      },
+      [addProductToCart, refetch]
+    );
 
-  const checkCart = (productId) => {
-    return cart.some(item => item.id === productId);
-  };
+  // Cart functions
+  // const handleCart = (product) => {
+
+  //   console.log( product.Responsed_products.id)
+  //   setCart(prev => {
+  //     const isInCart = prev.some(item => item.id === product.id);
+  //     if (isInCart) {
+  //       return prev.filter(item => item.id !== product.id);
+  //     } else {
+  //       return [...prev, { ...product, quantity: 1 }];
+  //     }
+  //   });
+  // };
+
+
 
   // Helper function to get string ID for comparison
   const getSubCategoryIdString = (sub) => {
@@ -611,8 +742,8 @@ const applyFilters = () => {
     const productStock = getProductStock(product);
     const promotion = getProductPromotion(product);
     const rating = calculateRating(product);
-    const isInWishlist = checkWishlist(productId);
-    const isInCart = checkCart(productId);
+    const isInWishlist = checkWishList(productId);
+    const isInCart = checkCartData(productId);
 
     const hasPromotion = promotion.discount_value > 0;
     const displayPrice = hasPromotion ? (promotion.new_price || productPrice) : productPrice;
@@ -634,7 +765,7 @@ const applyFilters = () => {
         <div
           onClick={(e) => {
             e.stopPropagation();
-            handleWishlist(product);
+            handleWishlist( product.Responsed_products);
             MySwal.fire({
               position: 'top-end',
               icon: 'success',
@@ -688,7 +819,7 @@ const applyFilters = () => {
             </div>
 
             <Button
-              onClick={() => handleCart(product)}
+              onClick={() => handleCart( product.Responsed_products)}
               className={`rounded-md font-bold text-white border-none px-4 py-1 
                 ${isInCart ? "bg-green-500" : "bg-[#CBA135]"} 
                 ${productStock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -722,7 +853,7 @@ const applyFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-8xl mx-40">
+      <div className="max-w-8xl md:mx-40">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{getCurrentCategoryName()}</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
@@ -780,7 +911,7 @@ const applyFilters = () => {
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map(renderProductCard)}
+                {filteredProducts.map(renderProductCard,)}
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-2xl shadow-sm">

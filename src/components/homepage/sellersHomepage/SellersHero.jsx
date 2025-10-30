@@ -1,10 +1,39 @@
 import { Button } from 'antd';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const SellersHero = () => {
-
+const navigate = useNavigate()
    const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
+   const location = useLocation()
+   console.log(location.pathname)
+
+const token = localStorage.getItem('token')
+
+  const handelClick = () => {
+    if (!token) {
+      Swal.fire({
+        title: 'Please log in first!',
+        text: 'You need to log in to register as a seller.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Login',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+    } else {
+      navigate('/regester-seller',{
+        state: {location: location.state}
+      });
+    }
+  };
+   
   return (
     <div className="relative">
       {/* Background Image */}
@@ -26,14 +55,15 @@ const SellersHero = () => {
         {/*  */}
 {
   !storedRole && (
-           <Link to='/regester-seller'>
+
         <Button
-          className="bg-[#CBA135] hover:bg-[#b8962e] py-6 md:mt-10 popmed text-white font-medium px-9 rounded-md shadow-lg transition-all"
+        onClick={handelClick}
+          className="bg-[#CBA135] hover:bg-[#b8962e] py-6 md:mt-10 mt-5 popmed text-white font-medium px-9 rounded-md shadow-lg transition-all"
           type="primary"
         >
           Apply to Sell
         </Button>
-       </Link>
+
   )
 }
       </div>

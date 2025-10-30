@@ -313,6 +313,36 @@ getAllProducts: build.query({
       })
     }),
 
+    createFlashDeals: build.mutation({
+      query: (data) => ({
+        url: '/flash-deals/',
+        method: 'POST',
+        body: data
+      })
+    }),
+
+  allFlashDeals: build.query({
+    query: ()=> 'flass-deals/product/list/'
+  }),
+
+  deleteFlashDeals: build.mutation({
+    query:(id) => ({
+      url:`/flash-deals/${id}/`,
+      method:"DELETE"
+    })
+  }),
+
+  addFeaturedProducts: build.mutation({
+    query: (id) => ({
+      url: '/featured-products/',
+      method: 'POST',
+      body: id
+    })
+  }),
+
+  getFeturedProducts: build.query({
+    query: ()=> '/featured-products/'
+  }),
 
     notificationSeen: build.mutation({
       query: ({id,data}) => ({
@@ -320,6 +350,14 @@ getAllProducts: build.query({
         method: 'POST',
         body:data
       })
+    }),
+
+    featuredProductToggel: build.mutation({
+      query: ({data,id}) => ({
+        url: `featured-products/${id}/`,
+        method: 'PATCH',
+        body: data
+      }) 
     }),
 
     vendorOrderNameDetails: build.query({
@@ -332,6 +370,12 @@ getAllProducts: build.query({
 // auto-generated based on the defined endpoints
 export const {
   useGetPokemonByNameQuery,
+  useCreateFlashDealsMutation,
+  useFeaturedProductToggelMutation,
+  useGetFeturedProductsQuery,
+  useAddFeaturedProductsMutation,
+  useDeleteFlashDealsMutation,
+  useAllFlashDealsQuery,
   useGetTopVendorsQuery,
   useNotificationSeenMutation,
   useBulkOrderStatusMutation,

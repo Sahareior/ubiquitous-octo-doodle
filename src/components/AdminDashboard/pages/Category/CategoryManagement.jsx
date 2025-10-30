@@ -138,7 +138,7 @@ const CategoryManagement = () => {
 
   const filteredData = useMemo(() => {
     return cateGoryData?.results?.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      const matchesSearch = item?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchText.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || 
