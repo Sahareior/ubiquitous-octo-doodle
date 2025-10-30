@@ -20,6 +20,7 @@ import {
 } from "../../../redux/slices/Apis/customersApi";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useWebSocketContext } from "../../../context/WebSocketContext";
+import { useAllFeaturedProductsQuery } from "../../../redux/slices/Apis/vendorsApi";
 
 const MySwal = withReactContent(Swal);
 
@@ -119,7 +120,8 @@ const FeaturedProducts = () => {
     data: allProducts,
     isLoading,
     isError,
-  } = useGetCustomerProductsQuery();
+  } = useAllFeaturedProductsQuery();
+  // const {data:featured} = useAllFeaturedProductsQuery()
   const location = useLocation();
   const navigate = useNavigate();
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaSave, FaSearch } from 'react-icons/fa';
 import { useGetAllProductsQuery } from '../../../../../redux/slices/Apis/vendorsApi';
-import { useCreateFlashDealsMutation } from '../../../../../redux/slices/Apis/dashboardApis';
+import { useAllFlashDealsQuery, useCreateFlashDealsMutation } from '../../../../../redux/slices/Apis/dashboardApis';
 
 const FlashDealModal = ({ 
   editingProduct, 
@@ -12,6 +12,7 @@ const FlashDealModal = ({
 }) => {
   const { data, refetch } = useGetAllProductsQuery();
   const [createFlashDeals, { isLoading }] = useCreateFlashDealsMutation();
+   const { data: flashDeals, refetch: refetchFlashDeals } = useAllFlashDealsQuery();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [formData, setFormData] = useState({
@@ -98,6 +99,7 @@ const FlashDealModal = ({
       }
 
       const result = await createFlashDeals(submitData).unwrap();
+      refetchFlashDeals()
       
       // Call the parent save handler with the result
       onSave(result);

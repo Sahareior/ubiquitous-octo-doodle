@@ -130,8 +130,24 @@ export const vendorsApi = createApi({
       query: () => "tags/",
     }),
 
+    createCategory: build.mutation({
+      query: (data) =>({
+        url: "categories/",
+        method: 'POST',
+        body: data
+      })
+    }),
+    
+    allFeaturedProducts: build.query({
+      query: () => '/featured-products/'
+    }),
+
     venDorNotifications: build.query({
       query: ()=> 'order-notifications/'
+    }),
+
+    childCategory: build.query({
+      query: ()=> 'child-categories/'
     }),
 
     postPayouts: build.mutation({
@@ -155,6 +171,9 @@ export const vendorsApi = createApi({
 
 export const {
   useGetPokemonByNameQuery,
+  useCreateCategoryMutation,
+  useChildCategoryQuery,
+  useAllFeaturedProductsQuery,
   useVendorEditProductMutation,
   useVenDorNotificationsQuery,
   useVendorProductCreateMutation,

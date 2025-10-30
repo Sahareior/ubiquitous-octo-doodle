@@ -4,41 +4,35 @@ import './Category.css';
 import { FaArrowLeft } from 'react-icons/fa';
 import { FaArrowRight } from 'react-icons/fa6';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGetCategoriesQuery } from '../../../../redux/slices/Apis/customersApi';
 
 const CategoryDropdown = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [closing, setClosing] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  const { data: rtkCategories, isLoading, error } = useGetCategoriesQuery();
   
   const dropdownRef = useRef(null);
   const navRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  // Fetch categories from API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/categories');
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  console.log(rtkCategories, 'RTK Categories data');
 
-    fetchCategories();
-  }, []);
+  // Use RTK Query data instead of localhost fetch
+  useEffect(() => {
+    if (rtkCategories && rtkCategories.results) {
+      setCategories(rtkCategories.results);
+    }
+  }, [rtkCategories]);
 
   // Recursive function to find category hierarchy
   const findCategoryHierarchy = (subcategoryId, level = 0) => {
     for (const category of categories) {
       // Check if this is the main category
-      if (category._id === subcategoryId) {
+      if (category.id === subcategoryId) {
         return {
           main: category,
           sub: null,
@@ -46,11 +40,11 @@ const CategoryDropdown = () => {
         };
       }
       
-      // Check subcategories
-      if (category.subcategories) {
-        for (const sub of category.subcategories) {
+      // Check children (subcategories)
+      if (category.children && category.children.length > 0) {
+        for (const sub of category.children) {
           // Check if this subcategory matches
-          if (sub._id === subcategoryId || sub.id === subcategoryId) {
+          if (sub.id === subcategoryId) {
             return {
               main: category,
               sub: sub,
@@ -58,10 +52,10 @@ const CategoryDropdown = () => {
             };
           }
           
-          // Check nested subcategories
-          if (sub.subcategories) {
-            for (const nested of sub.subcategories) {
-              if (nested._id === subcategoryId || nested.id === subcategoryId) {
+          // Check nested children
+          if (sub.children && sub.children.length > 0) {
+            for (const nested of sub.children) {
+              if (nested.id === subcategoryId) {
                 return {
                   main: category,
                   sub: sub,
@@ -77,49 +71,53 @@ const CategoryDropdown = () => {
   };
 
   // Handle subcategory click
-  const handleSubcategoryClick = (subcategory) => {
-    console.log('Clicked subcategory:', subcategory);
-    
-    // Use the original category ID from API data
-    const subcategoryId = subcategory._id || subcategory.id;
-    
-    if (!subcategoryId) {
-      console.error('No ID found for subcategory:', subcategory);
-      return;
-    }
+// In CategoryDropdown.jsx - update the handleSubcategoryClick function
+const handleSubcategoryClick = (subcategory) => {
+  console.log('Clicked subcategory:', subcategory);
+  
+  const subcategoryId = subcategory.id;
+  
+  if (!subcategoryId) {
+    console.error('No ID found for subcategory:', subcategory);
+    return;
+  }
 
-    const hierarchy = findCategoryHierarchy(subcategoryId);
-    
-    if (!hierarchy) {
-      console.error('Could not find category hierarchy for:', subcategory);
-      return;
-    }
+  const hierarchy = findCategoryHierarchy(subcategoryId);
+  
+  if (!hierarchy) {
+    console.error('Could not find category hierarchy for:', subcategory);
+    return;
+  }
 
-    console.log('Found hierarchy:', hierarchy);
-
-    // Prepare navigation data
-    const navigationData = {
-      selectedCategoryId: hierarchy.main?._id,
-      selectedSubCategoryId: hierarchy.sub?._id || hierarchy.sub?.id,
-      selectedNestedId: hierarchy.nested?._id || hierarchy.nested?.id,
-      categoryHierarchy: hierarchy
-    };
-
-    console.log('Navigating with data:', navigationData);
-
-    // Navigate to filter page
-    navigate('/filter', { 
-      state: navigationData
-    });
-
-    // Close dropdown
-    setIsVisible(false);
-    setActiveCategory(null);
+  // Prepare navigation data with full category information
+  const navigationData = {
+    selectedCategoryId: hierarchy.main?.id,
+    selectedSubCategoryId: hierarchy.sub?.id,
+    selectedNestedId: hierarchy.nested?.id,
+    categoryHierarchy: hierarchy,
+    // Add the actual category objects for display
+    selectedCategory: hierarchy.main,
+    selectedSubCategory: hierarchy.sub,
+    selectedNestedCategory: hierarchy.nested,
+    // Add text for display
+    text: hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products"
   };
+
+  console.log('Navigating with data:', navigationData);
+
+  // Navigate to filter page with category data
+  navigate('/filter', { 
+    state: navigationData
+  });
+
+  // Close dropdown
+  setIsVisible(false);
+  setActiveCategory(null);
+};
 
   // Component to render nested subcategories
   const SubcategoryColumn = ({ subcategory, level = 0 }) => {
-    const hasNestedSubcategories = subcategory.subcategories && subcategory.subcategories.length > 0;
+    const hasChildren = subcategory.children && subcategory.children.length > 0;
 
     return (
       <div className={`subcategory-column level-${level}`}>
@@ -128,15 +126,15 @@ const CategoryDropdown = () => {
           className="subcategory-name w-[230px] hover:cursor-pointer flex gap-3 items-center popmed hover:text-blue-600 transition-colors"
         >
           {subcategory.name}
-          {hasNestedSubcategories && <FaArrowRight size={12} />}
+          {hasChildren && <FaArrowRight size={12} />}
         </h4>
         
-        {/* Display nested subcategories if they exist */}
-        {hasNestedSubcategories && (
+        {/* Display children if they exist */}
+        {hasChildren && (
           <div className="nested-subcategories ml-4 mt-2 space-y-2">
-            {subcategory.subcategories.map((nestedSubcat, nestedIndex) => (
+            {subcategory.children.map((nestedSubcat, nestedIndex) => (
               <SubcategoryColumn 
-                key={nestedIndex} 
+                key={nestedSubcat.id || nestedIndex} 
                 subcategory={nestedSubcat} 
                 level={level + 1}
               />
@@ -152,11 +150,11 @@ const CategoryDropdown = () => {
     return apiCategories.map(category => {
       // Create transformed category structure
       const transformedCategory = {
-        id: category._id,
+        id: category.id,
         name: category.name,
         slug: category.slug,
-        description: category.description,
-        subcategories: category.subcategories || [],
+        description: category.description || `Explore our ${category.name} collection`,
+        subcategories: category.children || [], // Map children to subcategories
         imagePreview: category.image
       };
 
@@ -225,8 +223,12 @@ const CategoryDropdown = () => {
     };
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return <div className="enhanced-category-dropdown">Loading categories...</div>;
+  }
+
+  if (error) {
+    return <div className="enhanced-category-dropdown">Error loading categories</div>;
   }
 
   return (
@@ -263,7 +265,7 @@ const CategoryDropdown = () => {
               <div className="subcategories-grid">
                 {activeCategory.subcategories.map((subcategory, index) => (
                   <SubcategoryColumn 
-                    key={index} 
+                    key={subcategory.id || index} 
                     subcategory={subcategory} 
                     level={0}
                   />

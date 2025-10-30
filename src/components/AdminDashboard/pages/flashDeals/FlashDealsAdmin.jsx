@@ -19,7 +19,7 @@ import { useAllFlashDealsQuery, useDeleteFlashDealsMutation } from '../../../../
 const FlashDealsAdmin = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
-  const { data, refetch } = useGetAllProductsQuery();
+  
   const [deleteFlashDeals] = useDeleteFlashDealsMutation();
   const { data: flashDeals, refetch: refetchFlashDeals } = useAllFlashDealsQuery();
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -173,9 +173,7 @@ const FlashDealsAdmin = () => {
 
     return (
       <div className="space-y-2">
-        <div className={`px-2 py-1 rounded-full text-xs font-medium text-center ${getStatusColor()}`}>
-          {getStatusText()}
-        </div>
+        
         <div className="flex gap-1 justify-center">
           <div className="text-center">
             <div className="bg-gray-100 rounded-lg px-2 py-1 min-w-8">
@@ -292,135 +290,157 @@ const FlashDealsAdmin = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">Flash Deal Products</h2>
-            <p className="text-gray-600 text-sm">
-              {stats.active} active deals out of {stats.total}
-            </p>
-          </div>
+  {/* Products Grid */}
+<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+  <div className="px-6 py-4 border-b border-gray-200">
+    <h2 className="text-xl font-semibold text-gray-800">Flash Deal Products</h2>
+    <p className="text-gray-600 text-sm">
+      {stats.active} active deals out of {stats.total}
+    </p>
+  </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price & Discount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Countdown Timer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock & Sales
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {flashDeals?.results?.map((deal) => (
-                  <tr key={deal.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img
-                          src={deal.upload_image || deal.product.images[0]?.image}
-                          alt={deal.product.name}
-                          className="h-12 w-12 rounded-lg object-cover"
-                        />
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {deal.product.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            SKU: {deal.product.sku}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-gray-900">${deal.offer_price}</div>
-                      <div className="text-sm text-gray-500 line-through">
-                        ${deal.product.old_price}
-                      </div>
-                      {deal.product.new_price !== deal.product.old_price && (
-                        <div className="text-xs text-green-600 font-medium">
-                          Save ${(deal.product.old_price - deal.product.new_price).toFixed(2)}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <CountdownTimer dealId={deal.id} />
-                      <div className="text-xs text-gray-500 mt-1">
-                        Ends: {new Date(deal.end_date).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        Available: {deal.available_stock}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Sold: {deal.sold_count}
-                      </div>
-                      <div className="text-sm text-green-600 font-medium">
-                        Sales: ${deal.total_sales}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => toggleProductStatus(deal.id, deal.is_active)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          deal.is_active
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }`}
-                      >
-                        {deal.is_active ? 'Active' : 'Inactive'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditProduct(deal)}
-                          className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                          title="Edit Deal"
-                        >
-                          <FaEdit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(deal.id)}
-                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                          title="Delete Deal"
-                        >
-                          <FaTrash size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  <div className="overflow-x-auto">
+    <table className="w-full">
+      <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+        <tr>
+          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+            Product Info
+          </th>
+          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+            Pricing
+          </th>
+          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+            Timer Status
+          </th>
+ 
+
+          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+            Status
+          </th>
+          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-100">
+        {flashDeals?.results?.map((deal) => (
+          <tr key={deal.id} className="hover:bg-gray-50 transition-all duration-200 group">
+            <td className="px-6 py-5">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0 relative">
+                  <img
+                    src={deal.upload_image || deal.product.images[0]?.image}
+                    alt={deal.product.name}
+                    className="h-14 w-14 rounded-xl object-cover border border-gray-200 shadow-sm"
+                  />
+                  {deal.is_active && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {deal.product.name}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    SKU: {deal.product.sku}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    ID: {deal.id}
+                  </p>
+                </div>
+              </div>
+            </td>
             
-            {!flashDeals?.results?.length && (
-              <div className="text-center py-8">
-                <IoFlash className="mx-auto text-gray-400 text-4xl mb-4" />
-                <p className="text-gray-500">No flash deals found</p>
+            <td className="px-6 py-5">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-gray-900">
+                    ${deal.offer_price}
+                  </span>
+                  <span className="text-sm text-gray-500 line-through">
+                    ${deal.product.old_price}
+                  </span>
+                </div>
+                {deal.product.new_price !== deal.product.old_price && (
+                  <div className="flex items-center space-x-1">
+                    <FaPercent className="text-green-600 text-xs" />
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                      Save ${(deal.product.old_price - deal.product.new_price).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </td>
+            
+            <td className="px-6 py-5">
+              <div className="space-y-2">
+                <CountdownTimer dealId={deal.id} />
+                {/* <div className="text-xs text-gray-500 flex items-center space-x-1">
+                  <FaClock className="text-gray-400" />
+                  <span>Ends: {new Date(deal.end_date).toLocaleDateString()}</span>
+                </div> */}
+              </div>
+            </td>
+            
+         
+            
+            <td className="px-6 py-5">
+              <button
+                onClick={() => toggleProductStatus(deal.id, deal.is_active)}
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  deal.is_active
+                    ? 'bg-green-100 text-green-800 hover:bg-green-200 shadow-sm'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  deal.is_active ? 'bg-green-500' : 'bg-gray-400'
+                }`}></div>
+                {deal.is_active ? 'Active' : 'Inactive'}
+              </button>
+            </td>
+            
+            <td className="px-6 py-5">
+              <div className="flex items-center space-x-1">
                 <button
-                  onClick={handleAddProduct}
-                  className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+                  onClick={() => handleEditProduct(deal)}
+                  className="inline-flex items-center p-2.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 border border-blue-100 group-hover:border-blue-200"
+                  title="Edit Deal"
                 >
-                  Create Your First Flash Deal
+                  <FaEdit size={14} />
+                </button>
+                <button
+                  onClick={() => handleDeleteProduct(deal.id)}
+                  className="inline-flex items-center p-2.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200 border border-red-100 group-hover:border-red-200"
+                  title="Delete Deal"
+                >
+                  <FaTrash size={14} />
                 </button>
               </div>
-            )}
-          </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    
+    {!flashDeals?.results?.length && (
+      <div className="text-center py-12">
+        <div className="bg-gray-50 rounded-2xl p-8 max-w-md mx-auto">
+          <IoFlash className="mx-auto text-gray-300 text-5xl mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Flash Deals Found</h3>
+          <p className="text-gray-500 mb-6">Get started by creating your first flash deal campaign</p>
+          <button
+            onClick={handleAddProduct}
+            className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-yellow-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+          >
+            <FaPlus className="inline mr-2" size={14} />
+            Create First Flash Deal
+          </button>
         </div>
+      </div>
+    )}
+  </div>
+</div>
       </div>
 
       {/* Product Form Modal */}

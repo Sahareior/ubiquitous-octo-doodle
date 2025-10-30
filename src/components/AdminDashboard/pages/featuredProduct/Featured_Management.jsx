@@ -201,24 +201,7 @@ const Featured_Management = () => {
       ),
       sorter: (a, b) => (a.stock_quantity || 0) - (b.stock_quantity || 0),
     },
-    {
-      title: 'Rating',
-      dataIndex: 'average_rating',
-      key: 'rating',
-      width: 120,
-      render: (rating, record) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <StarFilled style={{ color: rating > 0 ? '#faad14' : '#d9d9d9' }} />
-          <span>{rating > 0 ? rating : 'No ratings'}</span>
-          {rating > 0 && (
-            <span style={{ color: '#999', fontSize: 12 }}>
-              ({Array.isArray(record.reviews) ? record.reviews.length : 0})
-            </span>
-          )}
-        </div>
-      ),
-      sorter: (a, b) => (a.average_rating || 0) - (b.average_rating || 0),
-    },
+
     {
       title: 'Status',
       dataIndex: 'status',
@@ -267,35 +250,7 @@ const Featured_Management = () => {
         />
       ),
     },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 120,
-      render: (_, record) => (
-        <Space size="small">
-          <Button 
-            type="link" 
-            icon={<EyeOutlined />} 
-            onClick={() => handleView(record)}
-            size="small"
-          />
-          <Popconfirm
-            title="Delete Product"
-            description="Are you sure you want to delete this product?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button 
-              type="link" 
-              icon={<DeleteOutlined />} 
-              danger 
-              size="small"
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
+
   ];
 
   // Statistics
