@@ -7,14 +7,8 @@ import * as Yup from "yup";
    CONSTANTS & CONFIG
 ------------------------------------*/
 const FILTER_TYPES = [
-  // { value: "text", label: "Text Input", icon: "📝" },
-  // { value: "number", label: "Number Input", icon: "🔢" },
-  // { value: "select", label: "Dropdown", icon: "📋" },
   { value: "checkbox", label: "Checkbox Group", icon: "☑️" },
   { value: "radio", label: "Radio Group", icon: "🔘" },
-  // { value: "range", label: "Range Slider", icon: "📊" },
-  // { value: "color", label: "Color Picker", icon: "🎨" },
-  { value: "boolean", label: "Yes/No Switch", icon: "🔛" },
 ];
 
 const FILTER_PRESETS = {
@@ -678,18 +672,6 @@ const FilterEditor = ({
           )}
         </Field>
 
-        <Field name={`${subIndex}.filterOptions.${filterIndex}.key`}>
-          {({ field, form }) => (
-            <CustomInput
-              label="Filter Key"
-              placeholder="e.g., color, size"
-              prefix="filter_"
-              error={form.errors.subcategories?.[subIndex]?.filterOptions?.[filterIndex]?.key}
-              {...field}
-            />
-          )}
-        </Field>
-
         <Field name={`${subIndex}.filterOptions.${filterIndex}.type`}>
           {({ field }) => (
             <CustomSelect
@@ -742,84 +724,84 @@ const FilterEditor = ({
       )}
 
       {/* Options for select/checkbox/radio types */}
-{/* Options for select/checkbox/radio types */}
-{["select", "checkbox", "radio"].includes(filter.type) && (
-  <div style={{ marginTop: styles.spacing.lg }}>
-    <div style={{ 
-      display: "flex", 
-      alignItems: "center", 
-      marginBottom: styles.spacing.lg,
-      paddingBottom: styles.spacing.sm,
-      borderBottom: `1px solid ${styles.grayLight}`
-    }}>
-      <h4 style={{ margin: 0, color: styles.dark }}>Options</h4>
-      <span style={{ 
-        marginLeft: styles.spacing.sm, 
-        color: styles.gray, 
-        fontSize: "12px" 
-      }}>
-        {filter.options?.length || 0} options
-      </span>
-    </div>
-    <FieldArray name={`${subIndex}.filterOptions.${filterIndex}.options`}>
-      {({ push, remove }) => (
-        <div>
-          {filter.options?.map((option, optIdx) => (
-            <div key={optIdx} style={{ 
-              display: "flex", 
-              gap: styles.spacing.sm, 
-              marginBottom: styles.spacing.sm, 
-              alignItems: "center" 
+      {["select", "checkbox", "radio"].includes(filter.type) && (
+        <div style={{ marginTop: styles.spacing.lg }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            marginBottom: styles.spacing.lg,
+            paddingBottom: styles.spacing.sm,
+            borderBottom: `1px solid ${styles.grayLight}`
+          }}>
+            <h4 style={{ margin: 0, color: styles.dark }}>Options</h4>
+            <span style={{ 
+              marginLeft: styles.spacing.sm, 
+              color: styles.gray, 
+              fontSize: "12px" 
             }}>
-              <CustomBadge 
-                count={optIdx + 1} 
-                style={{ fontSize: "10px", padding: "2px 6px" }} 
-              />
-              <Field
-                name={`${subIndex}.filterOptions.${filterIndex}.options.${optIdx}`}
-              >
-                {({ field }) => (
-                  <CustomInput
-                    {...field}
-                    placeholder={`Option ${optIdx + 1}`}
-                    containerStyle={{ 
-                      marginBottom: 0, 
-                      flex: 1,
-                      maxWidth: "300px" // Add max width
-                    }}
-                    style={{ 
-                      width: "100%",
-                      maxWidth: "300px" // Control input width
-                    }}
-                  />
-                )}
-              </Field>
-              <CustomButton
-                variant="danger"
-                size="small"
-                onClick={() => remove(optIdx)}
-              >
-                🗑️
-              </CustomButton>
-            </div>
-          ))}
-          <CustomButton
-            variant="ghost"
-            type="button"
-            size="medium"
-            onClick={() => push("")}
-            style={{ marginTop: styles.spacing.sm }}
-          >
-            ➕ Add Option
-          </CustomButton>
+              {filter.options?.length || 0} options
+            </span>
+          </div>
+          <FieldArray name={`${subIndex}.filterOptions.${filterIndex}.options`}>
+            {({ push, remove }) => (
+              <div>
+                {filter.options?.map((option, optIdx) => (
+                  <div key={optIdx} style={{ 
+                    display: "flex", 
+                    gap: styles.spacing.sm, 
+                    marginBottom: styles.spacing.sm, 
+                    alignItems: "center" 
+                  }}>
+                    <CustomBadge 
+                      count={optIdx + 1} 
+                      style={{ fontSize: "10px", padding: "2px 6px" }} 
+                    />
+                    <Field
+                      name={`${subIndex}.filterOptions.${filterIndex}.options.${optIdx}`}
+                    >
+                      {({ field }) => (
+                        <CustomInput
+                          {...field}
+                          placeholder={`Option ${optIdx + 1}`}
+                          containerStyle={{ 
+                            marginBottom: 0, 
+                            flex: 1,
+                            maxWidth: "300px"
+                          }}
+                          style={{ 
+                            width: "100%",
+                            maxWidth: "300px"
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <CustomButton
+                      variant="danger"
+                      size="small"
+                      onClick={() => remove(optIdx)}
+                    >
+                      🗑️
+                    </CustomButton>
+                  </div>
+                ))}
+                <CustomButton
+                  variant="ghost"
+                  type="button"
+                  size="medium"
+                  onClick={() => push("")}
+                  style={{ marginTop: styles.spacing.sm }}
+                >
+                  ➕ Add Option
+                </CustomButton>
+              </div>
+            )}
+          </FieldArray>
         </div>
       )}
-    </FieldArray>
-  </div>
-)}
     </CustomCard>
   );
 };
+
 /* -----------------------------------
    MAIN COMPONENT
 ------------------------------------*/
@@ -830,6 +812,7 @@ const CreateCategoryWithFilters = () => {
   const [presetModalVisible, setPresetModalVisible] = useState(false);
   const [currentSubcategory, setCurrentSubcategory] = useState(null);
   const [applyMode, setApplyMode] = useState("single");
+  const [validationWarnings, setValidationWarnings] = useState([]);
 
   const steps = [
     { title: "Basic Info", icon: "📋" },
@@ -838,403 +821,536 @@ const CreateCategoryWithFilters = () => {
     { title: "Review", icon: "👁️" },
   ];
 
-const handleBeforeUpload = useCallback((file, setFieldValue) => {
-  if (!file.type.startsWith("image/")) {
-    alert("Only image files are allowed!");
-    return false;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Image must be smaller than 5MB!");
-    return false;
-  }
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    // Set BOTH the preview URL and the file object in Formik
-    setFieldValue('imagePreview', e.target.result); // For displaying preview
-    setFieldValue('image', file); // For the actual file data
-  };
-  reader.readAsDataURL(file);
-  
-  return false;
-}, []);
-
-const initialValues = {
-  name: "",
-  slug: "",
-  description: "",
-  image: null,
-  subcategories: [
-    { 
-      id: Date.now(), 
-      name: "", 
-      slug: "", 
-      description: "", 
-      filterOptions: [],
-      subcategories: [] // Add nested subcategories array
-    },
-  ],
-};
-
-const getAllLevel2Subcategories = (subcategories, basePath = 'subcategories') => {
-  let level2Subcategories = [];
-  
-  subcategories.forEach((sub, index) => {
-    const currentPath = `${basePath}.${index}`;
-    
-    // If this subcategory has children (Level 2), add them
-    if (sub.subcategories && sub.subcategories.length > 0) {
-      sub.subcategories.forEach((level2Sub, level2Index) => {
-        const level2Path = `${currentPath}.subcategories.${level2Index}`;
-        level2Subcategories.push({
-          ...level2Sub,
-          path: level2Path
-        });
-      });
+  const handleBeforeUpload = useCallback((file, setFieldValue) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are allowed!");
+      return false;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image must be smaller than 5MB!");
+      return false;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setFieldValue('imagePreview', e.target.result);
+      setFieldValue('image', file);
+    };
+    reader.readAsDataURL(file);
+    
+    return false;
+  }, []);
+
+  const initialValues = {
+    name: "",
+    slug: "",
+    description: "",
+    image: null,
+    subcategories: [
+      { 
+        id: Date.now(), 
+        name: "", 
+        filterOptions: [],
+        subcategories: []
+      },
+    ],
+  };
+
+  const getAllLevel2Subcategories = (subcategories, basePath = 'subcategories') => {
+    let level2Subcategories = [];
+    
+    subcategories.forEach((sub, index) => {
+      const currentPath = `${basePath}.${index}`;
+      
+      if (sub.subcategories && sub.subcategories.length > 0) {
+        sub.subcategories.forEach((level2Sub, level2Index) => {
+          const level2Path = `${currentPath}.subcategories.${level2Index}`;
+          level2Subcategories.push({
+            ...level2Sub,
+            path: level2Path
+          });
+        });
+      }
+    });
+
+    console.log(level2Subcategories,'level2 subs')
+    
+    return level2Subcategories;
+  };
+
+  // Validation functions for each step
+  const validateStep1 = (values) => {
+    const errors = {};
+    
+    if (!values.name?.trim()) {
+      errors.name = "Category name is required";
+    }
+    
+    if (!values.slug?.trim()) {
+      errors.slug = "Slug is required";
+    }
+    
+    return errors;
+  };
+
+  const validateStep2 = (values) => {
+    const errors = {};
+    
+    // Check if at least one subcategory exists
+    if (!values.subcategories || values.subcategories.length === 0) {
+      errors.subcategories = "At least one subcategory is required";
+      return errors;
+    }
+    
+    // Validate all subcategories recursively
+    const validateSubcategories = (subs, path = "subcategories") => {
+      subs.forEach((sub, index) => {
+        const currentPath = `${path}[${index}]`;
+        
+        if (!sub.name?.trim()) {
+          if (!errors[path]) errors[path] = [];
+          errors[path][index] = { name: "Subcategory name is required" };
+        }
+        
+        // Recursively validate nested subcategories
+        if (sub.subcategories && sub.subcategories.length > 0) {
+          validateSubcategories(sub.subcategories, `${currentPath}.subcategories`);
+        }
+      });
+    };
+    
+    validateSubcategories(values.subcategories);
+    return errors;
+  };
+
+  const validateStep3 = (values) => {
+    const errors = {};
+    const level2Subcategories = getAllLevel2Subcategories(values.subcategories);
+    
+    // Check if there are any Level 2 subcategories to configure filters for
+    if (level2Subcategories.length === 0) {
+      errors.filters = "No Level 2 subcategories found. Please go back and create Level 2 subcategories to configure filters.";
+      return errors;
+    }
+    
+    // Validate filters in Level 2 subcategories
+    level2Subcategories.forEach((sub) => {
+      if (sub.filterOptions && sub.filterOptions.length > 0) {
+        sub.filterOptions.forEach((filter, filterIndex) => {
+          if (!filter.name?.trim()) {
+            if (!errors[sub.path]) errors[sub.path] = {};
+            if (!errors[sub.path].filterOptions) errors[sub.path].filterOptions = [];
+            errors[sub.path].filterOptions[filterIndex] = { name: "Filter name is required" };
+          }
+          
+          if (!filter.type) {
+            if (!errors[sub.path]) errors[sub.path] = {};
+            if (!errors[sub.path].filterOptions) errors[sub.path].filterOptions = [];
+            errors[sub.path].filterOptions[filterIndex] = { ...errors[sub.path].filterOptions[filterIndex], type: "Filter type is required" };
+          }
+          
+          // Validate options for select/checkbox/radio types
+          if (["select", "checkbox", "radio"].includes(filter.type)) {
+            if (!filter.options || filter.options.length === 0 || filter.options.every(opt => !opt?.trim())) {
+              if (!errors[sub.path]) errors[sub.path] = {};
+              if (!errors[sub.path].filterOptions) errors[sub.path].filterOptions = [];
+              errors[sub.path].filterOptions[filterIndex] = { 
+                ...errors[sub.path].filterOptions[filterIndex], 
+                options: "At least one option is required for this filter type" 
+              };
+            }
+          }
+        });
+      }
+    });
+    
+    return errors;
+  };
+
+  // Function to validate current step before navigation
+  const validateCurrentStep = (values, step) => {
+    switch (step) {
+      case 0:
+        return validateStep1(values);
+      case 1:
+        return validateStep2(values);
+      case 2:
+        return validateStep3(values);
+      default:
+        return {};
+    }
+  };
+
+  // Modified navigation functions
+  const goToNextStep = (values, currentStep) => {
+    const errors = validateCurrentStep(values, currentStep);
+    
+    if (Object.keys(errors).length > 0) {
+      // Show validation errors
+      const errorMessages = [];
+      
+      if (errors.name) errorMessages.push(errors.name);
+      if (errors.slug) errorMessages.push(errors.slug);
+      if (errors.subcategories) {
+        if (Array.isArray(errors.subcategories)) {
+          errors.subcategories.forEach((subError, index) => {
+            if (subError?.name) errorMessages.push(`Subcategory ${index + 1}: ${subError.name}`);
+          });
+        } else if (typeof errors.subcategories === 'string') {
+          errorMessages.push(errors.subcategories);
+        }
+      }
+      if (errors.filters) errorMessages.push(errors.filters);
+      
+      // Recursively collect nested errors
+      const collectNestedErrors = (errorObj, prefix = "") => {
+        Object.keys(errorObj).forEach(key => {
+          if (key === 'name' && errorObj[key]) {
+            errorMessages.push(`${prefix}${errorObj[key]}`);
+          } else if (typeof errorObj[key] === 'object') {
+            collectNestedErrors(errorObj[key], `${prefix}${key}.`);
+          }
+        });
+      };
+      
+      collectNestedErrors(errors);
+      
+      if (errorMessages.length > 0) {
+        alert("Please fix the following errors before proceeding:\n\n" + errorMessages.join("\n"));
+        return false;
+      }
+    }
+    
+    setCurrentStep(currentStep + 1);
+    return true;
+  };
+
+  const goToPreviousStep = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  // Updated validation schema without slug and description for subcategories
+  const validationSchema = Yup.object().shape({
+    name: Yup.string().required("Category name is required"),
+    slug: Yup.string().required("Slug is required"),
+    subcategories: Yup.array().min(1, "At least one subcategory is required").of(
+      Yup.object().shape({
+        name: Yup.string().required("Subcategory name required"),
+        subcategories: Yup.array().of(
+          Yup.object().shape({
+            name: Yup.string().required("Subcategory name required"),
+            filterOptions: Yup.array().of(
+              Yup.object().shape({
+                name: Yup.string().required("Filter name required"),
+                type: Yup.string().required("Filter type required"),
+              })
+            )
+          })
+        )
+      })
+    ),
   });
 
-  console.log(level2Subcategories,'level2 subs')
-  
-  return level2Subcategories;
-};
+  // Function to check for empty inputs and show warnings
+  const validateFormBeforeSubmit = (values) => {
+    const warnings = [];
 
+    // Check main category
+    if (!values.name.trim()) warnings.push("Category name is required");
+    if (!values.slug.trim()) warnings.push("Category slug is required");
 
-// Update the validation schema
-const validationSchema = Yup.object().shape({
-  name: Yup.string().required("Category name is required"),
-  slug: Yup.string().required("Slug is required"),
-  subcategories: Yup.array().min(1, "At least one subcategory is required").of(
-    Yup.object().shape({
-      name: Yup.string().required("Subcategory name required"),
-      slug: Yup.string().required("Slug required"),
-      subcategories: Yup.array().of( // Level 2 subcategories
-        Yup.object().shape({
-          name: Yup.string().required("Subcategory name required"),
-          slug: Yup.string().required("Slug required"),
-          // No nested subcategories for Level 2 (removed Level 3)
-          filterOptions: Yup.array().of(
-            Yup.object().shape({
-              name: Yup.string().required("Filter name required"),
-              key: Yup.string().required("Filter key required"),
-              type: Yup.string().required("Filter type required"),
-            })
-          )
-        })
-      )
-    })
-  ),
-});
+    // Check subcategories recursively
+    const checkSubcategories = (subs, level = 1) => {
+      subs.forEach((sub, index) => {
+        if (!sub.name.trim()) {
+          warnings.push(`Level ${level} subcategory ${index + 1} name is required`);
+        }
 
-const handleSubmit = async (values, { setSubmitting }) => {
-  try {
-    console.log("🎯 Final Form Data:", JSON.stringify(values, null, 2));
-    const processSubcategories = (subcategories) => {
-  return subcategories?.map(sub => ({
-    name: sub.name?.trim(),
-    slug: sub.slug?.trim().toLowerCase(),
-    description: sub.description?.trim() || '',
-    filterOptions: sub.filterOptions?.map(filter => ({
-      name: filter.name?.trim(),
-      key: filter.key?.trim(),
-      type: filter.type,
-      options: Array.isArray(filter.options) ? filter.options.filter(opt => opt?.trim()).map(opt => opt.trim()) : [],
-      required: Boolean(filter.required),
-      searchable: Boolean(filter.searchable),
-      placeholder: filter.placeholder?.trim() || '',
-      defaultValue: filter.defaultValue?.trim() || ''
-    })).filter(filter => filter.name && filter.key && filter.type),
-    subcategories: processSubcategories(sub.subcategories) // Recursive call for nested
-  })).filter(sub => sub.name && sub.slug);
-};
-    // Clean the data before sending - remove empty arrays and null values
-const submissionData = {
-  name: values.name?.trim(),
-  slug: values.slug?.trim().toLowerCase(),
-  description: values.description?.trim() || '',
-  image: values.image || null,
-  imagePreview: values.imagePreview || '',
-  subcategories: processSubcategories(values.subcategories) // Recursive processing
-};
+        // Check Level 2 subcategory filters
+        if (level === 2 && sub.filterOptions) {
+          sub.filterOptions.forEach((filter, filterIndex) => {
+            if (!filter.name.trim()) {
+              warnings.push(`Filter ${filterIndex + 1} in "${sub.name}" requires a name`);
+            }
+            if (["select", "checkbox", "radio"].includes(filter.type) && 
+                (!filter.options || filter.options.length === 0 || filter.options.every(opt => !opt.trim()))) {
+              warnings.push(`Filter "${filter.name}" in "${sub.name}" requires at least one option`);
+            }
+          });
+        }
 
-
-
-
-
-    // Validate required fields
-    if (!submissionData.name || !submissionData.slug) {
-      throw new Error('Category name and slug are required');
-    }
-
-    console.log("📤 Sending data to server:", JSON.stringify(submissionData, null, 2));
-
-    // Send data to your backend API
-    const response = await fetch('http://localhost:8000/categories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(submissionData),
-    });
-
-    const responseData = await response.json();
-
-    if (!response.ok) {
-      throw new Error(responseData.message || responseData.error || `HTTP error! status: ${response.status}`);
-    }
-
-    console.log("✅ Category created successfully:", responseData);
-    console.log("📊 Category Details:", {
-      name: submissionData.name,
-      slug: submissionData.slug,
-      subcategoriesCount: submissionData.subcategories.length,
-      totalFilters: submissionData.subcategories.reduce((acc, sub) => acc + sub.filterOptions.length, 0)
-    });
-    
-    // Log each subcategory with its filters
-    submissionData.subcategories.forEach((sub, index) => {
-      console.log(`🏷️ Subcategory ${index + 1}:`, {
-        name: sub.name,
-        filtersCount: sub.filterOptions.length,
-        filters: sub.filterOptions.map(f => ({
-          name: f.name,
-          type: f.type,
-          required: f.required
-        }))
+        // Recursively check nested subcategories
+        if (sub.subcategories && sub.subcategories.length > 0) {
+          checkSubcategories(sub.subcategories, level + 1);
+        }
       });
-    });
-    
-    alert("Category created successfully!");
-    
-  } catch (error) {
-    console.error("❌ Error creating category:", error);
-    alert(`Failed to create category: ${error.message}`);
-  } finally {
-    setSubmitting(false);
-  }
-};
+    };
 
+    checkSubcategories(values.subcategories);
 
-const renderCategoryTree = (subcategories, level = 0) => {
-  return subcategories.map((sub, index) => (
-    <div key={sub.id} style={{ 
-      marginLeft: level * styles.spacing.xl,
-      padding: styles.spacing.sm,
-      borderLeft: level > 0 ? `2px solid ${styles.primaryLight}` : "none"
-    }}>
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        gap: styles.spacing.sm,
+    return warnings;
+  };
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    // Validate for empty inputs
+    const warnings = validateFormBeforeSubmit(values);
+    if (warnings.length > 0) {
+      setValidationWarnings(warnings);
+      alert("Please fix the following issues:\n\n" + warnings.join("\n"));
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      console.log("🎯 Final Form Data:", JSON.stringify(values, null, 2));
+      
+      const processSubcategories = (subcategories) => {
+        return subcategories?.map(sub => ({
+          name: sub.name?.trim(),
+          slug: sub.name?.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+          description: '',
+          filterOptions: sub.filterOptions?.map(filter => ({
+            name: filter.name?.trim(),
+            key: filter.name?.trim().toLowerCase().replace(/\s+/g, "_"),
+            type: filter.type,
+            options: Array.isArray(filter.options) ? filter.options.filter(opt => opt?.trim()).map(opt => opt.trim()) : [],
+            required: Boolean(filter.required),
+            searchable: Boolean(filter.searchable),
+            placeholder: filter.placeholder?.trim() || '',
+            defaultValue: filter.defaultValue?.trim() || ''
+          })).filter(filter => filter.name && filter.type),
+          subcategories: processSubcategories(sub.subcategories)
+        })).filter(sub => sub.name);
+      };
+
+      const submissionData = {
+        name: values.name?.trim(),
+        slug: values.slug?.trim().toLowerCase(),
+        description: values.description?.trim() || '',
+        image: values.image || null,
+        imagePreview: values.imagePreview || '',
+        subcategories: processSubcategories(values.subcategories)
+      };
+
+      if (!submissionData.name || !submissionData.slug) {
+        throw new Error('Category name and slug are required');
+      }
+
+      console.log("📤 Sending data to server:", JSON.stringify(submissionData, null, 2));
+
+      const response = await fetch('http://localhost:8000/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || responseData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      console.log("✅ Category created successfully:", responseData);
+      console.log("📊 Category Details:", {
+        name: submissionData.name,
+        slug: submissionData.slug,
+        subcategoriesCount: submissionData.subcategories.length,
+        totalFilters: submissionData.subcategories.reduce((acc, sub) => acc + sub.filterOptions.length, 0)
+      });
+      
+      submissionData.subcategories.forEach((sub, index) => {
+        console.log(`🏷️ Subcategory ${index + 1}:`, {
+          name: sub.name,
+          filtersCount: sub.filterOptions.length,
+          filters: sub.filterOptions.map(f => ({
+            name: f.name,
+            type: f.type,
+            required: f.required
+          }))
+        });
+      });
+      
+      alert("Category created successfully!");
+      setValidationWarnings([]);
+      
+    } catch (error) {
+      console.error("❌ Error creating category:", error);
+      alert(`Failed to create category: ${error.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderCategoryTree = (subcategories, level = 0) => {
+    return subcategories.map((sub, index) => (
+      <div key={sub.id} style={{ 
+        marginLeft: level * styles.spacing.xl,
         padding: styles.spacing.sm,
-        backgroundColor: level === 0 ? styles.grayLighter : "transparent",
-        borderRadius: styles.borderRadius.md
+        borderLeft: level > 0 ? `2px solid ${styles.primaryLight}` : "none"
       }}>
-        <span style={{ fontWeight: "600" }}>{sub.name}</span>
-        <CustomBadge count={sub.filterOptions.length} />
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: styles.spacing.sm,
+          padding: styles.spacing.sm,
+          backgroundColor: level === 0 ? styles.grayLighter : "transparent",
+          borderRadius: styles.borderRadius.md
+        }}>
+          <span style={{ fontWeight: "600" }}>{sub.name}</span>
+          <CustomBadge count={sub.filterOptions.length} />
+          {sub.subcategories && sub.subcategories.length > 0 && (
+            <CustomBadge 
+              count={sub.subcategories.length} 
+              color={styles.info}
+            />
+          )}
+        </div>
         {sub.subcategories && sub.subcategories.length > 0 && (
-          <CustomBadge 
-            count={sub.subcategories.length} 
-            color={styles.info}
-          />
+          <div style={{ marginTop: styles.spacing.sm }}>
+            {renderCategoryTree(sub.subcategories, level + 1)}
+          </div>
         )}
       </div>
-      {sub.subcategories && sub.subcategories.length > 0 && (
-        <div style={{ marginTop: styles.spacing.sm }}>
-          {renderCategoryTree(sub.subcategories, level + 1)}
-        </div>
-      )}
-    </div>
-  ));
-};
+    ));
+  };
 
-const RecursiveSubcategory = ({ 
-  subcategory, 
-  path, 
-  setFieldValue, 
-  removeSubcategory,
-  level = 0 
-}) => {
-  const hasChildren = subcategory.subcategories && subcategory.subcategories.length > 0;
-  const maxDepth = 2; // Limit nesting depth to prevent infinite recursion
-  
-  if (level >= maxDepth) return null;
+  const RecursiveSubcategory = ({ 
+    subcategory, 
+    path, 
+    setFieldValue, 
+    removeSubcategory,
+    level = 0 
+  }) => {
+    const hasChildren = subcategory.subcategories && subcategory.subcategories.length > 0;
+    const maxDepth = 2;
+    
+    if (level >= maxDepth) return null;
 
-  return (
-    <CustomCard
-      style={{ 
-        marginBottom: styles.spacing.lg,
-        marginLeft: level > 0 ? styles.spacing.xl : 0,
-        borderLeft: level > 0 ? `3px solid ${styles.primaryLight}` : "none"
-      }}
-      title={
-        <div style={{ display: "flex", alignItems: "center", gap: styles.spacing.sm }}>
-          <span style={{ fontWeight: "600" }}>
-            {subcategory.name || `Subcategory Level ${level + 1}`}
-          </span>
-            {level === 1 && (
-              <CustomBadge count={subcategory.filterOptions.length} />
-            )}
-          {hasChildren && (
-            <CustomBadge 
-              count={subcategory.subcategories.length} 
-              color={styles.info}
-              style={{ marginLeft: styles.spacing.xs }}
-            />
-          )}
-          <span style={{
-            backgroundColor: level === 0 ? styles.primary : 
-                           level === 1 ? styles.secondary : styles.success,
-            color: styles.white,
-            padding: "2px 8px",
-            borderRadius: styles.borderRadius.sm,
-            fontSize: "10px",
-            fontWeight: "600"
-          }}>
-            Level {level + 1}
-          </span>
-        </div>
-      }
-      extra={
-        <div style={{ display: "flex", gap: styles.spacing.sm }}>
-          {level < maxDepth - 1 && (
-            <CustomButton
-              size="medium"
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                const newSubcategory = {
-                  id: Date.now(),
-                  name: "",
-                  slug: "",
-                  description: "",
-                  filterOptions: [],
-                  subcategories: []
-                };
-                setFieldValue(
-                  `${path}.subcategories`,
-                  [...(subcategory.subcategories || []), newSubcategory]
-                );
-              }}
-            >
-              ➕ Add Child
-            </CustomButton>
-          )}
-          <CustomButton
-            variant="danger"
-            size="small"
-            onClick={() => {
-              if (window.confirm("Delete this subcategory? All child categories and filters will be lost.")) {
-                removeSubcategory();
-              }
-            }}
-          >
-            🗑️ Delete
-          </CustomButton>
-        </div>
-      }
-    >
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: styles.spacing.lg }}>
-        <Field name={`${path}.name`}>
-          {({ field, form }) => (
-            <CustomInput
-              label="Subcategory Name"
-              placeholder={`e.g., ${level === 0 ? 'Dining Chairs' : level === 1 ? 'Wooden Chairs' : 'Oak Chairs'}`}
-              error={form.errors[path]?.name}
-              onChange={(e) => {
-                field.onChange(e);
-                // Auto-generate slug from parent slug + current name
-                const parentSlug = path.split('.').slice(0, -2).join('.');
-                const parentValue = parentSlug ? form.values[parentSlug]?.slug : form.values.slug;
-                const slug = e.target.value
-                  .toLowerCase()
-                  .replace(/\s+/g, "-")
-                  .replace(/[^a-z0-9-]/g, "");
-                setFieldValue(
-                  `${path}.slug`,
-                  parentValue ? `${parentValue}-${slug}` : slug
-                );
-              }}
-              {...field}
-            />
-          )}
-        </Field>
-        
-        <Field name={`${path}.slug`}>
-          {({ field, form }) => {
-            const parentSlug = path.split('.').slice(0, -2).join('.');
-            const parentValue = parentSlug ? form.values[parentSlug]?.slug : form.values.slug;
-            const fullSlug = parentValue ? `${parentValue}-${field.value}` : field.value;
-            
-            return (
-              <CustomInput
-                label="Slug"
-                prefix={`${parentValue || form.values.slug}/`}
-                error={form.errors[path]?.slug}
-                {...field}
-                value={field.value}
-                onChange={(e) => {
-                  const cleanSlug = e.target.value
-                    .toLowerCase()
-                    .replace(/\s+/g, "-")
-                    .replace(/[^a-z0-9-]/g, "");
-                  field.onChange({
-                    target: { name: field.name, value: cleanSlug }
-                  });
-                }}
+    return (
+      <CustomCard
+        style={{ 
+          marginBottom: styles.spacing.lg,
+          marginLeft: level > 0 ? styles.spacing.xl : 0,
+          borderLeft: level > 0 ? `3px solid ${styles.primaryLight}` : "none",
+          backgroundColor: level === 0 ? "#f8fafc" : styles.white // Different background for level 0
+        }}
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: styles.spacing.sm }}>
+            <span style={{ fontWeight: "600" }}>
+              {subcategory.name || `Subcategory Level ${level + 1}`}
+            </span>
+              {level === 1 && (
+                <CustomBadge count={subcategory.filterOptions.length} />
+              )}
+            {hasChildren && (
+              <CustomBadge 
+                count={subcategory.subcategories.length} 
+                color={styles.info}
+                style={{ marginLeft: styles.spacing.xs }}
               />
-            );
-          }}
-        </Field>
-        
-        <Field name={`${path}.description`}>
-          {({ field }) => (
-            <CustomInput
-              label="Description"
-              placeholder="Brief description..."
-              {...field}
-            />
-          )}
-        </Field>
-      </div>
-
-      {/* Render child subcategories recursively */}
-      {hasChildren && (
-        <div style={{ marginTop: styles.spacing.lg }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            marginBottom: styles.spacing.md,
-            padding: styles.spacing.md,
-            backgroundColor: styles.grayLighter,
-            borderRadius: styles.borderRadius.md
-          }}>
-            <span style={{ fontWeight: "600", color: styles.dark }}>
-              📁 Child Categories ({subcategory.subcategories.length})
+            )}
+            <span style={{
+              backgroundColor: level === 0 ? styles.primary : 
+                             level === 1 ? styles.secondary : styles.success,
+              color: styles.white,
+              padding: "2px 8px",
+              borderRadius: styles.borderRadius.sm,
+              fontSize: "10px",
+              fontWeight: "600"
+            }}>
+              Level {level + 1}
             </span>
           </div>
-          
-          <FieldArray name={`${path}.subcategories`}>
-            {({ remove }) => (
-              <div>
-                {subcategory.subcategories.map((childSub, childIndex) => (
-                  <RecursiveSubcategory
-                    key={childSub.id}
-                    subcategory={childSub}
-                    path={`${path}.subcategories.${childIndex}`}
-                    setFieldValue={setFieldValue}
-                    removeSubcategory={() => remove(childIndex)}
-                    level={level + 1}
-                  />
-                ))}
-              </div>
+        }
+        extra={
+          <div style={{ display: "flex", gap: styles.spacing.sm }}>
+            {level < maxDepth - 1 && (
+              <CustomButton
+                size="medium"
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  const newSubcategory = {
+                    id: Date.now(),
+                    name: "",
+                    filterOptions: [],
+                    subcategories: []
+                  };
+                  setFieldValue(
+                    `${path}.subcategories`,
+                    [...(subcategory.subcategories || []), newSubcategory]
+                  );
+                }}
+              >
+                ➕ Add Child
+              </CustomButton>
             )}
-          </FieldArray>
+            <CustomButton
+              variant="danger"
+              size="small"
+              onClick={() => {
+                if (window.confirm("Delete this subcategory? All child categories and filters will be lost.")) {
+                  removeSubcategory();
+                }
+              }}
+            >
+              🗑️ Delete
+            </CustomButton>
+          </div>
+        }
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: styles.spacing.lg }}>
+          <Field name={`${path}.name`}>
+            {({ field, form }) => (
+              <CustomInput
+                label="Subcategory Name"
+                placeholder={`e.g., ${level === 0 ? 'Dining Chairs' : level === 1 ? 'Wooden Chairs' : 'Oak Chairs'}`}
+                error={form.errors[path]?.name}
+                {...field}
+              />
+            )}
+          </Field>
         </div>
-      )}
-    </CustomCard>
-  );
-};
+
+        {/* Render child subcategories recursively */}
+        {hasChildren && (
+          <div style={{ marginTop: styles.spacing.lg }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              marginBottom: styles.spacing.md,
+              padding: styles.spacing.md,
+              backgroundColor: styles.grayLighter,
+              borderRadius: styles.borderRadius.md
+            }}>
+              <span style={{ fontWeight: "600", color: styles.dark }}>
+                📁 Child Categories ({subcategory.subcategories.length})
+              </span>
+            </div>
+            
+            <FieldArray name={`${path}.subcategories`}>
+              {({ remove }) => (
+                <div>
+                  {subcategory.subcategories.map((childSub, childIndex) => (
+                    <RecursiveSubcategory
+                      key={childSub.id}
+                      subcategory={childSub}
+                      path={`${path}.subcategories.${childIndex}`}
+                      setFieldValue={setFieldValue}
+                      removeSubcategory={() => remove(childIndex)}
+                      level={level + 1}
+                    />
+                  ))}
+                </div>
+              )}
+            </FieldArray>
+          </div>
+        )}
+      </CustomCard>
+    );
+  };
 
   const applyPreset = (presetKey, applyTo, setFieldValue, subIndex, values) => {
     const presetFilters = FILTER_PRESETS[presetKey].map(filter => ({
@@ -1246,7 +1362,6 @@ const RecursiveSubcategory = ({
     }));
     
     if (applyTo === "all") {
-      // Apply to all subcategories
       const updatedSubcategories = values.subcategories.map(sub => ({
         ...sub,
         filterOptions: [...presetFilters]
@@ -1254,7 +1369,6 @@ const RecursiveSubcategory = ({
       setFieldValue('subcategories', updatedSubcategories);
       alert(`Applied ${presetKey} preset filters to all subcategories!`);
     } else {
-      // Apply to current subcategory only
       setFieldValue(
         `subcategories.${subIndex}.filterOptions`,
         presetFilters
@@ -1269,37 +1383,6 @@ const RecursiveSubcategory = ({
     setCurrentSubcategory(subIndex);
     setApplyMode(mode);
     setPresetModalVisible(true);
-  };
-
-  const applyExistingToAll = (setFieldValue, values) => {
-    if (values.subcategories.length === 0) {
-      alert("No subcategories available");
-      return;
-    }
-
-    // Get filters from the first subcategory
-    const sourceFilters = values.subcategories[0].filterOptions;
-    
-    if (sourceFilters.length === 0) {
-      alert("No filters available in the first subcategory");
-      return;
-    }
-
-    // Apply to all other subcategories
-    const updatedSubcategories = values.subcategories.map((sub, index) => {
-      if (index === 0) return sub; // Keep original for first subcategory
-      
-      return {
-        ...sub,
-        filterOptions: sourceFilters.map(filter => ({
-          ...filter,
-          id: Date.now() + Math.random(), // New ID to avoid conflicts
-        }))
-      };
-    });
-
-    setFieldValue('subcategories', updatedSubcategories);
-    alert(`Applied ${sourceFilters.length} filters to all subcategories!`);
   };
 
   // Preset Modal Component
@@ -1332,7 +1415,6 @@ const RecursiveSubcategory = ({
           backgroundColor: styles.white,
           borderRadius: styles.borderRadius.lg,
           padding: styles.spacing.xl,
-        
           width: "90%",
           maxHeight: "80vh",
           overflow: "auto"
@@ -1468,8 +1550,26 @@ const RecursiveSubcategory = ({
       background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", 
       minHeight: "100vh" 
     }}>
-      {/* Header */}
-
+      {/* Validation Warnings */}
+      {validationWarnings.length > 0 && (
+        <div style={{
+          backgroundColor: styles.warning,
+          color: styles.white,
+          padding: styles.spacing.lg,
+          borderRadius: styles.borderRadius.md,
+          marginBottom: styles.spacing.lg,
+          boxShadow: styles.shadow.md
+        }}>
+          <strong style={{ display: "block", marginBottom: styles.spacing.sm }}>
+            ⚠️ Please fix the following issues:
+          </strong>
+          <ul style={{ margin: 0, paddingLeft: "20px" }}>
+            {validationWarnings.map((warning, index) => (
+              <li key={index}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div style={{
         backgroundColor: styles.white,
@@ -1513,7 +1613,6 @@ const RecursiveSubcategory = ({
                 Build your product hierarchy with custom filters
               </p>
             </div>
-
           </div>
 
           {/* Steps */}
@@ -1526,7 +1625,12 @@ const RecursiveSubcategory = ({
             {steps.map((step, index) => (
               <div
                 key={index}
-                onClick={() => setCurrentStep(index)}
+                onClick={() => {
+                  // Allow going back to previous steps, but validate when going forward
+                  if (index < currentStep) {
+                    setCurrentStep(index);
+                  }
+                }}
                 style={{
                   flex: 1,
                   minWidth: "120px",
@@ -1534,9 +1638,10 @@ const RecursiveSubcategory = ({
                   backgroundColor: currentStep === index ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
                   borderRadius: styles.borderRadius.md,
                   textAlign: "center",
-                  cursor: "pointer",
+                  cursor: index <= currentStep ? "pointer" : "not-allowed",
                   transition: "all 0.2s ease",
-                  border: currentStep === index ? `1px solid rgba(255,255,255,0.3)` : "1px solid transparent"
+                  border: currentStep === index ? `1px solid rgba(255,255,255,0.3)` : "1px solid transparent",
+                  opacity: index <= currentStep ? 1 : 0.6
                 }}
               >
                 <div style={{ fontSize: "20px", marginBottom: styles.spacing.xs }}>
@@ -1569,7 +1674,7 @@ const RecursiveSubcategory = ({
                       <CustomButton 
                         type="button"
                         variant="primary" 
-                        onClick={() => setCurrentStep(1)}
+                        onClick={() => goToNextStep(values, 0)}
                       >
                         Next: Subcategories
                       </CustomButton>
@@ -1581,7 +1686,6 @@ const RecursiveSubcategory = ({
                           {({ field, form }) => (
                             <CustomInput
                               label="Category Name"
-                              
                               placeholder="e.g., Home Furniture, Electronics, Lighting"
                               error={form.errors.name && form.touched.name ? form.errors.name : ""}
                               {...field}
@@ -1614,11 +1718,11 @@ const RecursiveSubcategory = ({
                       </div>
 
                       <div>
-                      <ImageUploader
-  previewUrl={values.imagePreview} // Use Formik value instead of local state
-  onUpload={(file) => handleBeforeUpload(file, setFieldValue)}
-  label="Category Thumbnail"
-/>
+                        <ImageUploader
+                          previewUrl={values.imagePreview}
+                          onUpload={(file) => handleBeforeUpload(file, setFieldValue)}
+                          label="Category Thumbnail"
+                        />
                         <div style={{
                           background: "#f0f9ff",
                           padding: styles.spacing.lg,
@@ -1644,228 +1748,228 @@ const RecursiveSubcategory = ({
                 )}
 
                 {/* Step 2: Subcategories */}
-{currentStep === 1 && (
-  <FieldArray name="subcategories">
-    {({ remove, push }) => (
-      <CustomCard
-        title="🏷️ Subcategories"
-        extra={
-          <div style={{ display: "flex", gap: styles.spacing.sm }}>
-            <CustomButton 
-              variant="ghost"
-              onClick={() => setCurrentStep(0)}
-            >
-              Back
-            </CustomButton>
-            <CustomButton 
-              type="button"
-              variant="primary" 
-              onClick={() => setCurrentStep(2)}
-            >
-              Next: Filters
-            </CustomButton>
-          </div>
-        }
-      >
-        <div style={{
-          background: "#f0f9ff",
-          padding: styles.spacing.lg,
-          borderRadius: styles.borderRadius.md,
-          border: `1px solid ${styles.info}30`,
-          marginBottom: styles.spacing.lg
-        }}>
-          <strong style={{ display: "block", marginBottom: styles.spacing.sm }}>
-            💡 Create hierarchical categories with up to 3 levels for better organization.
-          </strong>
-          <p style={{ margin: 0, fontSize: "14px", color: styles.gray }}>
-            Level 1: Main Categories → Level 2: Subcategories → Level 3: Child Categories
-          </p>
-        </div>
+                {currentStep === 1 && (
+                  <FieldArray name="subcategories">
+                    {({ remove, push }) => (
+                      <CustomCard
+                        title="🏷️ Subcategories"
+                        extra={
+                          <div style={{ display: "flex", gap: styles.spacing.sm }}>
+                            <CustomButton 
+                              variant="ghost"
+                              onClick={goToPreviousStep}
+                            >
+                              Back
+                            </CustomButton>
+                            <CustomButton 
+                              type="button"
+                              variant="primary" 
+                              onClick={() => goToNextStep(values, 1)}
+                            >
+                              Next: Filters
+                            </CustomButton>
+                          </div>
+                        }
+                      >
+                        <div style={{
+                          background: "#f0f9ff",
+                          padding: styles.spacing.lg,
+                          borderRadius: styles.borderRadius.md,
+                          border: `1px solid ${styles.info}30`,
+                          marginBottom: styles.spacing.lg
+                        }}>
+                          <strong style={{ display: "block", marginBottom: styles.spacing.sm }}>
+                            💡 Create hierarchical categories with up to 3 levels for better organization.
+                          </strong>
+                          <p style={{ margin: 0, fontSize: "14px", color: styles.gray }}>
+                            Level 1: Main Categories → Level 2: Subcategories → Level 3: Child Categories
+                          </p>
+                        </div>
 
-        {values.subcategories.map((sub, subIndex) => (
-          <RecursiveSubcategory
-            key={sub.id}
-            subcategory={sub}
-            path={`subcategories.${subIndex}`}
-            setFieldValue={setFieldValue}
-            removeSubcategory={() => remove(subIndex)}
-            level={0}
-          />
-        ))}
+                        {values.subcategories.map((sub, subIndex) => (
+                          <RecursiveSubcategory
+                            key={sub.id}
+                            subcategory={sub}
+                            path={`subcategories.${subIndex}`}
+                            setFieldValue={setFieldValue}
+                            removeSubcategory={() => remove(subIndex)}
+                            level={0}
+                          />
+                        ))}
 
-        <CustomButton
-          variant="ghost"
-          size="large"
-          onClick={() => push({
-            id: Date.now(),
-            name: "",
-            slug: "",
-            description: "",
-            filterOptions: [],
-            subcategories: [],
-          })}
-          style={{ width: "100%", height: "48px" }}
-        >
-          ➕ Add Top-Level Category
-        </CustomButton>
-      </CustomCard>
-    )}
-  </FieldArray>
-)}
+                        <CustomButton
+                          variant="ghost"
+                          size="large"
+                          onClick={() => push({
+                            id: Date.now(),
+                            name: "",
+                            filterOptions: [],
+                            subcategories: [],
+                          })}
+                          style={{ 
+                            width: "100%", 
+                            height: "48px",
+                            backgroundColor: "#f8fafc",
+                            border: `2px dashed ${styles.grayLight}`
+                          }}
+                        >
+                          ➕ Add Top-Level Category
+                        </CustomButton>
+                      </CustomCard>
+                    )}
+                  </FieldArray>
+                )}
 
+                {/* Step 3: Filters - MODIFIED to show only Level 2 subcategories */}
+                {currentStep === 2 && (
+                  <CustomCard
+                    title="⚙️ Filter Configuration"
+                    extra={
+                      <div style={{ display: "flex", gap: styles.spacing.sm }}>
+                        <CustomButton 
+                          variant="ghost"
+                          onClick={goToPreviousStep}
+                        >
+                          Back
+                        </CustomButton>
+                        <CustomButton 
+                          type="button"
+                          variant="primary" 
+                          onClick={() => goToNextStep(values, 2)}
+                        >
+                          Review & Create
+                        </CustomButton>
+                      </div>
+                    }
+                  >
+                    <div style={{
+                      background: "#f0f9ff",
+                      padding: styles.spacing.lg,
+                      borderRadius: styles.borderRadius.md,
+                      border: `1px solid ${styles.info}30`,
+                      marginBottom: styles.spacing.lg
+                    }}>
+                      <strong style={{ display: "block", marginBottom: styles.spacing.sm }}>
+                        💡 Configure filters for Level 2 subcategories only
+                      </strong>
+                      <p style={{ margin: 0, fontSize: "14px", color: styles.gray }}>
+                        Filters are applied to Level 2 subcategories. Level 1 categories act as grouping categories.
+                      </p>
+                    </div>
 
-                {/* Step 3: Filters */}
-{/* Step 2: Filters - MODIFIED to show only Level 2 subcategories */}
-{currentStep === 2 && (
-  <CustomCard
-    title="⚙️ Filter Configuration"
-    extra={
-      <div style={{ display: "flex", gap: styles.spacing.sm }}>
-        <CustomButton 
-          variant="ghost"
-          onClick={() => setCurrentStep(1)}
-        >
-          Back
-        </CustomButton>
-        <CustomButton 
-          type="button"
-          variant="primary" 
-          onClick={() => setCurrentStep(3)}
-        >
-          Review & Create
-        </CustomButton>
-      </div>
-    }
-  >
-    <div style={{
-      background: "#f0f9ff",
-      padding: styles.spacing.lg,
-      borderRadius: styles.borderRadius.md,
-      border: `1px solid ${styles.info}30`,
-      marginBottom: styles.spacing.lg
-    }}>
-      <strong style={{ display: "block", marginBottom: styles.spacing.sm }}>
-        💡 Configure filters for Level 2 subcategories only
-      </strong>
-      <p style={{ margin: 0, fontSize: "14px", color: styles.gray }}>
-        Filters are applied to Level 2 subcategories. Level 1 categories act as grouping categories.
-      </p>
-    </div>
+                    {/* Get all Level 2 subcategories for filter configuration */}
+                    {getAllLevel2Subcategories(values.subcategories).map((sub, globalIndex) => (
+                      <CustomCard
+                        key={sub.id}
+                        title={
+                          <div style={{ display: "flex", alignItems: "center", gap: styles.spacing.sm }}>
+                            <span style={{ fontWeight: "600" }}>{sub.name}</span>
+                            <CustomBadge count={sub.filterOptions.length} />
+                            <span style={{
+                              backgroundColor: styles.secondary,
+                              color: styles.white,
+                              padding: "2px 8px",
+                              borderRadius: styles.borderRadius.sm,
+                              fontSize: "10px",
+                              fontWeight: "600"
+                            }}>
+                              Level 2
+                            </span>
+                          </div>
+                        }
+                        style={{ marginBottom: styles.spacing.lg }}
+                        extra={
+                          <div style={{ display: "flex", gap: styles.spacing.sm }}>
+                            <CustomButton
+                              size="large"
+                              onClick={() => openPresetModal(sub.path, "single")}
+                            >
+                              📋 Apply Preset
+                            </CustomButton>
+                            <CustomButton
+                              size="large"
+                              type="button"
+                              variant="primary"
+                              onClick={() => setFieldValue(
+                                `${sub.path}.filterOptions`,
+                                [
+                                  ...sub.filterOptions,
+                                  {
+                                    id: Date.now(),
+                                    name: "",
+                                    type: "text",
+                                    options: [],
+                                    required: false,
+                                    searchable: true,
+                                    placeholder: "",
+                                    defaultValue: "",
+                                  },
+                                ]
+                              )}
+                            >
+                              ➕ Add Filter
+                            </CustomButton>
+                          </div>
+                        }
+                      >
+                        <PresetModal
+                          visible={presetModalVisible}
+                          onClose={() => setPresetModalVisible(false)}
+                          onApply={(preset, applyTo) => applyPreset(preset, applyTo, setFieldValue, currentSubcategory, values)}
+                        />
 
-    {/* Get all Level 2 subcategories for filter configuration */}
-    {getAllLevel2Subcategories(values.subcategories).map((sub, globalIndex) => (
-      <CustomCard
-        key={sub.id}
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: styles.spacing.sm }}>
-            <span style={{ fontWeight: "600" }}>{sub.name}</span>
-            <CustomBadge count={sub.filterOptions.length} />
-            <span style={{
-              backgroundColor: styles.secondary,
-              color: styles.white,
-              padding: "2px 8px",
-              borderRadius: styles.borderRadius.sm,
-              fontSize: "10px",
-              fontWeight: "600"
-            }}>
-              Level 2
-            </span>
-          </div>
-        }
-        style={{ marginBottom: styles.spacing.lg }}
-        extra={
-          <div style={{ display: "flex", gap: styles.spacing.sm }}>
-            <CustomButton
-              size="large"
-              onClick={() => openPresetModal(sub.path, "single")}
-            >
-              📋 Apply Preset
-            </CustomButton>
-            <CustomButton
-              size="large"
-              type="button"
-              variant="primary"
-              onClick={() => setFieldValue(
-                `${sub.path}.filterOptions`,
-                [
-                  ...sub.filterOptions,
-                  {
-                    id: Date.now(),
-                    name: "",
-                    key: "",
-                    type: "text",
-                    options: [],
-                    required: false,
-                    searchable: true,
-                    placeholder: "",
-                    defaultValue: "",
-                  },
-                ]
-              )}
-            >
-              ➕ Add Filter
-            </CustomButton>
-          </div>
-        }
-      >
-        <PresetModal
-          visible={presetModalVisible}
-          onClose={() => setPresetModalVisible(false)}
-          onApply={(preset, applyTo) => applyPreset(preset, applyTo, setFieldValue, currentSubcategory, values)}
-        />
+                        <FieldArray name={`${sub.path}.filterOptions`}>
+                          {({ remove }) => (
+                            <div>
+                              {sub.filterOptions.length === 0 ? (
+                                <div style={{ 
+                                  textAlign: "center", 
+                                  padding: styles.spacing.xxl, 
+                                  color: styles.gray 
+                                }}>
+                                  <div style={{ fontSize: "48px", marginBottom: styles.spacing.lg }}>⚙️</div>
+                                  <div style={{ fontSize: "16px", marginBottom: styles.spacing.sm }}>
+                                    No filters configured for this Level 2 subcategory
+                                  </div>
+                                  <div style={{ color: styles.gray, fontSize: "14px" }}>
+                                    Add filters to help customers find products easily
+                                  </div>
+                                </div>
+                              ) : (
+                                sub.filterOptions.map((filter, filterIndex) => (
+                                  <FilterEditor
+                                    key={filter.id}
+                                    subIndex={sub.path}
+                                    filter={filter}
+                                    filterIndex={filterIndex}
+                                    setFieldValue={setFieldValue}
+                                    removeFilter={remove}
+                                  />
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </FieldArray>
+                      </CustomCard>
+                    ))}
 
-        <FieldArray name={`${sub.path}.filterOptions`}>
-          {({ remove }) => (
-            <div>
-              {sub.filterOptions.length === 0 ? (
-                <div style={{ 
-                  textAlign: "center", 
-                  padding: styles.spacing.xxl, 
-                  color: styles.gray 
-                }}>
-                  <div style={{ fontSize: "48px", marginBottom: styles.spacing.lg }}>⚙️</div>
-                  <div style={{ fontSize: "16px", marginBottom: styles.spacing.sm }}>
-                    No filters configured for this Level 2 subcategory
-                  </div>
-                  <div style={{ color: styles.gray, fontSize: "14px" }}>
-                    Add filters to help customers find products easily
-                  </div>
-                </div>
-              ) : (
-                sub.filterOptions.map((filter, filterIndex) => (
-                  <FilterEditor
-                    key={filter.id}
-                    subIndex={sub.path} // Pass the full path instead of just index
-                    filter={filter}
-                    filterIndex={filterIndex}
-                    setFieldValue={setFieldValue}
-                    removeFilter={remove}
-                  />
-                ))
-              )}
-            </div>
-          )}
-        </FieldArray>
-      </CustomCard>
-    ))}
-
-    {getAllLevel2Subcategories(values.subcategories).length === 0 && (
-      <div style={{ 
-        textAlign: "center", 
-        padding: styles.spacing.xxl, 
-        color: styles.gray 
-      }}>
-        <div style={{ fontSize: "48px", marginBottom: styles.spacing.lg }}>🏷️</div>
-        <div style={{ fontSize: "16px", marginBottom: styles.spacing.sm }}>
-          No Level 2 subcategories found
-        </div>
-        <div style={{ color: styles.gray, fontSize: "14px" }}>
-          Go back to the Subcategories step and create Level 2 subcategories to configure filters
-        </div>
-      </div>
-    )}
-  </CustomCard>
-)}
+                    {getAllLevel2Subcategories(values.subcategories).length === 0 && (
+                      <div style={{ 
+                        textAlign: "center", 
+                        padding: styles.spacing.xxl, 
+                        color: styles.gray 
+                      }}>
+                        <div style={{ fontSize: "48px", marginBottom: styles.spacing.lg }}>🏷️</div>
+                        <div style={{ fontSize: "16px", marginBottom: styles.spacing.sm }}>
+                          No Level 2 subcategories found
+                        </div>
+                        <div style={{ color: styles.gray, fontSize: "14px" }}>
+                          Go back to the Subcategories step and create Level 2 subcategories to configure filters
+                        </div>
+                      </div>
+                    )}
+                  </CustomCard>
+                )}
 
                 {/* Step 4: Review */}
                 {currentStep === 3 && (
@@ -1875,7 +1979,7 @@ const RecursiveSubcategory = ({
                       <div style={{ display: "flex", gap: styles.spacing.sm }}>
                         <CustomButton 
                           variant="ghost"
-                          onClick={() => setCurrentStep(2)}
+                          onClick={goToPreviousStep}
                         >
                           Back to Filters
                         </CustomButton>
@@ -1914,8 +2018,6 @@ const RecursiveSubcategory = ({
                         </div>
                       </CustomCard>
 
-
-
                       <CustomCard title="Filters Summary">
                         <div style={{ display: "flex", flexDirection: "column", gap: styles.spacing.md }}>
                           {values.subcategories.map((sub, idx) => (
@@ -1950,13 +2052,12 @@ const RecursiveSubcategory = ({
                         </div>
                       </CustomCard>
                     </div>
-                      <CustomCard title="Category Structure">
-    <div style={{ display: "flex", flexDirection: "column", gap: styles.spacing.md }}>
-      {renderCategoryTree(values.subcategories)}
-    </div>
-  </CustomCard>
+                    <CustomCard title="Category Structure">
+                      <div style={{ display: "flex", flexDirection: "column", gap: styles.spacing.md }}>
+                        {renderCategoryTree(values.subcategories)}
+                      </div>
+                    </CustomCard>
                   </CustomCard>
-                  
                 )}
               </form>
             )}

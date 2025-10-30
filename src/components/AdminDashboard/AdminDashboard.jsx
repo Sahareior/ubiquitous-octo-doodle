@@ -28,7 +28,7 @@ import { IoIosPeople } from "react-icons/io";
 import { IoPricetagSharp, IoPricetagsSharp } from "react-icons/io5";
 import { LuMessageSquareText } from "react-icons/lu";
 import { GrAnalytics } from "react-icons/gr";
-import { MdLogout } from "react-icons/md";
+import { MdLabelImportant, MdLogout } from "react-icons/md";
 import { TbCategoryPlus } from "react-icons/tb";
 import useNotificationSocket from "../../Websocket/useNotificationSocket";
 
@@ -136,8 +136,8 @@ const AdminDashboard = () => {
     },
     {
       key: "featuredManagement",
-      icon: <GrAnalytics size={16} />,
-      label: <Link to="featuredManagement">Analytics</Link>,
+      icon: <MdLabelImportant size={16} />,
+      label: <Link to="featuredManagement">Featured Products</Link>,
     },
     {
       key: "payouts",

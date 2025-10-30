@@ -16,7 +16,7 @@ const ProductFilter = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState([]);
-   const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [priceRange, setPriceRange] = useState([0, 5000]);
   const [cart, setCart] = useState([]);
 
   const location = useLocation();
@@ -72,7 +72,7 @@ const ProductFilter = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedFilters, products]);
+  }, [selectedFilters, products, priceRange]);
 
   const fetchCategories = async () => {
     try {
@@ -248,26 +248,56 @@ const ProductFilter = () => {
     }
   };
 
-  // Apply filters to products
-  const applyFilters = () => {
-    if (Object.keys(selectedFilters).length === 0) {
-      setFilteredProducts(products);
-      return;
+  // Apply filters to products including price range
+// Apply filters to products including price range and category
+const applyFilters = () => {
+  let filtered = [...products];
+
+  // First: Always apply category hierarchy filter
+  filtered = filtered.filter(product => {
+    const productCategoryId = product.category?.toString();
+    const productSubCategoryId = product.subcategory?.toString();
+    const productNestedId = product.nestedSubcategory?.toString();
+
+    // If no category is selected, show all products
+    if (!selectedCategoryId) return true;
+
+    // Check main category match
+    const matchesMainCategory = productCategoryId === selectedCategoryId.toString();
+    if (!matchesMainCategory) return false;
+
+    // Check subcategory if selected
+    if (selectedSubCategoryId) {
+      const matchesSubCategory = productSubCategoryId === selectedSubCategoryId.toString();
+      if (!matchesSubCategory) return false;
     }
 
-    const filtered = products.filter(product => {
-      // Check if product belongs to selected category hierarchy
-      const productCategoryId = product.category?.toString();
-      const productSubCategoryId = product.subcategory?.toString();
-      const productNestedId = product.nestedSubcategory?.toString();
+    // Check nested subcategory if selected
+    if (selectedNestedId) {
+      const matchesNestedCategory = productNestedId === selectedNestedId.toString();
+      if (!matchesNestedCategory) return false;
+    }
 
-      const matchesCategory = 
-        productCategoryId === selectedCategoryId?.toString() &&
-        (!selectedSubCategoryId || productSubCategoryId === selectedSubCategoryId?.toString()) &&
-        (!selectedNestedId || productNestedId === selectedNestedId?.toString());
+    return true;
+  });
 
-      if (!matchesCategory) return false;
+  console.log('Products after category filter:', filtered.length, {
+    selectedCategoryId,
+    selectedSubCategoryId, 
+    selectedNestedId
+  });
 
+  // Second: Apply price range filter
+  filtered = filtered.filter(product => {
+    const productPrice = product.price || product.Responsed_products?.old_price || 0;
+    return productPrice >= priceRange[0] && productPrice <= priceRange[1];
+  });
+
+  console.log('Products after price filter:', filtered.length);
+
+  // Third: Apply specification filters if any
+  if (Object.keys(selectedFilters).length > 0) {
+    filtered = filtered.filter(product => {
       // Check if product matches all selected filters
       return Object.entries(selectedFilters).every(([filterName, filterValue]) => {
         const productSpec = product.specification?.find(spec => spec.name === filterName);
@@ -285,18 +315,18 @@ const ProductFilter = () => {
         }
       });
     });
+    console.log('Products after specification filters:', filtered.length);
+  }
 
-    setFilteredProducts(filtered);
-  };
+  setFilteredProducts(filtered);
+};
 
-  // Clear all filters
+  // Clear all filters including price range
   const clearAllFilters = () => {
     setSelectedFilters({});
-    console.log('Cleared all filters');
+    setPriceRange([0, 5000]);
+    console.log('Cleared all filters and price range');
   };
-
-
-  
 
   // Get available subcategories
   const getSubcategories = () => {
@@ -331,10 +361,34 @@ const ProductFilter = () => {
     return hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products";
   };
 
-  // Calculate rating for product (you can replace this with actual rating logic)
+  // Calculate rating for product
   const calculateRating = (product) => {
-    // This is a placeholder - replace with your actual rating logic
-    return product.rating || Math.random() * 2 + 3; // Random rating between 3-5 for demo
+    return product.Responsed_products?.average_rating || product.rating || Math.random() * 2 + 3;
+  };
+
+  // Get product price
+  const getProductPrice = (product) => {
+    return product.price || product.Responsed_products?.old_price || 0;
+  };
+
+  // Get product stock
+  const getProductStock = (product) => {
+    return product.stock || product.Responsed_products?.stock_quantity || 0;
+  };
+
+  // Get product images
+  const getProductImages = (product) => {
+    return product.images || product.Responsed_products?.images || [];
+  };
+
+  // Get product promotion info
+  const getProductPromotion = (product) => {
+    return {
+      discount_type: product.promotion_discount_type || product.Responsed_products?.promotion_discount_type,
+      discount_value: product.promotion_discount_value || product.Responsed_products?.promotion_discount_value,
+      old_price: product.Responsed_products?.old_price,
+      new_price: product.Responsed_products?.new_price
+    };
   };
 
   // SweetAlert configuration
@@ -346,158 +400,176 @@ const ProductFilter = () => {
   });
 
   // Render filter options
-const renderFilterOptions = () => {
-  if (filterOptions.length === 0) {
-    return (
-      <div className="p-8 text-center border border-gray-200 rounded-lg bg-white">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
+  const renderFilterOptions = () => {
+    if (filterOptions.length === 0) {
+      return (
+        <div className="p-8 text-center border border-gray-200 rounded-lg bg-white">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Filters Available</h3>
+          <p className="text-gray-600 text-sm">We're preparing filter options for this category.</p>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Filters Available</h3>
-        <p className="text-gray-600 text-sm">We're preparing filter options for this category.</p>
+      );
+    }
+
+    return (
+      <div className="space-y-6 p-6 border border-gray-200 rounded-lg bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+          <h3 className="text-lg font-medium text-gray-900">Filters</h3>
+          <button
+            onClick={clearAllFilters}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 font-normal"
+          >
+            Clear all
+          </button>
+        </div>
+
+        {/* Price Range Filter */}
+        <div>
+          <div className="my-4">
+            <p className="popmed mb-2">Price Range</p>
+            <Slider
+              range
+              min={0}
+              max={5000}
+              step={100}
+              value={priceRange}
+              onChange={setPriceRange}
+            />
+            <div className="flex justify-between popreg text-sm">
+              <span>${priceRange[0]}</span>
+              <span>${priceRange[1]}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Filter Sections */}
+        <div className="space-y-6">
+          {filterOptions.map((filter) => (
+            <div 
+              key={filter._id || filter.id} 
+              className="space-y-4"
+            >
+              <label className="block text-sm font-medium text-gray-700 uppercase tracking-wide">
+                {filter.name}
+              </label>
+              
+              {/* Checkbox Filter */}
+              {filter.type === 'checkbox' && (
+                <div className="space-y-3">
+                  {filter.options.map((option) => (
+                    <label key={option} className="flex items-center group cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isFilterSelected(filter.name, option, 'checkbox')}
+                        onChange={() => handleFilterChange(filter.name, option, 'checkbox')}
+                        className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+                      />
+                      <span className="ml-3 popmed text-sm  text-yellow-700 group-hover:text-gray-900 transition-colors">
+                        {option}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* Radio Filter */}
+              {filter.type === 'radio' && (
+                <div className="space-y-3">
+                  {filter.options.map((option) => (
+                    <label key={option} className="flex items-center group cursor-pointer">
+                      <input
+                        type="radio"
+                        name={filter.name}
+                        checked={isFilterSelected(filter.name, option, 'radio')}
+                        onChange={() => handleFilterChange(filter.name, option, 'radio')}
+                        className="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                        {option}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* Color Swatch Filter - Common in home decor */}
+              {filter.type === 'color' && (
+                <div className="flex flex-wrap gap-3">
+                  {filter.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => handleFilterChange(filter.name, option, 'color')}
+                      className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
+                        isFilterSelected(filter.name, option, 'color') 
+                          ? 'border-gray-900 ring-2 ring-gray-200' 
+                          : 'border-gray-200'
+                      }`}
+                      style={{ backgroundColor: option.toLowerCase() }}
+                      title={option}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Price Range Filter - Common in home decor */}
+              {filter.type === 'range' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>${filter.min}</span>
+                    <span>${filter.max}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={filter.min}
+                    max={filter.max}
+                    // Add your range handling logic here
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Results Count */}
+        <div className="pt-4 border-t border-gray-100">
+          <p className="text-sm text-gray-600">
+            Showing <span className="font-medium text-gray-900">{filteredProducts.length}</span> products
+          </p>
+        </div>
       </div>
     );
-  }
+  };
 
-  return (
-    <div className="space-y-6 p-6 border border-gray-200 rounded-lg bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-        <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-        <button
-          onClick={clearAllFilters}
-          className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 font-normal"
-        >
-          Clear all
-        </button>
-      </div>
-
-      <div>
-          <div className="my-4">
-        <p className="popmed mb-2">Price Range</p>
-        <Slider
-          range
-          min={0}
-          max={5000}
-          step={100}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-        <div className="flex justify-between popreg text-sm">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
-        </div>
-      </div>
-      </div>
-      
-      {/* Filter Sections */}
-      <div className="space-y-6">
-        {filterOptions.map((filter) => (
-          <div 
-            key={filter._id || filter.id} 
-            className="space-y-4"
-          >
-            <label className="block text-sm font-medium text-gray-700 uppercase tracking-wide">
-              {filter.name}
-            </label>
-            
-            {/* Checkbox Filter */}
-            {filter.type === 'checkbox' && (
-              <div className="space-y-3">
-                {filter.options.map((option) => (
-                  <label key={option} className="flex items-center group cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isFilterSelected(filter.name, option, 'checkbox')}
-                      onChange={() => handleFilterChange(filter.name, option, 'checkbox')}
-                      className="h-4 w-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
-                    />
-                    <span className="ml-3 popmed text-sm  text-yellow-700 group-hover:text-gray-900 transition-colors">
-                      {option}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Radio Filter */}
-            {filter.type === 'radio' && (
-              <div className="space-y-3">
-                {filter.options.map((option) => (
-                  <label key={option} className="flex items-center group cursor-pointer">
-                    <input
-                      type="radio"
-                      name={filter.name}
-                      checked={isFilterSelected(filter.name, option, 'radio')}
-                      onChange={() => handleFilterChange(filter.name, option, 'radio')}
-                      className="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
-                    />
-                    <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
-                      {option}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Color Swatch Filter - Common in home decor */}
-            {filter.type === 'color' && (
-              <div className="flex flex-wrap gap-3">
-                {filter.options.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => handleFilterChange(filter.name, option, 'color')}
-                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-                      isFilterSelected(filter.name, option, 'color') 
-                        ? 'border-gray-900 ring-2 ring-gray-200' 
-                        : 'border-gray-200'
-                    }`}
-                    style={{ backgroundColor: option.toLowerCase() }}
-                    title={option}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Price Range Filter - Common in home decor */}
-            {filter.type === 'range' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>${filter.min}</span>
-                  <span>${filter.max}</span>
-                </div>
-                <input
-                  type="range"
-                  min={filter.min}
-                  max={filter.max}
-                  // Add your range handling logic here
-                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Results Count */}
-      <div className="pt-4 border-t border-gray-100">
-        <p className="text-sm text-gray-600">
-          Showing <span className="font-medium text-gray-900">24</span> products
-        </p>
-      </div>
-    </div>
-  );
-};
-
-  // Render selected filters
+  // Render selected filters including price range
   const renderSelectedFilters = () => {
-    if (Object.keys(selectedFilters).length === 0) return null;
+    const hasFilters = Object.keys(selectedFilters).length > 0 || priceRange[0] > 0 || priceRange[1] < 5000;
+    
+    if (!hasFilters) return null;
 
     return (
       <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-2xl">
         <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+        
+        {/* Price Range Filter */}
+        {(priceRange[0] > 0 || priceRange[1] < 5000) && (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            Price: ${priceRange[0]} - ${priceRange[1]}
+            <button
+              onClick={() => setPriceRange([0, 5000])}
+              className="ml-2 text-red-600 hover:text-red-800 font-bold"
+            >
+              ×
+            </button>
+          </span>
+        )}
+        
+        {/* Other Filters */}
         {Object.entries(selectedFilters).map(([filterName, filterValue]) => {
           const values = Array.isArray(filterValue) ? filterValue : [filterValue];
           return values.map(value => (
@@ -518,7 +590,7 @@ const renderFilterOptions = () => {
                     });
                   }
                 }}
-                className="ml-2 text-red-600 hover:text-red-800  font-bold"
+                className="ml-2 text-red-600 hover:text-red-800 font-bold"
               >
                 ×
               </button>
@@ -531,21 +603,29 @@ const renderFilterOptions = () => {
 
   // Render product card
   const renderProductCard = (product) => {
-
-    console.log(product.Responsed_products,'ghf')
+    const productData = product.Responsed_products || product;
+    const productId = productData.id || product._id;
+    const productName = productData.name || product.name;
+    const productImages = getProductImages(product);
+    const productPrice = getProductPrice(product);
+    const productStock = getProductStock(product);
+    const promotion = getProductPromotion(product);
     const rating = calculateRating(product);
-    const isInWishlist = checkWishlist(product.id);
-    const isInCart = checkCart(product.id);
+    const isInWishlist = checkWishlist(productId);
+    const isInCart = checkCart(productId);
+
+    const hasPromotion = promotion.discount_value > 0;
+    const displayPrice = hasPromotion ? (promotion.new_price || productPrice) : productPrice;
 
     return (
       <div
-        key={product.id || product._id}
+        key={productId}
         className="bg-white rounded-2xl shadow-md relative overflow-hidden transition-transform hover:scale-[1.02]"
       >
-        <Link to={`/details?id=${product.id || product._id}`} state={product}>
+        <Link to={`/details?id=${productId}`} state={product}>
           <img
-            src={product.images?.[0]?.image ||product.Responsed_products.images[0].image || "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=658"}
-            alt={product.name}
+            src={productImages[0]?.image || "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=658"}
+            alt={productName}
             className="w-full rounded-t-2xl h-48 md:h-56 lg:h-64 object-cover"
           />
         </Link>
@@ -574,14 +654,14 @@ const renderFilterOptions = () => {
         </div>
 
         {/* Promotion Badge */}
-        {product.promotion_discount_value > 0 && (
+        {hasPromotion && (
           <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
-            -{product.promotion_discount_value}{product.promotion_discount_type === 'percentage' ? '%' : ' XAF'}
+            -{promotion.discount_value}{promotion.discount_type === 'percentage' ? '%' : ' XAF'}
           </span>
         )}
 
         <div className="p-4 space-y-2">
-          <h3 className="text-base md:text-lg line-clamp-1 font-medium">{product.name}</h3>
+          <h3 className="text-base md:text-lg line-clamp-1 font-medium">{productName}</h3>
           
           {/* Rating */}
           <div className="flex gap-2">
@@ -591,19 +671,18 @@ const renderFilterOptions = () => {
           {/* Price and Add to Cart */}
           <div className="flex justify-between items-center gap-2">
             <div className="flex flex-col">
-              {product.promotion_discount_value > 0 ? (
+              {hasPromotion ? (
                 <>
                   <span className="text-gray-400 line-through text-sm">
-                    XAF {product.price}
+                    XAF {productPrice}
                   </span>
                   <span className="text-[#CBA135] font-bold text-lg md:text-[20px]">
-                    XAF {product.new_price || (product.price - (product.promotion_discount_type === 'percentage' ? 
-                      (product.price * product.promotion_discount_value / 100) : product.promotion_discount_value))}
+                    XAF {displayPrice}
                   </span>
                 </>
               ) : (
                 <span className="text-[#CBA135] font-bold text-lg md:text-[20px]">
-                  XAF {product.price}
+                  XAF {displayPrice}
                 </span>
               )}
             </div>
@@ -612,17 +691,17 @@ const renderFilterOptions = () => {
               onClick={() => handleCart(product)}
               className={`rounded-md font-bold text-white border-none px-4 py-1 
                 ${isInCart ? "bg-green-500" : "bg-[#CBA135]"} 
-                ${product.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={product.stock <= 0}
+                ${productStock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={productStock <= 0}
             >
-              {product.stock <= 0 ? 'Out of Stock' : isInCart ? 'Added' : 'Add to Cart'}
+              {productStock <= 0 ? 'Out of Stock' : isInCart ? 'Added' : 'Add to Cart'}
             </Button>
           </div>
 
           {/* Stock Status */}
           <div className="flex justify-between items-center text-xs text-gray-500">
             <span>
-              {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+              {productStock > 0 ? `${productStock} in stock` : 'Out of stock'}
             </span>
           </div>
         </div>
@@ -645,9 +724,8 @@ const renderFilterOptions = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-8xl mx-40">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{getCurrentCategoryName()}</h1>
-        {/* <p className="text-gray-600 mb-8">Browse our collection of {getCurrentCategoryName().toLowerCase()}</p> */}
         
-        <div className="grid  grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
           {/* Sidebar - Category Selection & Filters */}
           <div className="lg:col-span-1 h-[80vh] overflow-y-auto space-y-6">
             {/* Category Selection */}
@@ -655,11 +733,6 @@ const renderFilterOptions = () => {
               <h3 className="text-lg font-semibold text-gray-700">Categories</h3>
               
               <div className="space-y-3 ">
-                {/* Main Category Selector */}
-
-
-
-
                 {/* Nested Sub Category Selector */}
                 {selectedSubCategoryId && getNestedSubcategories().length > 0 && (
                   <select
@@ -683,16 +756,15 @@ const renderFilterOptions = () => {
           </div>
 
           {/* Main Content - Products */}
-          <div className="lg:col-span-3 h-[80vh] overflow-y-auto space-y-6">
+          <div className="lg:col-span-3 gap-x-6 mb-5 h-[80vh] overflow-y-auto space-y-6">
             {/* Selected Filters */}
             {renderSelectedFilters()}
 
             {/* Results Count */}
             <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
               <p className="text-gray-600">
-                Showing <span className="font-semibold">{filteredProducts.length}</span> of{" "}
-                <span className="font-semibold">{products.length}</span> products
-                {selectedCategoryId && " in selected category"}
+                Showing <span className="font-semibold">{filteredProducts.length}</span> products
+                {priceRange[0] > 0 || priceRange[1] < 5000 ? ` within $${priceRange[0]} - $${priceRange[1]}` : ''}
               </p>
               
               {Object.keys(selectedFilters).length > 0 && (
@@ -707,7 +779,7 @@ const renderFilterOptions = () => {
 
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
-              <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(renderProductCard)}
               </div>
             ) : (
