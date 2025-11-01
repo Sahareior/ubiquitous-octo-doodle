@@ -25,7 +25,37 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
     }));
   };
 
-  // Color options for select
+  // Handle dimensions change
+  const handleDimensionsChange = (field, value) => {
+    setFormData((prev) => {
+      const dimensions = prev.dimensions ? prev.dimensions.split(' × ') : ['', '', ''];
+      
+      if (field === 'width') dimensions[0] = value;
+      if (field === 'height') dimensions[1] = value;
+      if (field === 'depth') dimensions[2] = value;
+      
+      return {
+        ...prev,
+        dimensions: dimensions.join(' × ')
+      };
+    });
+  };
+
+  // Parse existing dimensions
+  const parseDimensions = () => {
+    if (!formData.dimensions) return { width: '', height: '', depth: '' };
+    
+    const dimensions = formData.dimensions.split(' × ');
+    return {
+      width: dimensions[0] || '',
+      height: dimensions[1] || '',
+      depth: dimensions[2] || ''
+    };
+  };
+
+  const dimensions = parseDimensions();
+
+  // ✅ Full color options same as create component
   const colorOptions = [
     "Navy Blue", "Red", "White", "Black", "Green", "Yellow", "Gray",
     "Blue", "Brown", "Beige", "Ivory", "Cream", "Charcoal", "Slate Gray",
@@ -39,23 +69,69 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
   ];
 
   return (
-    <form className="bg-white  rounded-2xl pt-8 space-y-4">
+    <form className="bg-white rounded-2xl pt-8 space-y-4">
       <h2 className="text-lg font-bold mb-4">Product Specifications</h2>
-    <hr />
+      <hr />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Dimensions (W×H×D)"
-          name="dimensions"
-          placeholder='e.g. 88" × 35" × 38"'
-          value={formData.dimensions}
-          onChange={handleChange}
-        />
-        <InputField
-          label="Assembly Required"
-          name="assembly_required"
-          value={formData.assembly_required}
-          onChange={handleChange}
-        />
+
+        {/* Dimensions - 3 separate input fields */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Dimensions (W×H×D)</label>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-1">
+              <input
+                type="text"
+                placeholder='Enter product width"'
+                value={dimensions.width}
+                onChange={(e) => handleDimensionsChange('width', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <input
+                type="text"
+                placeholder='Enter product height"'
+                value={dimensions.height}
+                onChange={(e) => handleDimensionsChange('height', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <input
+                type="text"
+                placeholder='Enter product depth"'
+                value={dimensions.depth}
+                onChange={(e) => handleDimensionsChange('depth', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Combined: {formData.dimensions || 'Not set'}
+          </div>
+        </div>
+
+        {/* Assembly Required - Dropdown */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Assembly Required</label>
+          <Select
+            placeholder="Select option"
+            value={formData.assembly_required}
+            onChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                assembly_required: value,
+              }))
+            }
+            options={[
+              { label: 'Yes', value: 'Yes' },
+              { label: 'No', value: 'No' }
+            ]}
+            style={{ width: "100%" }}
+            allowClear
+          />
+        </div>
+
         <InputField
           label="Material"
           name="material"
@@ -63,6 +139,7 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
           value={formData.material}
           onChange={handleChange}
         />
+
         <InputField
           label="Warranty"
           name="warranty"
@@ -71,7 +148,7 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
           onChange={handleChange}
         />
 
-        {/* 🔹 Replace InputField with Select for Colors */}
+        {/* ✅ Multiple Select for Colors (same as create) */}
         <div className="flex flex-col gap-1">
           <label className="popbold text-[14px] text-gray-700">Color(s)</label>
           <Select
@@ -79,15 +156,15 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
             placeholder="Select color(s)"
             value={formData.color ? formData.color.split(', ') : []}
             onChange={(values) =>
-              setFormData(prev => ({
+              setFormData((prev) => ({
                 ...prev,
-                color: values.join(', ') // store as single string
+                color: values.join(', '), // stored as a single comma-separated string
               }))
             }
-            options={colorOptions.map(color => ({ label: color, value: color }))}
+            options={colorOptions.map((color) => ({ label: color, value: color }))}
             style={{ width: "100%" }}
             filterOption={(input, option) =>
-              option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              option.label.toLowerCase().includes(input.toLowerCase())
             }
             showSearch
             allowClear
@@ -100,6 +177,7 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
           value={formData.care_instructions}
           onChange={handleChange}
         />
+
         <InputField
           label="Weight"
           name="weight"
@@ -107,12 +185,14 @@ const ProductSpecificationForm = ({ formData, setFormData }) => {
           value={formData.weight}
           onChange={handleChange}
         />
+
         <InputField
           label="Country of Origin"
           name="country_of_origin"
           value={formData.country_of_origin}
           onChange={handleChange}
         />
+
       </div>
     </form>
   );

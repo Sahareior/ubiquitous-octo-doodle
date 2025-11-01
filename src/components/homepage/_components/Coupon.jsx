@@ -8,7 +8,7 @@ const Coupon = () => {
             <div className='bg-[#CBA135] popreg flex justify-center md:p-20 p-8 items- flex-col gap-3'>
                 <h2 className='text-[36px] text-white'>Festival Sale - Up to 40% Off</h2>
                 <p className='text-[20px] text-white'>Limited time offer on selected furniture collections</p>
-                <Button className='bg-[#FFFFFF] popreg px-7 w-52  py-6 text-[#CBA135] border-none'>Shop Sale Items</Button>
+                {/* <Button className='bg-[#FFFFFF] popreg px-7 w-52  py-6 text-[#CBA135] border-none'>Shop Sale Items</Button> */}
             </div>
             <div className='bg-[#666666] popreg flex justify-center md:p-20 p-4 items-center flex-col gap-3'>
                 <h2 className='text-[36px] text-white'>Ready to Transform Your Space?</h2>

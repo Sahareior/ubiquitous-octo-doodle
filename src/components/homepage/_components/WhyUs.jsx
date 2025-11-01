@@ -20,7 +20,7 @@ const features = [
 
 const WhyUs = () => {
   return (
-    <div className="py-16 px-4 bg-[#E6E3DD] text-center">
+    <div  id="new" className="py-16 px-4 bg-[#E6E3DD] text-center">
       <h2 className="text-3xl popmed mb-10 text-gray-800">Why Choose WIROKO</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 mt-14 gap-8">

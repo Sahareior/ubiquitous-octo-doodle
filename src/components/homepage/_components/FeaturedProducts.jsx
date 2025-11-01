@@ -108,7 +108,7 @@ const ProductCard = React.memo(
 
 ProductCard.displayName = "ProductCard";
 
-const FeaturedProducts = () => {
+const FeaturedProducts = ({allProducts, isLoading, isError, title, subtitle}) => {
   const [addProductToCart] = useAddProductToCartMutation();
   const [savetoWishList] = useSavetoWishListMutation();
   const dispatch = useDispatch();
@@ -116,18 +116,13 @@ const FeaturedProducts = () => {
   const { add, setAdd } = useWebSocketContext();
   const { data: wishLists, refetch: wishListRefetch } =
     useGetAllWishListQuery();
-  const {
-    data: allProducts,
-    isLoading,
-    isError,
-  } = useAllFeaturedProductsQuery();
-  // const {data:featured} = useAllFeaturedProductsQuery()
   const location = useLocation();
   const navigate = useNavigate();
 
-  const localStorageCart = JSON.parse(localStorage.getItem('guest_cart')) || []
-
-  console.log(localStorageCart.length,'this')
+  // Get guest cart from localStorage
+  const getGuestCart = useCallback(() => {
+    return JSON.parse(localStorage.getItem('guest_cart')) || [];
+  }, []);
 
   // Create refs for scrolling
   const componentTopRef = useRef(null);
@@ -135,20 +130,31 @@ const FeaturedProducts = () => {
 
   const checkCartData = useCallback(
     (id) => {
-      // console.log('insude ', id)
-     if(localStorageCart.length > 0){
-       return localStorageCart.some((items) => items.id === id);
-     }
-     else{
-       return cartData?.results?.some((items) => items.product.id === id);
-     }
+      const token = localStorage.getItem("access_token");
+      
+      // If user is not logged in, check guest cart
+      if (!token) {
+        const guestCart = getGuestCart();
+        return guestCart.some((item) => item.id === id);
+      }
+      
+      // If user is logged in, check server cart data
+      return cartData?.results?.some((item) => item.product.id === id);
     },
-    [cartData]
+    [cartData, getGuestCart]
   );
 
   // Fixed checkWishList function
   const checkWishList = useCallback(
     (id) => {
+      const token = localStorage.getItem("access_token");
+      
+      // If user is not logged in, always return false for wishlist
+      if (!token) {
+        return false;
+      }
+      
+      // If user is logged in, check server wishlist data
       if (!wishLists?.results) return false;
       return wishLists?.results?.some(
         (item) => item.product.id === id || item.id === id
@@ -186,8 +192,7 @@ const FeaturedProducts = () => {
 
       if (!token) {
         // 🛒 Handle guest cart (store in localStorage)
-        const existingCart =
-          JSON.parse(localStorage.getItem("guest_cart")) || [];
+        const existingCart = getGuestCart();
 
         // Check if product already exists in guest cart
         const existingItemIndex = existingCart.findIndex(
@@ -230,7 +235,7 @@ const FeaturedProducts = () => {
         toast: true,
       });
     },
-    [addProductToCart, refetch]
+    [addProductToCart, refetch, getGuestCart, setAdd]
   );
 
   const handleWishlist = async (item) => {
@@ -416,17 +421,17 @@ const FeaturedProducts = () => {
 
   return (
     <div
-      className="md:py-20 md:px-10 p-3 bg-[#FAF8F2] space-y-6"
+     className="md:py-20 md:px-10 p-3 bg-[#FAF8F2] space-y-6"
       ref={componentTopRef}
     >
       {/* Header & Search */}
       <div className="flex flex-col md:flex-row justify-between MD:items-start items-center gap-4">
         <div>
           <h2 className="text-[30px] popbold font-extrabold">
-            Featured Products
+            {title}
           </h2>
           <p className="text-[18px] text-gray-600">
-            Explore our curated furniture categories
+            {subtitle}
           </p>
         </div>
       </div>

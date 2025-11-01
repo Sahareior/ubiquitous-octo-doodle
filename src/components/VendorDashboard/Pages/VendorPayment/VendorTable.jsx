@@ -79,6 +79,7 @@ const VendorTable = () => {
 
   return (
     <div>
+      
       <Table
         columns={columns}
         dataSource={tableData}

@@ -446,7 +446,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
             type="number" 
             placeholder="0.00" 
           />
-          <InputField 
+          {/* <InputField 
             label="Discount Price" 
             name="price2" 
             value={formData.price2} 
@@ -461,7 +461,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
             onChange={handleChange} 
             type="number" 
             placeholder="0.00" 
-          />
+          /> */}
         </div>
       </Section>
 
@@ -497,7 +497,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
 </Section>
 
 
-      <Section title="Delivery Options">
+      {/* <Section title="Delivery Options">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <Checkbox
@@ -560,7 +560,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
           onChange={handleChange} 
           placeholder="e.g., 3-5 business days" 
         />
-      </Section>
+      </Section> */}
 
   
       <Section title="SEO & Tags">
@@ -579,7 +579,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
           placeholder="Meta description for search engines" 
         />
         
-        <div className="flex flex-col gap-1">
+        {/* <div className="flex flex-col gap-1">
           <label className="popbold text-[14px] text-gray-700">Tags</label>
           <Select
             mode="multiple"
@@ -593,7 +593,7 @@ formDataToSend.append("specifications", JSON.stringify(specs));
               { value: 'bestseller', label: 'Bestseller' },
             ]}
           />
-        </div>
+        </div> */}
 
 <ProductSpecificationFormEdit setFormData={setFormData} formData={formData} />
         <div className="flex justify-end gap-4 mt-6">

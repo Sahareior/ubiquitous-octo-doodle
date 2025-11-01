@@ -8,11 +8,13 @@ import { FaHandshakeSimple } from 'react-icons/fa6';
 import { FiChevronDown } from 'react-icons/fi';
 import { usePostSellerMutation } from '../../../../redux/slices/apiSlice';
 import { useNavigate } from 'react-router-dom';
-import { useGetAllSellerApplicationQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useAdminVendorCreateMutation, useGetAllSellerApplicationQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useGetProfileQuery } from '../../../../redux/slices/Apis/customersApi';
 
 const { Option } = Select;
 const MySwal = withReactContent(Swal);
-// Reusable components
+
+
 const SectionHeader = ({ icon, title, subtitle }) => (
   <div className="flex items-center gap-3 mb-6">
     <p className='p-2 rounded-full bg-[#CBA135]'>{icon}</p>
@@ -29,7 +31,7 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
   const handleFileChange = useCallback((e) => {
     const files = multiple ? Array.from(e.target.files) : e.target.files[0];
     
-    // Create preview URLs for images
+
     if (files) {
       if (multiple) {
         const urls = files.map(file => URL.createObjectURL(file));
@@ -67,7 +69,7 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
           onChange={handleFileChange}
         />
         
-        {/* Image preview */}
+
         {previewUrls.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2 justify-center">
             {previewUrls.map((url, index) => (
@@ -107,18 +109,23 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
 
 const SellerReg = () => {
   const [currentStep, setCurrentStep] = useState(0);
-   const { data: applicants, isLoading, refetch } = useGetAllSellerApplicationQuery();
+  const { data: applicants, isLoading, refetch } = useGetAllSellerApplicationQuery();
+    const { data: profileData, error } = useGetProfileQuery();
   const [postSeller] = usePostSellerMutation();
-  const navigate = useNavigate()
+  const [adminVendorCreate] = useAdminVendorCreateMutation();
+  const navigate = useNavigate();
+  const storedRole = localStorage.getItem('user_role');
+  const isAdmin = storedRole === 'admin';
+
   const [formData, setFormData] = useState({
-    // Contact Information
+   
     firstName: '',
     lastName: '',
     jobTitle: '',
     email: '',
     phone: '',
 
-    // Business Information
+   
     businessName: '',
     businessAddress: '',
     country: '',
@@ -130,7 +137,7 @@ const SellerReg = () => {
     taxpayerNumber: '',
     tradeRegisterNumber: '',
 
-    // Verify Information
+   
     frontId: null,
     backId: null,
     businessOwner: null,
@@ -139,24 +146,24 @@ const SellerReg = () => {
     taxFile: null,
     tradeFile: null,
     
-    // Verification
+ 
     captcha: ''
   });
 
   const steps = useMemo(() => [
     {
       title: 'Contact Info',
-      content: <ContactInfoStep formData={formData} setFormData={setFormData} />,
+      content: <ContactInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
     },
     {
       title: 'Business Info',
-      content: <BusinessInfoStep formData={formData} setFormData={setFormData} />,
+      content: <BusinessInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
     },
     {
       title: 'Verify',
-      content: <VerifyInfoStep formData={formData} setFormData={setFormData} />,
+      content: <VerifyInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
     },
-  ], [formData]);
+  ], [formData, isAdmin]);
 
   const nextStep = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -170,13 +177,23 @@ const SellerReg = () => {
 
   const validateStep = useCallback((step) => {
     switch (step) {
-      case 0: // Contact Info
-        if (!formData.firstName || !formData.lastName || !formData.jobTitle || !formData.email || !formData.phone) {
+      case 0:
+        if (!formData.firstName || !formData.lastName || !formData.jobTitle || !formData.phone) {
           message.error('Please fill all required fields in Contact Information');
           return false;
         }
+        
+        if (isAdmin && !formData.email) {
+          message.error('Vendor Email is required for admin');
+          return false;
+        }
+      
+        if (!isAdmin && !formData.email) {
+          message.error('Email is required');
+          return false;
+        }
         return true;
-      case 1: // Business Info
+      case 1: 
         if (!formData.businessName || !formData.businessAddress || !formData.country || 
             !formData.city || !formData.state || !formData.postalCode || !formData.date || 
             !formData.businessType || !formData.taxpayerNumber || !formData.tradeRegisterNumber) {
@@ -195,11 +212,11 @@ const SellerReg = () => {
       default:
         return true;
     }
-  }, [formData]);
+  }, [formData, isAdmin]);
 
-const handleApply = useCallback(async () => {
+  const handleApply = useCallback(async () => {
     try {
-      // Show loading alert
+ 
       MySwal.fire({
         title: 'Uploading...',
         text: 'Please wait while your application is being submitted',
@@ -209,43 +226,90 @@ const handleApply = useCallback(async () => {
         }
       });
 
-      const formPayload = new FormData();
-      // Append fields and files as before
-      formPayload.append("job_title", formData.jobTitle);
-      formPayload.append("phone_number", formData.phone);
-      formPayload.append("legal_business_name", formData.businessName);
-      formPayload.append("business_address", formData.businessAddress);
-      formPayload.append("country", formData.country);
-      formPayload.append("city_town", formData.city);
-      formPayload.append("state_province", formData.state);
-      formPayload.append("postal_code", formData.postalCode);
-      formPayload.append("established_date", formData.date);
-      formPayload.append("business_type", formData.businessType);
-      formPayload.append("taxpayer_number", formData.taxpayerNumber);
-      formPayload.append("trade_register_number", formData.tradeRegisterNumber);
-      formPayload.append("status", "pending");
-      formPayload.append("home_localization_plan", formData.homeLocalizationPlan);
-      formPayload.append("business_localization_plan", formData.businessLocalizationPlan);
-      formPayload.append("user", 9);
+      if (isAdmin) {
+      
+        const formPayload = new FormData();
+        
+     
+        formPayload.append("email", formData.email );
+        formPayload.append("first_name", formData.firstName);
+        formPayload.append("last_name", formData.lastName);
+        formPayload.append("job_title", formData.jobTitle);
+        formPayload.append("phone_number", formData.phone);
+        formPayload.append("legal_business_name", formData.businessName);
+        formPayload.append("business_address", formData.businessAddress);
+        formPayload.append("country", formData.country);
+        formPayload.append("city_town", formData.city);
+        formPayload.append("state_province", formData.state);
+        formPayload.append("postal_code", formData.postalCode);
+        formPayload.append("established_date", formData.date);
+        formPayload.append("business_type", formData.businessType);
+        formPayload.append("taxpayer_number", formData.taxpayerNumber);
+        formPayload.append("trade_register_number", formData.tradeRegisterNumber);
+        formPayload.append("status", "approved");
+        formPayload.append("home_localization_plan", formData.homeLocalizationPlan);
+        formPayload.append("business_localization_plan", formData.businessLocalizationPlan);
 
-      if (formData.frontId) formPayload.append("nid_front", formData.frontId);
-      if (formData.backId) formPayload.append("nid_back", formData.backId);
-      if (formData.businessOwner) formPayload.append("business_owner", formData.businessOwner);
-      if (formData.taxFile) formPayload.append("taxpayer_doc", formData.taxFile);
-      if (formData.tradeFile) formPayload.append("trade_register_doc", formData.tradeFile);
+        if (formData.frontId) formPayload.append("nid_front", formData.frontId);
+        if (formData.backId) formPayload.append("nid_back", formData.backId);
+        if (formData.businessOwner) formPayload.append("business_owner", formData.businessOwner);
+        if (formData.taxFile) formPayload.append("taxpayer_doc", formData.taxFile);
+        if (formData.tradeFile) formPayload.append("trade_register_doc", formData.tradeFile);
 
-      await postSeller(formPayload).unwrap();
+        await adminVendorCreate(formPayload).unwrap();
 
-      MySwal.close();
+        MySwal.close();
 
-      MySwal.fire({
-        icon: 'success',
-        title: 'Application Submitted!',
-        text: 'Please wait, Admin is reviewing your application.',
-        confirmButtonColor: '#CBA135'
-      });
+        MySwal.fire({
+          icon: 'success',
+          title: 'Vendor Created Successfully!',
+          text: 'The vendor has been created and approved automatically.',
+          confirmButtonColor: '#CBA135'
+        });
 
-      // Reset form state
+      } else {
+     
+        const formPayload = new FormData();
+     
+        formPayload.append("first_name", formData.firstName);
+        formPayload.append("last_name", formData.lastName);
+        formPayload.append("email", formData.email);
+        formPayload.append("job_title", formData.jobTitle);
+        formPayload.append("phone_number", formData.phone);
+        formPayload.append("legal_business_name", formData.businessName);
+        formPayload.append("business_address", formData.businessAddress);
+        formPayload.append("country", formData.country);
+        formPayload.append("city_town", formData.city);
+        formPayload.append("state_province", formData.state);
+        formPayload.append("postal_code", formData.postalCode);
+        formPayload.append("established_date", formData.date);
+        formPayload.append("business_type", formData.businessType);
+        formPayload.append("taxpayer_number", formData.taxpayerNumber);
+        formPayload.append("trade_register_number", formData.tradeRegisterNumber);
+        formPayload.append("status", "pending");
+        formPayload.append("home_localization_plan", formData.homeLocalizationPlan);
+        formPayload.append("business_localization_plan", formData.businessLocalizationPlan);
+        formPayload.append("user", 9);
+
+        if (formData.frontId) formPayload.append("nid_front", formData.frontId);
+        if (formData.backId) formPayload.append("nid_back", formData.backId);
+        if (formData.businessOwner) formPayload.append("business_owner", formData.businessOwner);
+        if (formData.taxFile) formPayload.append("taxpayer_doc", formData.taxFile);
+        if (formData.tradeFile) formPayload.append("trade_register_doc", formData.tradeFile);
+
+        await postSeller(formPayload).unwrap();
+
+        MySwal.close();
+
+        MySwal.fire({
+          icon: 'success',
+          title: 'Application Submitted!',
+          text: 'Please wait, Admin is reviewing your application.',
+          confirmButtonColor: '#CBA135'
+        });
+      }
+
+
       setFormData({
         firstName: '',
         lastName: '',
@@ -271,8 +335,14 @@ const handleApply = useCallback(async () => {
         tradeFile: null,
         captcha: ''
       });
-      refetch()
-      navigate('/');
+      
+      refetch();
+     if(isAdmin){
+       navigate('/admin-dashboard/vendors');
+     }
+     else{
+       navigate('/');
+     }
 
     } catch (error) {
       console.error(error);
@@ -285,25 +355,40 @@ const handleApply = useCallback(async () => {
         confirmButtonColor: '#CBA135'
       });
     }
-  }, [formData, postSeller, navigate]);
+  }, [formData, postSeller, adminVendorCreate, navigate, isAdmin, refetch]);
 
-    useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="bg-[#FAF8F2] px-4 md:px-20 py-20 pb-28">
+      {isAdmin && (
+        <div className="max-w-3xl mx-auto mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 font-bold">Admin Mode:</span>
+              <span className="text-blue-700">Creating vendor directly</span>
+            </div>
+          </div>
+        </div>
+      )}
     
       <div className="text-center max-w-3xl mx-auto mb-10">
         <div className="flex justify-center text-[#CBA135] mb-3">
           <FaHandshakeSimple size={48} />
         </div>
-        <h2 className="text-[32px] md:text-[48px] popbold mb-3">🛍️ Partner with WIROKO</h2>
+        <h2 className="text-[32px] md:text-[48px] popbold mb-3">
+          {isAdmin ? '🛍️ Create Vendor Account' : '🛍️ Partner with WIROKO'}
+        </h2>
         <p className="text-[18px] md:text-[20px] text-gray-700">
-          Join our curated network of premium furniture vendors and reach customers worldwide
+          {isAdmin 
+            ? 'Create a new vendor account directly in the system'
+            : 'Join our curated network of premium furniture vendors and reach customers worldwide'
+          }
         </p>
       </div>
 
-      
       <div className="max-w-4xl mx-auto mb-12">
         <Steps current={currentStep}>
           {steps.map((item) => (
@@ -316,7 +401,6 @@ const handleApply = useCallback(async () => {
         {steps[currentStep].content}
       </div>
 
-    
       <div className="flex justify-between max-w-3xl mx-auto mt-6">
         {currentStep > 0 && (
           <Button onClick={prevStep} className="bg-gray-200 hover:bg-gray-300 py-4 px-8">
@@ -332,7 +416,7 @@ const handleApply = useCallback(async () => {
             onClick={handleApply}
             className="bg-[#CBA135] hover:bg-[#b8962e] text-white py-4 px-8 ml-auto"
           >
-            Apply Now
+            {isAdmin ? 'Create Vendor' : 'Apply Now'}
           </Button>
         )}
       </div>
@@ -340,8 +424,7 @@ const handleApply = useCallback(async () => {
   );
 };
 
-
-const ContactInfoStep = ({ formData, setFormData }) => {
+const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -359,9 +442,25 @@ const ContactInfoStep = ({ formData, setFormData }) => {
         subtitle="Tell us how to reach you"
       />
 
+      {/* Admin Only - Vendor Email Field */}
+      {isAdmin && (
+        <div className='mt-2 mb-4'>
+          <label className="block mb-1 popbold text-[14px] text-gray-700">Vendor Email *</label>
+          <input 
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter vendor email address" 
+            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+          />
+          <p className="text-xs text-gray-500 mt-1">This email will be used for vendor account creation</p>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-4">
+        {/* First Name - For both admin and regular users */}
         <div className='mt-2'>
-          <label className="block mb-1 popbold text-[14px] text-gray-700">First Name</label>
+          <label className="block mb-1 popbold text-[14px] text-gray-700">First Name *</label>
           <input 
             name="firstName"
             value={formData.firstName}
@@ -371,6 +470,7 @@ const ContactInfoStep = ({ formData, setFormData }) => {
           />
         </div>
 
+        {/* Last Name - For both admin and regular users */}
         <div className='mt-2'>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Last Name *</label>
           <input 
@@ -384,33 +484,34 @@ const ContactInfoStep = ({ formData, setFormData }) => {
 
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Job Title *</label>
-<Select
-  placeholder="Select Your Role"
-  className="w-full h-[44px]"
-  suffixIcon={<FiChevronDown className="text-gray-500" />}
-  onChange={(value) => handleSelect('jobTitle', value)}
-  value={formData.jobTitle || "Select One"} 
->
-
-  <Option value="owner">Owner</Option>
-  <Option value="manager">Manager</Option>
-  <Option value="designer">Designer</Option>
-</Select>
-
-
+          <Select
+            placeholder="Select Your Role"
+            className="w-full h-[44px]"
+            suffixIcon={<FiChevronDown className="text-gray-500" />}
+            onChange={(value) => handleSelect('jobTitle', value)}
+            value={formData.jobTitle || "Select One"} 
+          >
+            <Option value="owner">Owner</Option>
+            <Option value="manager">Manager</Option>
+            <Option value="designer">Designer</Option>
+          </Select>
         </div>
 
-        <div className='mt-2'>
-          <label className="block mb-1 popbold text-[14px] text-gray-700">Email Address *</label>
-          <input 
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Enter Email Address" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
-          />
-        </div>
+        {/* Email - For regular users only (admin has separate vendor email field) */}
+        {!isAdmin && (
+          <div className='mt-2'>
+            <label className="block mb-1 popbold text-[14px] text-gray-700">Email Address *</label>
+            <input 
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter Email Address" 
+              className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            />
+          </div>
+        )}
       </div>
+      
       <div className='mt-2'>
         <label className="block mb-1 popbold text-[14px] text-gray-700">Phone Number *</label>
         <input 
@@ -425,7 +526,7 @@ const ContactInfoStep = ({ formData, setFormData }) => {
   );
 };
 
-const BusinessInfoStep = ({ formData, setFormData }) => {
+const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -557,7 +658,7 @@ const BusinessInfoStep = ({ formData, setFormData }) => {
   );
 };
 
-const VerifyInfoStep = ({ formData, setFormData }) => {
+const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -633,7 +734,6 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
 
       <div className="flex flex-col sm:flex-row mt-6 gap-4">
         <div className="flex-1">
-      
           <FileUploader 
             title="Taxpayer Document"
             name="taxFile"
@@ -644,7 +744,6 @@ const VerifyInfoStep = ({ formData, setFormData }) => {
         </div>
 
         <div className="flex-1">
-
           <FileUploader 
             title="Trade Register Document"
             name="tradeFile"

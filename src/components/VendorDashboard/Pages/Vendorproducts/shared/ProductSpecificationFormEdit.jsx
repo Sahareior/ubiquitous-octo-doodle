@@ -17,7 +17,7 @@ const InputField = ({ label, name, placeholder, type = "text", value, onChange }
 
 const ProductSpecificationFormEdit = ({ formData, setFormData }) => {
 
-  console.log('this is forData', formData)
+  console.log('this is formData', formData)
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +26,36 @@ const ProductSpecificationFormEdit = ({ formData, setFormData }) => {
       [name]: value,
     }));
   };
+
+  // Handle dimensions change
+  const handleDimensionsChange = (field, value) => {
+    setFormData((prev) => {
+      const dimensions = prev.dimensions ? prev.dimensions.split(' × ') : ['', '', ''];
+      
+      if (field === 'width') dimensions[0] = value;
+      if (field === 'height') dimensions[1] = value;
+      if (field === 'depth') dimensions[2] = value;
+      
+      return {
+        ...prev,
+        dimensions: dimensions.join(' × ')
+      };
+    });
+  };
+
+  // Parse existing dimensions
+  const parseDimensions = () => {
+    if (!formData.dimensions) return { width: '', height: '', depth: '' };
+    
+    const dimensions = formData.dimensions.split(' × ');
+    return {
+      width: dimensions[0] || '',
+      height: dimensions[1] || '',
+      depth: dimensions[2] || ''
+    };
+  };
+
+  const dimensions = parseDimensions();
 
   // ✅ Full color options same as create component
   const colorOptions = [
@@ -46,20 +76,66 @@ const ProductSpecificationFormEdit = ({ formData, setFormData }) => {
       <hr />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <InputField
-          label="Dimensions (W×H×D)"
-          name="dimensions"
-          placeholder='e.g. 88" × 35" × 38"'
-          value={formData.dimensions}
-          onChange={handleChange}
-        />
+        {/* Dimensions - 3 separate input fields */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Dimensions (W×H×D)</label>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-1">
+             
+              <input
+                type="text"
+                placeholder='Enter product width"'
+                value={dimensions.width}
+                onChange={(e) => handleDimensionsChange('width', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+           
+              <input
+                type="text"
+                placeholder='Enter product height'
+                value={dimensions.height}
+                onChange={(e) => handleDimensionsChange('height', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+            
+              <input
+                type="text"
+                placeholder='Enter product depth"'
+                value={dimensions.depth}
+                onChange={(e) => handleDimensionsChange('depth', e.target.value)}
+                className="w-full border border-gray-300 bg-[#F9FAFB] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+              />
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Combined: {formData.dimensions || 'Not set'}
+          </div>
+        </div>
 
-        <InputField
-          label="Assembly Required"
-          name="assembly_required"
-          value={formData.assembly_required}
-          onChange={handleChange}
-        />
+        {/* Assembly Required - Dropdown */}
+        <div className="flex flex-col gap-1">
+          <label className="popbold text-[14px] text-gray-700">Assembly Required</label>
+          <Select
+            placeholder="Select option"
+            value={formData.assembly_required}
+            onChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                assembly_required: value,
+              }))
+            }
+            options={[
+              { label: 'Yes', value: 'Yes' },
+              { label: 'No', value: 'No' }
+            ]}
+            style={{ width: "100%" }}
+            allowClear
+          />
+        </div>
 
         <InputField
           label="Material"

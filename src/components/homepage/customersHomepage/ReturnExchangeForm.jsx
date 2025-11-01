@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { Select, Collapse, Spin } from "antd";
 import { useGetDeleveredOrdersQuery, useReturnProductMutation } from "../../../redux/slices/Apis/customersApi";
 import { useAllOrdersQuery } from "../../../redux/slices/apiSlice";
+import { useNavigate } from "react-router-dom";
 
 const { Panel } = Collapse;
 
@@ -22,6 +23,25 @@ const ReturnExchangeForm = () => {
   const [returnProduct] = useReturnProductMutation();
   const { data: getDeleveryedProduct, isLoading } = useGetDeleveredOrdersQuery();
   const { data: allOrders } = useAllOrdersQuery();
+
+  const navigate = useNavigate()
+
+
+useEffect(() => {
+  const userType = localStorage.getItem('user_role');
+  
+  if (!userType) {
+    Swal.fire({
+      title: "Access Denied!",
+      text: "You need to log in first to return a product.",
+      icon: "warning",
+      confirmButtonText: "Go to Home",
+    }).then(() => {
+      navigate("/");
+    });
+  }
+}, [navigate]);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);

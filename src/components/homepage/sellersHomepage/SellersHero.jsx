@@ -9,7 +9,7 @@ const navigate = useNavigate()
    const location = useLocation()
    console.log(location.pathname)
 
-const token = localStorage.getItem('token')
+const token = localStorage.getItem('access_token')
 
   const handelClick = () => {
     if (!token) {
@@ -54,7 +54,7 @@ const token = localStorage.getItem('token')
         </p>
         {/*  */}
 {
-  !storedRole && (
+  storedRole != 'vendor' ? (
 
         <Button
         onClick={handelClick}
@@ -64,6 +64,13 @@ const token = localStorage.getItem('token')
           Apply to Sell
         </Button>
 
+  ):(
+      <Link
+                to='/vendor-dashboard'
+                className="cursor-pointer bg-[#CBA135] block text-center w-44 px-4 py-2 rounded-[8px] popreg text-white hover:bg-[#b38d2c] transition"
+              >
+                 Dashboard
+              </Link>
   )
 }
       </div>

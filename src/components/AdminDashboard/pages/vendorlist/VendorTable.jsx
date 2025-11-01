@@ -38,6 +38,8 @@ const VendorTable = ({ vendors }) => {
       orders: v.orders_count,
       rating: v.ratings,
       actions: v.actions,
+      signup_data: v.signup_date,
+      email: v.email
     };
   }) || [];
 

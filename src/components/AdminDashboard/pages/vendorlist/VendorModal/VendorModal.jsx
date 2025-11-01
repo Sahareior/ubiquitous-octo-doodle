@@ -4,7 +4,7 @@ import { LiaStarSolid } from "react-icons/lia";
 
 const VendorModal = ({ isModalOpen, setIsModalOpen, vendorsData }) => {
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-  // console.log('this is ven', vendorsData)
+  console.log('this is ven', vendorsData)
   
   const handleOk = () => setIsModalOpen(false);
   const handleCancel = () => setIsModalOpen(false);
@@ -45,7 +45,7 @@ const VendorModal = ({ isModalOpen, setIsModalOpen, vendorsData }) => {
               <div>
                 <p className="popmed text-[#666666]">Signup Date</p>
                 <p className="text-gray-800 popreg text-[16px]">
-                  {vendorsData?.signup_date || "N/A"}
+                  {vendorsData?.signup_data || "N/A"}
                 </p>
               </div>
 

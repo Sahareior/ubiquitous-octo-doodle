@@ -32,6 +32,7 @@ import {
   FaChevronDown,
   FaBolt
 } from 'react-icons/fa';
+import { useWebSocketContext } from "../../../context/WebSocketContext";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -50,7 +51,7 @@ const Details = () => {
   const [deliveryCharge, setDeliveryCharge] = useState(50);
   const [currentSection, setCurrentSection] = useState("description");
   const form = Form.useForm()[0];
-
+  const { add, setAdd } = useWebSocketContext();
   const zoomPaneRef = useRef(null);
   const { data: productsData } = useGetAllProductsQuery();
   const [addProductToCart] = useAddProductToCartMutation();
@@ -66,7 +67,9 @@ const Details = () => {
   const [getProductById, { data, error, isLoading }] = useLazyGetProductByIdQuery();
 const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
 
-
+  const getGuestCart = useCallback(() => {
+    return JSON.parse(localStorage.getItem('guest_cart')) || [];
+  }, []);
 
 
 
@@ -86,9 +89,21 @@ useEffect(() => {
 
 
 
-      const checkCartData = useCallback((id) => {
-      return cartData?.results?.some(items => items.product.id === id)
-    },[cartData])
+  const checkCartData = useCallback(
+    (id) => {
+      const token = localStorage.getItem("access_token");
+      
+      // If user is not logged in, check guest cart
+      if (!token) {
+        const guestCart = getGuestCart();
+        return guestCart.some((item) => item.id === id);
+      }
+      
+      // If user is logged in, check server cart data
+      return cartData?.results?.some((item) => item.product.id === id);
+    },
+    [cartData, getGuestCart]
+  );
 
 
   const productSpecs = [
@@ -149,36 +164,65 @@ const filteredProducts = productsData?.results?.filter(
     setActiveImageIndex(index);
   };
 
-  const handleCart = async (data) => {
-    const payload = {
-      ...data,
-      id: data.id,
-      quantity: 1,
-      product_id: data.id,
-    };
+  const handleCart = useCallback(
+    async (data) => {
+      const payload = {
+        ...data,
+        id: data.id,
+        quantity: 1,
+        product_id: data.id,
+      };
+      delete payload.prod_id;
 
-    const res = await addProductToCart(payload);
-    refetch();
+      const token = localStorage.getItem("access_token");
 
-    MySwal.fire({
-      position: "top-end",
-      icon: "success",
-      title: '<span style="font-family: Poppins, sans-serif;">Item added to cart!</span>',
-      background: "#FFFFFF",
-      customClass: {
-        popup: "rounded-xl shadow-lg",
-        title: "text-lg text-gray-800",
-        icon: "text-green-500",
-      },
-      showConfirmButton: false,
-      timer: 1800,
-      toast: true,
-      didOpen: (toast) => {
-        toast.style.border = "1px solid #e0e0e0";
-        toast.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.05)";
-      },
-    });
-  };
+      if (!token) {
+        // 🛒 Handle guest cart (store in localStorage)
+        const existingCart = getGuestCart();
+
+        // Check if product already exists in guest cart
+        const existingItemIndex = existingCart.findIndex(
+          (item) => item.id === payload.id
+        );
+
+        if (existingItemIndex !== -1) {
+          // Update quantity if it already exists
+          existingCart[existingItemIndex].quantity += 1;
+        } else {
+          existingCart.push(payload);
+        }
+
+        localStorage.setItem("guest_cart", JSON.stringify(existingCart));
+
+        MySwal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Item added to cart!",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+
+        setAdd((items) => !items);
+
+        return; // Exit function since user is not logged in
+      }
+
+      // 🧾 Handle logged-in cart
+      await addProductToCart(payload);
+      refetch();
+
+      MySwal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Item added to cart!",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    },
+    [addProductToCart, refetch, getGuestCart, setAdd]
+  );
 
   const handleOrder = (data) => {
     setOrderFormVisible(true);

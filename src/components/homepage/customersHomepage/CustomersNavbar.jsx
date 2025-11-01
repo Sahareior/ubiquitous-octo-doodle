@@ -8,6 +8,7 @@ import { FiSearch, FiX } from 'react-icons/fi';
 import { useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
 import { useGetAllWishListQuery, useGetCustomerProductsQuery, useGetProfileQuery } from '../../../redux/slices/Apis/customersApi';
 import Swal from 'sweetalert2'; // Import SweetAlert2
+import CategorySearch from './Category/CategorySearch';
 
 const CustomersNavbar = ({ cartCount }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,7 +124,7 @@ const CustomersNavbar = ({ cartCount }) => {
             <img
               src="/image/logo.png"
               alt="Logo"
-              className="h-8 md:h-[32px] w-auto object-contain"
+              className="h-6 md:h-[32px] w-auto object-contain"
             />
           </Link>
         </div>
@@ -131,78 +132,7 @@ const CustomersNavbar = ({ cartCount }) => {
 
 
         {/* Search Bar - Hidden on mobile when menu is open */}
-        <div className={`${mobileMenuOpen ? 'hidden' : 'flex'}  hidden md:block items-center flex-1 max-w-lg mx-4 md:mx-8`}>
-          <div ref={searchRef} className="relative w-full"> 
-            <div className="relative">
-              <input
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                onFocus={() => {
-                  searchText && setShowSearchResults(true);
-                  setIsSearchFocused(true);
-                }}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                placeholder="Search products..."
-                className="w-full border border-[#E5E7EB] px-4 py-2 pr-10 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#E5E7EB] rounded-xl"
-              />
-              {searchText && (
-                <FiX
-                  className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
-                  size={18}
-                  onClick={clearSearch}
-                />
-              )}
-              <FiSearch
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
-                size={18}
-                onClick={handleSearch}
-              />
-            </div>
-
-            {/* Search Results Dropdown */}
-            {showSearchResults && filteredProducts.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-80 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div 
-                    key={product.id}
-                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b  border-gray-100 last:border-b-0"
-                    onClick={() => handleProductSelect(product)}
-                  >
-                    <img 
-                      src={product.images[0]?.image || annomalyImage} 
-                      alt={product.name}
-                      className="w-10 h-10 object-cover rounded mr-3"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-sm truncate">{product.name}</div>
-                      {/* <div className="text-xs text-gray-500 truncate">{product.short_description}</div> */}
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-sm font-semibold text-[#CBA135]">
-                          XAF {product.price1}
-                        </span>
-                        <span className="text-xs  text-gray-500">___by {product.vendor_details.first_name}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {filteredProducts.length > 0 && searchText && (
-                  <div 
-                    className="p-3 text-center text-sm font-medium text-[#CBA135] hover:bg-gray-100 cursor-pointer border-t border-gray-100"
-                    onClick={handleSearch}
-                  >
-                    View all results for "{searchText}"
-                  </div>
-                )}
-              </div>
-            )}
-            {showSearchResults && searchText && filteredProducts.length === 0 && !isLoading && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-4">
-                <div className="text-center text-gray-500">No products found</div>
-              </div>
-            )}
-          </div>
-        </div>
+    <CategorySearch categoriesData={allCategories}/>
 
         {/* Desktop Icons */}
         <div className="hidden md:flex items-center gap-2 text-sm font-medium">
@@ -306,22 +236,7 @@ const CustomersNavbar = ({ cartCount }) => {
           {/* Mobile Search - Only in drawer */}
 
           {/* Mobile Category Dropdown */}
-          <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-3">Categories</h4>
-            <div className="space-y-2">
-              {allCategories?.results?.map((category) => (
-                <Link 
-                  to={`/filter?category=${category.id}`} 
-                  key={category.id}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <div className="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer">
-                    {category.name}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+
 
           {/* Admin Dashboard Link */}
           {isAdmin && (

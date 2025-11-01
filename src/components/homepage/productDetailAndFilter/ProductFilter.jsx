@@ -1,15 +1,17 @@
-// In ProductFilter.jsx - update the component to use the navigation state
+// In ProductFilter.jsx - updated to use categoryProducts data
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { Button, Checkbox, Slider, Select, Rate, Radio, Pagination, Spin, Drawer } from 'antd';
 import { FaRegHeart, FaFilter } from "react-icons/fa6";
 import Breadcrumb from '../../others/Breadcrumb';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { useDispatch } from 'react-redux';
 import { addToCart, addToWishList } from '../../../redux/slices/customerSlice';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useGetCategoriesQuery, useGetCustomerProductsQuery, useSavetoWishListMutation } from '../../../redux/slices/Apis/customersApi';
+import { useWebSocketContext } from '../../../context/WebSocketContext';
+import { useGetProductsByCategoryQuery } from '../../../redux/slices/Apis/vendorsApi';
 
 const MySwal = withReactContent(Swal);
 
@@ -29,19 +31,62 @@ const ProductFilter = () => {
   const [savetoWishList] = useSavetoWishListMutation();
 
   const productListRef = useRef(null);
-  
+  const navigate = useNavigate();
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [availability, setAvailability] = useState(false);
   const [sort, setSort] = useState('Newest');
+  const { add, setAdd } = useWebSocketContext();
   const [currentPage, setCurrentPage] = useState(1);
+  const childSubId = navigationState?.selectedNestedCategory?.id;
+  const searchId = location?.state?.categoryId
+
+  const { data: categoryProducts, loading: categoryLoading } = useGetProductsByCategoryQuery(childSubId||searchId );
+
   const pageSize = 6;
 
-  const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
+  // Use categoryProducts data instead of allProducts
   const { data: fetchedCategories } = useGetCategoriesQuery();
 
+  const getGuestCart = useCallback(() => {
+    return JSON.parse(localStorage.getItem('guest_cart')) || [];
+  }, []);
+
+  // Extract filters and products from categoryProducts
+  const filters = categoryProducts?.filters || [];
+  const products = categoryProducts?.products || [];
+  const category = categoryProducts?.category;
+
+  const [selectedFilters, setSelectedFilters] = useState({});
+
+const handleFilterChange = useCallback((filterId, value) => {
+  setSelectedFilters(prev => {
+    // If the same radio button is clicked again, unselect it
+    if (prev[filterId] === value) {
+      const newFilters = { ...prev };
+      delete newFilters[filterId];
+      return newFilters;
+    }
+    // Otherwise, set the new value
+    return { ...prev, [filterId]: value };
+  });
+}, []);
+
+  const handleMultiFilterChange = useCallback((filterId, value, checked) => {
+    setSelectedFilters(prev => {
+      let current = prev[filterId] || [];
+      if (checked) {
+        current = [...current, value];
+      } else {
+        current = current.filter(v => v !== value);
+      }
+      return {...prev, [filterId]: current};
+    });
+  }, []);
+
+  
   // Handle category selection from navigation
   useEffect(() => {
     if (navigationState) {
@@ -80,9 +125,21 @@ const ProductFilter = () => {
     };
   }, [navigationState]);
 
-  const checkCartData = useCallback((id) => {
-    return cartData?.results?.some(items => items.product.id === id) || false;
-  }, [cartData]);
+  const checkCartData = useCallback(
+    (id) => {
+      const token = localStorage.getItem("access_token");
+      
+      // If user is not logged in, check guest cart
+      if (!token) {
+        const guestCart = getGuestCart();
+        return guestCart.some((item) => item.id === id);
+      }
+      
+      // If user is logged in, check server cart data
+      return cartData?.results?.some((item) => item.product.id === id);
+    },
+    [cartData, getGuestCart]
+  );
 
   const checkWishList = useCallback((id) => {
     if (!wishLists?.results) return false;
@@ -97,20 +154,11 @@ const ProductFilter = () => {
     return map;
   }, [fetchedCategories]);
 
-  const categories = useMemo(() => {
-    if (!allProducts?.results) return [];
-    const allCatIds = allProducts.results.map(p => p.categories || []).flat();
-    const uniqueCatIds = [...new Set(allCatIds.filter(Boolean))];
-    return uniqueCatIds.map(id => ({
-      id,
-      name: categoryMap[id]
-    })).filter(cat => cat.name);
-  }, [allProducts, categoryMap]);
-
+  // Get colors from products
   const colors = useMemo(() => {
-    if (!allProducts?.results) return [];
+    if (!products) return [];
     const colorSet = new Set();
-    allProducts.results.forEach(product => {
+    products.forEach(product => {
       if (product.specifications?.color) {
         const colorList = product.specifications.color
           .split(/[,/]/)
@@ -125,11 +173,12 @@ const ProductFilter = () => {
         label: color.charAt(0).toUpperCase() + color.slice(1),
         value: color
       }));
-  }, [allProducts]);
+  }, [products]);
 
+  // Filter products based on selected filters
   const filteredProducts = useMemo(() => {
-    if (!allProducts?.results) return [];
-    return allProducts.results
+    if (!products) return [];
+    return products
       .filter(p => {
         const productCategories = p.categories || [];
         return !selectedCategoryIds.length || productCategories.some(c => selectedCategoryIds.includes(c));
@@ -145,17 +194,45 @@ const ProductFilter = () => {
       .filter(p => !selectedRating || (p.average_rating || 0) >= selectedRating)
       .filter(p => !availability || p.is_stock)
       .filter(p => {
-        const price = p.active_price || parseFloat(p.price1) || 0;
+        const price = p.new_price || parseFloat(p.price1) || 0;
         return price >= priceRange[0] && price <= priceRange[1];
       })
+      .filter(p => {
+        // Filter based on selected filter options
+        return Object.entries(selectedFilters).every(([filterId, selected]) => {
+          if (!selected || (Array.isArray(selected) && !selected.length)) return true;
+          
+          const filter = filters.find(f => f.id === parseInt(filterId));
+          if (!filter) return true;
+          
+          // Check if product has the filter option in product_filter array
+          const productFilterIds = p.product_filter || [];
+          const filterOptionIds = filter.options.map(opt => opt.id);
+          
+          const matchingOptionIds = productFilterIds.filter(id => filterOptionIds.includes(id));
+          if (matchingOptionIds.length === 0) return false;
+          
+          if (filter.filter_type === "radio") {
+            // For radio, check if any matching option value equals the selected value
+            const selectedOption = filter.options.find(opt => opt.value === selected);
+            return selectedOption && matchingOptionIds.includes(selectedOption.id);
+          } else {
+            // For checkbox, check if any matching option value is in selected array
+            return matchingOptionIds.some(optionId => {
+              const option = filter.options.find(opt => opt.id === optionId);
+              return option && selected.includes(option.value);
+            });
+          }
+        });
+      })
       .sort((a, b) => {
-        const priceA = a.active_price || parseFloat(a.price1) || 0;
-        const priceB = b.active_price || parseFloat(b.price1) || 0;
+        const priceA = a.new_price || parseFloat(a.price1) || 0;
+        const priceB = b.new_price || parseFloat(b.price1) || 0;
         if (sort === 'Price: Low to High') return priceA - priceB;
         if (sort === 'Price: High to Low') return priceB - priceA;
         return new Date(b.created_at) - new Date(a.created_at);
       });
-  }, [allProducts, selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
+  }, [products, selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort, selectedFilters, filters]);
 
   const availableColors = useMemo(() => {
     if (!filteredProducts || filteredProducts.length === 0) return [];
@@ -186,27 +263,87 @@ const ProductFilter = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort]);
+  }, [selectedCategoryIds, selectedColors, selectedRating, availability, priceRange, sort, selectedFilters]);
 
-  const handleCart = useCallback(async (product) => {
-    const payload = { ...product, id: product.id, quantity: 1, product_id: product.id };
-    delete payload.prod_id;
+  const handleCart = useCallback(
+    async (data) => {
+      const payload = {
+        ...data,
+        id: data.id,
+        quantity: 1,
+        product_id: data.id,
+      };
+      delete payload.prod_id;
 
-    await addProductToCart(payload);
-    refetch();
-    dispatch(addToCart(payload));
+      const token = localStorage.getItem("access_token");
 
-    MySwal.fire({
-      position: 'top-end',
-      icon: 'success',
-      title: 'Item added to cart!',
-      showConfirmButton: false,
-      timer: 1800,
-      toast: true,
-    });
-  }, [addProductToCart, dispatch, refetch]);
+      if (!token) {
+        // 🛒 Handle guest cart (store in localStorage)
+        const existingCart = getGuestCart();
+
+        // Check if product already exists in guest cart
+        const existingItemIndex = existingCart.findIndex(
+          (item) => item.id === payload.id
+        );
+
+        if (existingItemIndex !== -1) {
+          // Update quantity if it already exists
+          existingCart[existingItemIndex].quantity += 1;
+        } else {
+          existingCart.push(payload);
+        }
+
+        localStorage.setItem("guest_cart", JSON.stringify(existingCart));
+
+        MySwal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Item added to cart!",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+
+        setAdd((items) => !items);
+
+        return; // Exit function since user is not logged in
+      }
+
+      // 🧾 Handle logged-in cart
+      await addProductToCart(payload);
+      refetch();
+
+      MySwal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "Item added to cart!",
+        showConfirmButton: false,
+        timer: 1800,
+        toast: true,
+      });
+    },
+    [addProductToCart, refetch, getGuestCart, setAdd]
+  );
 
   const handleWishlist = async (item) => {
+    const token = localStorage.getItem("access_token");
+    
+    if (!token) {
+      Swal.fire({
+        title: "Please Sign In Your Account!",
+        text: "You need to log in to access this page.",
+        icon: "warning",
+        confirmButtonText: "Go to Login",
+        confirmButtonColor: "#3085d6",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+
+      return null;
+    }
+
     const payload = {
       item,
       product_id: item.id,
@@ -288,117 +425,158 @@ const ProductFilter = () => {
     );
   };
 
-  const FilterSidebar = () => (
-    <div className="bg-white p-4 h-full">
-      <div className='flex justify-between '>
-        <h3 className="text-lg popbold mb-2">Filters</h3>
-        <Button className='border-none popmed' onClick={() => {
-          setSelectedCategoryIds([]);
-          setSelectedColors([]);
-          setSelectedRating(null);
-          setPriceRange([0, 5000]);
-          setAvailability(false);
-        }}>Clear All</Button>
-      </div>
+const FilterSidebar = () => (
+  <div className="bg-white p-4 h-full">
+    <div className='flex justify-between '>
+      <h3 className="text-lg popbold mb-2">Filters</h3>
+      <Button className='border-none popmed' onClick={() => {
+        setSelectedCategoryIds([]);
+        setSelectedColors([]);
+        setSelectedRating(null);
+        setPriceRange([0, 5000]);
+        setAvailability(false);
+        setSelectedFilters({});
+      }}>Clear All</Button>
+    </div>
 
-      <div className="my-4">
-        <p className="popmed mb-2">Category</p>
-        <div className="max-h-34 popreg text-[#666666] overflow-y-auto space-y-1 bg-white rounded-md px-2">
-          {categories?.map((item) => (
-            <label key={item.id} className="flex items-center space-x-2 py-1 cursor-pointer">
+    <div className="my-4">
+      <p className="popmed mb-2">Price Range</p>
+      <Slider
+        range
+        min={0}
+        max={5000}
+        step={100}
+        value={priceRange}
+        onChange={setPriceRange}
+      />
+      <div className="flex justify-between popreg text-sm">
+        <span>${priceRange[0]}</span>
+        <span>${priceRange[1]}</span>
+      </div>
+    </div>
+
+    <div className="my-4">
+      <p className="font-medium popmed mb-2">Colors</p>
+      <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
+        {availableColors.length > 0 ? (
+          availableColors.map(({ label, value }) => (
+            <label
+              key={value}
+              className="flex items-center space-x-2 py-1 cursor-pointer popreg"
+            >
               <input
                 type="checkbox"
-                value={item.id}
-                checked={selectedCategoryIds.includes(item.id)}
+                value={value}
+                checked={selectedColors.includes(value)}
                 onChange={e => {
-                  const val = parseInt(e.target.value);
-                  setSelectedCategoryIds(prev => prev.includes(val) 
-                    ? prev.filter(i => i !== val) 
-                    : [...prev, val]);
+                  const val = e.target.value;
+                  setSelectedColors(prev =>
+                    prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]
+                  );
                 }}
                 className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
               />
-              <span>{item.name}</span>
+              <span>{label}</span>
             </label>
-          ))}
-        </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-sm">No color data available</p>
+        )}
       </div>
+    </div>
 
-      {/* Rest of your FilterSidebar remains the same */}
-      <div className="my-4">
-        <p className="popmed mb-2">Price Range</p>
-        <Slider
-          range
-          min={0}
-          max={5000}
-          step={100}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-        <div className="flex justify-between popreg text-sm">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
-        </div>
-      </div>
-
-      <div className="my-4">
-        <p className="font-medium popmed mb-2">Colors</p>
-        <div className="max-h-40 text-[#666666] overflow-y-auto bg-white rounded-md px-2">
-          {availableColors.length > 0 ? (
-            availableColors.map(({ label, value }) => (
+    {/* Render filters from API */}
+{/* Render filters from API */}
+{filters.map(filter => (
+  <div key={filter.id} className="my-4">
+    <p className="popmed mb-2">{filter.name}</p>
+    <div className="max-h-40 text-[#666666] overflow-y-auto space-y-1 bg-white rounded-md px-2">
+      {filter.options.length === 0 ? (
+        <p className="text-gray-400 text-sm">No options available</p>
+      ) : (
+        filter.filter_type === "radio" ? (
+          <>
+            {/* Add "None" option for radio filters to allow clearing */}
+            <label
+              className="flex items-center space-x-2 py-1 cursor-pointer popreg"
+            >
+              <input
+                type="radio"
+                name={`filter_${filter.id}`}
+                value=""
+                checked={!selectedFilters[filter.id]}
+                onChange={() => handleFilterChange(filter.id, '')}
+                className="w-4 h-4 border border-[#333] rounded-full accent-[#CBA135] bg-white"
+              />
+              <span className="text-gray-400">None</span>
+            </label>
+            {filter.options.map(option => (
               <label
-                key={value}
+                key={option.id}
                 className="flex items-center space-x-2 py-1 cursor-pointer popreg"
               >
                 <input
-                  type="checkbox"
-                  value={value}
-                  checked={selectedColors.includes(value)}
-                  onChange={e => {
-                    const val = e.target.value;
-                    setSelectedColors(prev =>
-                      prev.includes(val) ? prev.filter(i => i !== val) : [...prev, val]
-                    );
-                  }}
-                  className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
+                  type="radio"
+                  name={`filter_${filter.id}`}
+                  value={option.value}
+                  checked={selectedFilters[filter.id] === option.value}
+                  onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                  className="w-4 h-4 border border-[#333] rounded-full accent-[#CBA135] bg-white"
                 />
-                <span>{label}</span>
+                <span>{option.value}</span>
               </label>
-            ))
-          ) : (
-            <p className="text-gray-400 text-sm">No color data available</p>
-          )}
-        </div>
-      </div>
-
-      <div className="my-4">
-        <p className="popmed mb-2">Customer Rating</p>
-        <div className="space-y-2">
-          {[5, 4, 3].map(stars => (
-            <div
-              key={stars}
-              onClick={() =>
-                setSelectedRating(selectedRating === stars ? null : stars)
-              }
-              className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
-                selectedRating === stars ? 'bg-yellow-100' : ''
-              }`}
+            ))}
+          </>
+        ) : (
+          filter.options.map(option => (
+            <label
+              key={option.id}
+              className="flex items-center space-x-2 py-1 cursor-pointer popreg"
             >
-              <Rate className="text-sm" disabled defaultValue={stars} />
-              <p className="text-[#666666] popreg">{stars} stars</p>
-            </div>
-          ))}
-        </div>
-      </div>
+              <input
+                type="checkbox"
+                value={option.value}
+                checked={(selectedFilters[filter.id] || []).includes(option.value)}
+                onChange={e => handleMultiFilterChange(filter.id, option.value, e.target.checked)}
+                className="w-4 h-4 border border-[#333] rounded-sm accent-[#CBA135] bg-white"
+              />
+              <span>{option.value}</span>
+            </label>
+          ))
+        )
+      )}
+    </div>
+  </div>
+))}
 
-      <div className="my-7">
-        <p className="popmed mb-2">Availability</p>
-        <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
-          In Stock Only
-        </Checkbox>
+    <div className="my-4">
+      <p className="popmed mb-2">Customer Rating</p>
+      <div className="space-y-2">
+        {[5, 4, 3].map(stars => (
+          <div
+            key={stars}
+            onClick={() =>
+              setSelectedRating(selectedRating === stars ? null : stars)
+            }
+            className={`flex items-center gap-3 cursor-pointer p-2 rounded ${
+              selectedRating === stars ? 'bg-yellow-100' : ''
+            }`}
+          >
+            <Rate className="text-sm" disabled defaultValue={stars} />
+            <p className="text-[#666666] popreg">{stars} stars</p>
+          </div>
+        ))}
       </div>
     </div>
-  );
+
+    <div className="my-7">
+      <p className="popmed mb-2">Availability</p>
+      <Checkbox className='text-[#666666] popreg' onChange={(e) => setAvailability(e.target.checked)} checked={availability}>
+        In Stock Only
+      </Checkbox>
+    </div>
+  </div>
+);
 
   const storedRole = localStorage.getItem('user_role'); 
 
@@ -445,7 +623,7 @@ const ProductFilter = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <div>
                   <h2 className="text-xl md:text-2xl popbold">
-                    {selectedCategoryInfo?.displayText || location?.state?.text || "Search Results"}
+                    {category?.name || selectedCategoryInfo?.displayText || location?.state?.text || "Search Results"}
                   </h2>
                   <p className="text-gray-500 popreg">{filteredProducts.length} products found</p>
                 </div>
@@ -467,9 +645,9 @@ const ProductFilter = () => {
                 </div>
               </div>
 
-              {/* Rest of your product grid remains the same */}
+              {/* Product Grid */}
               <div ref={productListRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {isLoading ? (
+                {categoryLoading ? (
                   <div className="col-span-3 flex justify-center py-10">
                     <Spin size="large" />
                   </div>
@@ -484,6 +662,7 @@ const ProductFilter = () => {
                         setSelectedRating(null);
                         setPriceRange([0, 5000]);
                         setAvailability(false);
+                        setSelectedFilters({});
                       }}
                     >
                       Clear Filters
@@ -491,7 +670,7 @@ const ProductFilter = () => {
                   </div>
                 ) : (
                   paginatedProducts.map(product => {
-                    const price = product.active_price || parseFloat(product.price1) || 0;
+                    const price = product.new_price || parseFloat(product.price1) || 0;
                     const rating = product.average_rating || 0;
 
                     return (
@@ -528,7 +707,7 @@ const ProductFilter = () => {
                               {product.promotion_discount_value > 0 ? (
                                 <>
                                   <span className="text-gray-400 line-through text-sm">
-                                    XAF {product.price1}
+                                    XAF {product.old_price}
                                   </span>
                                   <span className="text-[#CBA135] popbold text-lg md:text-[20px]">
                                     XAF {product.new_price}

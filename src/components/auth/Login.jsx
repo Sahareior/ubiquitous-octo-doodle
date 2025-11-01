@@ -10,7 +10,7 @@ import Swal from 'sweetalert2';
 // Firebase
 import { signInWithPopup, onAuthStateChanged, signOut, GoogleAuthProvider } from "firebase/auth";
 import { auth, googleProvider } from '../../firebase/auth';
-import { useAddProductToCartMutation } from '../../redux/slices/Apis/customersApi';
+import { useAddProductToCartMutation, useGetAppCartQuery } from '../../redux/slices/Apis/customersApi';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -19,51 +19,108 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const [addProductToCart] = useAddProductToCartMutation();
+  const { data: cartData, refetch } = useGetAppCartQuery();
   const location = useLocation();
 
-  console.log('Location state:', location.pathname);
+  console.log('Location state:', location.state);
 
+  const userType = localStorage.getItem('user_role')
+
+  // Get guest cart from localStorage as fallback
+  const getGuestCart = () => {
+    return JSON.parse(localStorage.getItem('guest_cart')) || [];
+  };
+
+  console.log(userType)
   // Function to add guest cart items to user cart after login
   const addGuestCartToUserCart = async () => {
-    if (!location.state || !Array.isArray(location.state)) {
+
+    if(userType === 'admin'){
+      return
+    }
+    // Try to get cart data from location state first, then from localStorage
+    let guestCartItems = [];
+    
+    if (location.state && Array.isArray(location.state)) {
+      guestCartItems = location.state;
+      console.log('Using guest cart from location state:', guestCartItems.length);
+    } else {
+      guestCartItems = getGuestCart();
+      console.log('Using guest cart from localStorage:', guestCartItems.length);
+    }
+
+    if (guestCartItems.length === 0) {
       console.log('No guest cart items found');
       return;
     }
 
     try {
-      console.log('Processing guest cart items:', location.state.length);
+      console.log('Processing guest cart items:', guestCartItems.length);
       
-      for (let item of location.state) {
-        // Use the direct item structure since there's no originalItem
-        const payload = {
-          product_id: item.id, // Use item.id directly
-          quantity: item.quantity || 1, // Use item.quantity, default to 1 if not present
-          price_snapshot: item.price1 || item.active_price // Use price1 or active_price
-        };
+      const results = [];
+      
+      for (let item of guestCartItems) {
+        try {
+          // Construct proper payload based on your API requirements
+          const payload = {
+            product_id: item.id || item.product_id, // Use both possibilities
+            quantity: item.quantity || 1,
+            // Include price snapshot if your API requires it
+            price_snapshot: item.price1 || item.new_price || item.price
+          };
 
-        console.log('Adding item to cart:', payload);
-        await addProductToCart(payload).unwrap();
-        
-        // Small delay to avoid overwhelming the API
-        await new Promise(resolve => setTimeout(resolve, 100));
+          console.log('Adding item to cart:', payload);
+          const result = await addProductToCart(payload).unwrap();
+          results.push({ success: true, item: item.name, result });
+          
+          // Small delay to avoid overwhelming the API
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (itemError) {
+          console.error(`Failed to add item ${item.id}:`, itemError);
+          results.push({ 
+            success: false, 
+            item: item.name, 
+            error: itemError.data?.message || 'Failed to add item' 
+          });
+        }
       }
+      refetch()
 
       // Clear guest cart from localStorage after successful transfer
       localStorage.removeItem('guest_cart');
       
-      Swal.fire({
-        icon: "success",
-        title: "Cart Items Moved",
-        text: "Your guest cart items have been added to your account!",
-        confirmButtonColor: "#CBA135",
-      });
+      const successfulItems = results.filter(r => r.success).length;
+      const failedItems = results.filter(r => !r.success).length;
+
+      if (failedItems === 0) {
+        Swal.fire({
+          icon: "success",
+          title: "Cart Items Moved",
+          text: `All ${successfulItems} items from your guest cart have been added to your account!`,
+          confirmButtonColor: "#CBA135",
+        });
+      } else if (successfulItems > 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Partial Cart Transfer",
+          text: `${successfulItems} items added successfully, ${failedItems} items failed.`,
+          confirmButtonColor: "#CBA135",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Cart Transfer Failed",
+          text: "None of your guest cart items could be added. Please try adding them manually.",
+          confirmButtonColor: "#CBA135",
+        });
+      }
 
     } catch (error) {
-      console.error('Error adding guest cart items:', error);
+      console.error('Error in guest cart transfer process:', error);
       Swal.fire({
-        icon: "warning",
-        title: "Cart Transfer Incomplete",
-        text: "Some items couldn't be added to your cart. You can add them manually later.",
+        icon: "error",
+        title: "Transfer Process Failed",
+        text: "There was a problem transferring your cart items. Please try adding them manually.",
         confirmButtonColor: "#CBA135",
       });
     }
@@ -224,13 +281,13 @@ const Login = () => {
         </h2>
 
         {/* Show guest cart notification if items exist */}
-        {location.state && location.state.length > 0 && (
+        {(location.state && location.state.length > 0) || getGuestCart().length > 0 ? (
           <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 text-center">
             <p className="text-sm">
-              You have {location.state.length} item(s) in your guest cart that will be saved to your account after login.
+              You have {(location.state?.length || getGuestCart().length)} item(s) in your guest cart that will be saved to your account after login.
             </p>
           </div>
-        )}
+        ) : null}
 
         <p className="text-xs sm:text-sm text-center">
           Don't have an account?{" "}

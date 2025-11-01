@@ -21,14 +21,54 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   // Handle both data structures - API response and localStorage structure
   const hasPromotion = item.promotion_discount_type && item.promotion_discount_value;
   
-  // Handle image URL - check both possible structures
-  const imageUrl = item.images?.[0]?.url || item.images?.[0]?.image || "https://via.placeholder.com/150";
+  // Comprehensive image URL handling for ALL possible structures
+  const getImageUrl = () => {
+    // Priority 1: Flash deal upload_image (from your new format)
+    if (item.flashDealData?.upload_image) {
+      return item.flashDealData.upload_image;
+    }
+    
+    // Priority 2: Direct image property (from your new format)
+    if (item.image) {
+      return item.image;
+    }
+    
+    // Priority 3: Product data images array
+    if (item.productData?.images?.[0]?.image) {
+      return item.productData.images[0].image;
+    }
+    
+    // Priority 4: images array with url property
+    if (item.images?.[0]?.url) {
+      return item.images[0].url;
+    }
+    
+    // Priority 5: images array with image property
+    if (item.images?.[0]?.image) {
+      return item.images[0].image;
+    }
+    
+    // Priority 6: images array with direct string URLs
+    if (Array.isArray(item.images) && typeof item.images[0] === 'string') {
+      return item.images[0];
+    }
+    
+    // Priority 7: productData direct image (if exists)
+    if (item.productData?.image) {
+      return item.productData.image;
+    }
+    
+    // Fallback placeholder
+    return "https://via.placeholder.com/150";
+  };
+
+  const imageUrl = getImageUrl();
   
   // Handle prices - check multiple possible fields
-  const displayPrice = item.new_price || item.active_price || item.price1;
-  const oldPrice = item.old_price;
+  const displayPrice = item.new_price || item.active_price || item.price1 || item.price;
+  const oldPrice = item.old_price || item.oldPrice;
   
-  console.log(item, 'this is item');
+  console.log('Cart item:', item, 'Image URL:', imageUrl);
 
   return (
     <div className="bg-white rounded-xl mt-6 p-2 md:flex items-center gap-6 shadow-sm">
@@ -36,13 +76,16 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
         src={imageUrl}
         alt={item.name}
         className="h-32 w-32 object-cover rounded-lg"
+        onError={(e) => {
+          e.target.src = "https://via.placeholder.com/150";
+        }}
       />
 
       <div className="flex-1">
         <h2 className="text-lg font-semibold">{item.name}</h2>
         <p className="text-sm text-gray-500">SKU: {item.sku}</p>
         
-        {hasPromotion ? (
+        {hasPromotion || item.discount ? (
           <div className="flex items-center gap-2 mt-2">
             <p className="text-xl font-bold text-[#CBA135]">
               {formatXAF(parseFloat(displayPrice))}
@@ -53,7 +96,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
             <span className="text-sm bg-red-100 text-red-600 px-2 py-1 rounded">
               {item.promotion_discount_type === 'flat' 
                 ? `Save ${formatXAF(parseFloat(item.promotion_discount_value))}`
-                : `Save ${item.promotion_discount_value}%`
+                : `Save ${item.promotion_discount_value || item.discount}%`
               }
             </span>
           </div>
@@ -147,10 +190,10 @@ useEffect(() => {
           new_price: hasPromotion ? product.new_price : null,
           promotion_discount_type: product.promotion_discount_type,
           promotion_discount_value: product.promotion_discount_value,
-          images: product.images.map((img) => ({
-            id: img.id,
-            url: img.image,
-          })),
+          images: product.images,
+          image: product.images?.[0]?.image || product.images?.[0]?.url,
+          // Handle flash deal data if present
+          flashDealData: cartItem.flashDealData,
           originalCartItem: cartItem,
         };
       });
@@ -161,17 +204,21 @@ useEffect(() => {
     const guestCart = getGuestCart();
     // Transform localStorage data to match expected structure
     const transformedCart = guestCart.map(item => ({
-      id: item.id || item.product_id, // Use product_id if id doesn't exist
+      id: item.id || item.product_id,
       productId: item.id || item.product_id,
       name: item.name,
       sku: item.sku,
       quantity: item.quantity,
-      active_price: item.active_price || item.price1,
-      old_price: item.old_price,
-      new_price: item.new_price,
+      active_price: item.active_price || item.price1 || item.price,
+      old_price: item.old_price || item.oldPrice,
+      new_price: item.new_price || item.price,
       promotion_discount_type: item.promotion_discount_type,
       promotion_discount_value: item.promotion_discount_value,
+      discount: item.discount, // For flash deals
       images: item.images || [],
+      image: item.image, // Direct image property
+      flashDealData: item.flashDealData, // Flash deal data
+      productData: item.productData, // Product data
       // Store original item for reference
       originalItem: item
     }));

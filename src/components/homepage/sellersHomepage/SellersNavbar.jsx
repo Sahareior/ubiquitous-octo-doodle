@@ -50,12 +50,7 @@ const SellersNavbar = () => {
         <div className="flex items-center gap-4 text-sm font-medium">
           {storedRole === 'vendor' ? (
             <>
-              <Link
-                to='/vendor-dashboard'
-                className="cursor-pointer bg-[#CBA135] px-4 py-2 rounded-[8px] popreg text-white hover:bg-[#b38d2c] transition"
-              >
-                 Dashboard
-              </Link>
+            
               <div 
                 onClick={handleLogout}
                 className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition"

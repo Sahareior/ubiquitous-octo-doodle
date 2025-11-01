@@ -137,6 +137,7 @@ export const vendorsApi = createApi({
         body: data
       })
     }),
+
     
     allFeaturedProducts: build.query({
       query: () => '/featured-products/'
@@ -148,6 +149,47 @@ export const vendorsApi = createApi({
 
     childCategory: build.query({
       query: ()=> 'child-categories/'
+    }),
+
+    createFilterNameNType: build.mutation({
+      query: (data) => ({
+        url: '/filters-by-type/',
+        method: 'POST',
+        body: data
+      })
+    }),
+
+    createFilterOptions: build.mutation({
+      query: (data) => ({
+        url: 'filter-options/',
+        method: 'POST',
+        body: data
+      })
+    }),
+
+    findProductsById: build.query({
+      query:(id) => `/products/by-category/${id}/`
+    }),
+
+
+
+    getProductsByCategory: build.query({
+      query: (categoryId) => `products/by-category/${categoryId}/`,
+    }),
+
+    
+    getFilteredProducts: build.query({
+      query: (filterIds) => ({
+        url: 'products/filter/',
+        params: filterIds.reduce((acc, id) => {
+          acc[`filter_data`] = id;
+          return acc;
+        }, {}),
+      }),
+    }),
+
+    getNewArrivals: build.query({
+      query:() => '/products/new-arrivals/'
     }),
 
     postPayouts: build.mutation({
@@ -171,8 +213,15 @@ export const vendorsApi = createApi({
 
 export const {
   useGetPokemonByNameQuery,
+  useGetProductsByCategoryQuery,
+  useGetNewArrivalsQuery,
+  useGetFilteredProductsQuery,
+  useCreateFilterNameNTypeMutation,
+  useCreateFilterOptionsMutation,
+
   useCreateCategoryMutation,
   useChildCategoryQuery,
+  useFindProductsByIdQuery,
   useAllFeaturedProductsQuery,
   useVendorEditProductMutation,
   useVenDorNotificationsQuery,

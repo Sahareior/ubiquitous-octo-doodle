@@ -1,9 +1,15 @@
 import React from 'react';
 
 const Hero = () => {
+  const handleScroll = () => {
+    const section = document.getElementById('new-arrivals');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative w-full h-screen overflow-hidden">
-      {/* Optimized image with lazy loading */}
       <img
         src="/image/hh.webp"
         alt="Hero"
@@ -12,7 +18,6 @@ const Hero = () => {
         className="w-full h-full object-cover"
       />
 
-      {/* Glass container */}
       <div
         className="
           absolute top-[20%] py-16 left-2 sm:left-8 md:left-12 lg:left-16 
@@ -22,7 +27,6 @@ const Hero = () => {
           border border-[rgba(184,200,205,0.6)] backdrop-blur-md
         "
       >
-        {/* Title */}
         <div className="popbold text-center sm:text-left">
           <h3 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-white leading-snug sm:leading-tight">
             Timeless Furniture.
@@ -32,19 +36,19 @@ const Hero = () => {
           </h4>
         </div>
 
-        {/* Subtitle */}
         <p className="popmed text-sm sm:text-lg md:text-xl lg:text-2xl text-white text-center sm:text-left">
           Discover premium furniture from trusted local vendors.
           <br className="hidden sm:block" />
           Transform your space with quality craftsmanship.
         </p>
 
-        {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-2 sm:mt-4">
-          <button className="bg-[#CBA135] hover:bg-[#b18c2c] text-white px-4 sm:px-10 py-5 sm:py-6 rounded-lg text-sm sm:text-base transition-all duration-300">
+          <button
+            onClick={handleScroll}
+            className="bg-[#CBA135] hover:bg-[#b18c2c] text-white px-4 sm:px-10 w-[50%] md:w-full mx-auto py-5 sm:py-6 rounded-lg text-sm sm:text-base transition-all duration-300"
+          >
             Shop New Arrivals
           </button>
-         
         </div>
       </div>
     </section>

@@ -360,6 +360,14 @@ getAllProducts: build.query({
       }) 
     }),
 
+    adminVendorCreate: build.mutation({
+      query: (data) => ({
+        url: 'admin/vendor/create/',
+        method: 'POST',
+        body: data
+      })
+    }),
+
     vendorOrderNameDetails: build.query({
       query: () => "vendor/order/list/",
     }),
@@ -371,6 +379,7 @@ getAllProducts: build.query({
 export const {
   useGetPokemonByNameQuery,
   useCreateFlashDealsMutation,
+  useAdminVendorCreateMutation,
   useFeaturedProductToggelMutation,
   useGetFeturedProductsQuery,
   useAddFeaturedProductsMutation,

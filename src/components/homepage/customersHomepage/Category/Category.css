@@ -338,3 +338,199 @@
 .dropdown-menu.visible {
   animation: fadeInDown 0.3s ease;
 }
+
+
+/* EnhancedCategoryDropdown.css - Mobile Additions */
+.enhanced-category-dropdown {
+  position: relative;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Mobile Menu Styles */
+.mobile-menu-trigger {
+  position: relative;
+  z-index: 0;
+}
+
+.mobile-category-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 1003;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.mobile-menu-overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.mobile-menu-header {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mobile-category-item {
+  transition: background-color 0.2s ease;
+}
+
+.mobile-category-item:active {
+  background-color: #f8f9fa;
+}
+
+.mobile-subcategory-list {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.mobile-subcategory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.mobile-subcategory-header.has-children {
+  background-color: #f8f9fa;
+}
+
+.mobile-subcategory-header:active {
+  background-color: #e9ecef;
+}
+
+.mobile-subcategory-name {
+  font-weight: 500;
+  color: #a83838;
+}
+
+.mobile-back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-back-button:active {
+  background-color: #f8f9fa;
+}
+
+/* Mobile Subcategory Levels */
+.mobile-subcategory-list.level-1 .mobile-subcategory-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mobile-subcategory-list.level-2 .mobile-subcategory-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #2e0651;
+}
+
+.mobile-subcategory-list.level-3 .mobile-subcategory-name {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Hide desktop elements on mobile */
+@media (max-width: 767px) {
+  .category-nav,
+  .dropdown-menu,
+  .dropdown-overlay {
+    display: none !important;
+  }
+  
+  .enhanced-category-dropdown {
+    border-bottom: 1px solid #e0e0e0;
+  }
+}
+
+/* Show desktop elements on larger screens */
+@media (min-width: 768px) {
+  .mobile-menu-trigger,
+  .mobile-category-menu,
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
+/* Mobile Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Enhanced mobile touch targets */
+@media (max-width: 767px) {
+  .mobile-category-item,
+  .mobile-subcategory-header,
+  .mobile-back-button {
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  .mobile-subcategory-header {
+    padding: 12px 16px;
+  }
+}
+
+/* Improved scroll behavior for mobile */
+.mobile-menu-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Existing desktop styles remain the same */
+.category-nav {
+  padding: 0 10px;
+  position: relative;
+  z-index: 1001;
+}
+
+.category-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.category-item {
+  padding: 15px 20px;
+  cursor: pointer;
+  position: relative;
+  font-weight: 600;
+  color: #333;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ... rest of your existing desktop styles ... */

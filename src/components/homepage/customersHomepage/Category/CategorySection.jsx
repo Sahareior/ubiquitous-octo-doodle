@@ -1,8 +1,7 @@
 // CategoryDropdown.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import './Category.css';
-import { FaArrowLeft } from 'react-icons/fa';
-import { FaArrowRight } from 'react-icons/fa6';
+import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaChevronRight } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCategoriesQuery } from '../../../../redux/slices/Apis/customersApi';
 
@@ -11,6 +10,9 @@ const CategoryDropdown = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [closing, setClosing] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileActiveCategory, setMobileActiveCategory] = useState(null);
+  const [mobileActiveSubcategory, setMobileActiveSubcategory] = useState(null);
   const navigate = useNavigate();
   
   const { data: rtkCategories, isLoading, error } = useGetCategoriesQuery();
@@ -18,8 +20,7 @@ const CategoryDropdown = () => {
   const dropdownRef = useRef(null);
   const navRef = useRef(null);
   const timeoutRef = useRef(null);
-
-  console.log(rtkCategories, 'RTK Categories data');
+  const mobileMenuRef = useRef(null);
 
   // Use RTK Query data instead of localhost fetch
   useEffect(() => {
@@ -28,10 +29,25 @@ const CategoryDropdown = () => {
     }
   }, [rtkCategories]);
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+        setMobileActiveCategory(null);
+        setMobileActiveSubcategory(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Recursive function to find category hierarchy
   const findCategoryHierarchy = (subcategoryId, level = 0) => {
     for (const category of categories) {
-      // Check if this is the main category
       if (category.id === subcategoryId) {
         return {
           main: category,
@@ -40,10 +56,8 @@ const CategoryDropdown = () => {
         };
       }
       
-      // Check children (subcategories)
       if (category.children && category.children.length > 0) {
         for (const sub of category.children) {
-          // Check if this subcategory matches
           if (sub.id === subcategoryId) {
             return {
               main: category,
@@ -52,7 +66,6 @@ const CategoryDropdown = () => {
             };
           }
           
-          // Check nested children
           if (sub.children && sub.children.length > 0) {
             for (const nested of sub.children) {
               if (nested.id === subcategoryId) {
@@ -71,51 +84,79 @@ const CategoryDropdown = () => {
   };
 
   // Handle subcategory click
-// In CategoryDropdown.jsx - update the handleSubcategoryClick function
+// Handle subcategory click — now includes filter_data
 const handleSubcategoryClick = (subcategory) => {
-  console.log('Clicked subcategory:', subcategory);
-  
   const subcategoryId = subcategory.id;
-  
+
   if (!subcategoryId) {
     console.error('No ID found for subcategory:', subcategory);
     return;
   }
 
   const hierarchy = findCategoryHierarchy(subcategoryId);
-  
+
   if (!hierarchy) {
     console.error('Could not find category hierarchy for:', subcategory);
     return;
   }
 
-  // Prepare navigation data with full category information
+  // Extract filter_data from the **clicked subcategory** (leaf node)
+const clickedCategory = hierarchy.nested || hierarchy.sub || hierarchy.main;
+const filterData = clickedCategory?.filter_data || [];
+
   const navigationData = {
     selectedCategoryId: hierarchy.main?.id,
     selectedSubCategoryId: hierarchy.sub?.id,
     selectedNestedId: hierarchy.nested?.id,
     categoryHierarchy: hierarchy,
-    // Add the actual category objects for display
     selectedCategory: hierarchy.main,
     selectedSubCategory: hierarchy.sub,
     selectedNestedCategory: hierarchy.nested,
-    // Add text for display
-    text: hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products"
+    text: hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products",
+    
+    // NEW: Pass filter data for the clicked category
+    filterData: filterData
   };
 
-  console.log('Navigating with data:', navigationData);
-
-  // Navigate to filter page with category data
   navigate('/filter', { 
     state: navigationData
   });
 
-  // Close dropdown
+  // Close all menus
   setIsVisible(false);
+  setIsMobileMenuOpen(false);
   setActiveCategory(null);
+  setMobileActiveCategory(null);
+  setMobileActiveSubcategory(null);
 };
 
-  // Component to render nested subcategories
+  // Mobile menu handlers
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (!isMobileMenuOpen) {
+      setMobileActiveCategory(null);
+      setMobileActiveSubcategory(null);
+    }
+  };
+
+  const handleMobileCategoryClick = (category) => {
+    if (mobileActiveCategory?.id === category.id) {
+      setMobileActiveCategory(null);
+    } else {
+      setMobileActiveCategory(category);
+      setMobileActiveSubcategory(null);
+    }
+  };
+
+  const handleMobileSubcategoryClick = (subcategory) => {
+    if (mobileActiveSubcategory?.id === subcategory.id) {
+      setMobileActiveSubcategory(null);
+    } else {
+      setMobileActiveSubcategory(subcategory);
+    }
+  };
+
+  // Component to render nested subcategories for desktop
   const SubcategoryColumn = ({ subcategory, level = 0 }) => {
     const hasChildren = subcategory.children && subcategory.children.length > 0;
 
@@ -129,7 +170,6 @@ const handleSubcategoryClick = (subcategory) => {
           {hasChildren && <FaArrowRight size={12} />}
         </h4>
         
-        {/* Display children if they exist */}
         {hasChildren && (
           <div className="nested-subcategories ml-4 mt-2 space-y-2">
             {subcategory.children.map((nestedSubcat, nestedIndex) => (
@@ -145,29 +185,82 @@ const handleSubcategoryClick = (subcategory) => {
     );
   };
 
-  // Transform API data to match component structure
-  const transformCategories = (apiCategories) => {
-    return apiCategories.map(category => {
-      // Create transformed category structure
-      const transformedCategory = {
-        id: category.id,
-        name: category.name,
-        slug: category.slug,
-        description: category.description || `Explore our ${category.name} collection`,
-        subcategories: category.children || [], // Map children to subcategories
-        imagePreview: category.image
-      };
+  // Component to render mobile subcategories
+  const MobileSubcategoryList = ({ subcategories, level = 0, parentCategory }) => {
+    return (
+      <div className={`mobile-subcategory-list level-${level}`}>
+        {level > 0 && (
+          <button 
+            onClick={() => level === 1 ? setMobileActiveCategory(null) : setMobileActiveSubcategory(null)}
+            className="mobile-back-button flex items-center gap-2 text-blue-600 font-medium mb-4 p-2"
+          >
+            <FaArrowLeft size={14} />
+            Back to {level === 1 ? 'Categories' : parentCategory?.name}
+          </button>
+        )}
+        
+        {subcategories.map((subcategory, index) => {
+          const hasChildren = subcategory.children && subcategory.children.length > 0;
+          
+          return (
+            <div key={subcategory.id || index} className="mobile-subcategory-item">
+              <div 
+                className={`mobile-subcategory-header ${hasChildren ? 'has-children' : ''}`}
+                onClick={() => {
+                  if (hasChildren) {
+                    handleMobileSubcategoryClick(subcategory);
+                  } else {
+                    handleSubcategoryClick(subcategory);
+                  }
+                }}
+              >
+                <span className="mobile-subcategory-name">{subcategory.name}</span>
+                {hasChildren && <FaChevronRight size={14} className="text-gray-400" />}
+              </div>
+              
+              {hasChildren && mobileActiveSubcategory?.id === subcategory.id && (
+                <MobileSubcategoryList 
+                  subcategories={subcategory.children} 
+                  level={level + 1}
+                  parentCategory={subcategory}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
-      // Add promo section
-      transformedCategory.promo = {
+  // Transform API data to match component structure
+const transformCategories = (apiCategories) => {
+  return apiCategories.map(category => {
+    const transformNode = (node) => ({
+      id: node.id,
+      name: node.name,
+      slug: node.slug,
+      description: node.description || `Explore our ${node.name} collection`,
+      image: node.image,
+      // Preserve filter_data on leaf nodes
+      filter_data: node.filter_data || [],
+      // Recursively transform children
+      children: node.children ? node.children.map(transformNode) : []
+    });
+
+    const transformed = transformNode(category);
+
+    return {
+      ...transformed,
+      subcategories: transformed.children, // alias for UI
+      imagePreview: transformed.image,
+      promo: {
         title: `${category.name} Collection`,
         description: category.description || `Explore our ${category.name} collection`,
         imageText: category.name
-      };
-
-      return transformedCategory;
-    });
-  };
+      }
+    };
+  });
+};
 
   const transformedCategories = transformCategories(categories);
 
@@ -233,12 +326,13 @@ const handleSubcategoryClick = (subcategory) => {
 
   return (
     <div className="enhanced-category-dropdown">
+      {/* Desktop Navigation */}
       <nav 
         ref={navRef}
-        className="category-nav"
+        className="category-nav hidden md:block"
         onMouseLeave={handleMouseLeaveNav}
       >
-        <ul className="category-list">
+        <ul className="category-list overflow-x-scroll scrollbar-hide">
           {transformedCategories.map(category => (
             <li 
               key={category.id}
@@ -252,9 +346,68 @@ const handleSubcategoryClick = (subcategory) => {
         </ul>
       </nav>
 
+      {/* Mobile Menu Trigger */}
+      <div className="mobile-menu-trigger md:hidden">
+        <button 
+          onClick={toggleMobileMenu}
+          className="w-full flex items-center justify-between p-4 bg-white border-b border-gray-200 text-lg font-semibold"
+        >
+          <span>Browse Categories</span>
+          {isMobileMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div 
+          ref={mobileMenuRef}
+          className="mobile-category-menu md:hidden fixed inset-0 bg-white z-50 overflow-y-auto"
+        >
+          <div className="mobile-menu-header sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold">Categories</h2>
+            <button 
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <FaTimes size={20} />
+            </button>
+          </div>
+
+          <div className="mobile-menu-content p-4">
+            {!mobileActiveCategory ? (
+              // Main categories list
+              <div className="main-categories-list space-y-2">
+                {transformedCategories.map(category => (
+                  <div 
+                    key={category.id}
+                    className="mobile-category-item border-b border-gray-100"
+                  >
+                    <button
+                      onClick={() => handleMobileCategoryClick(category)}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 rounded-lg"
+                    >
+                      <span className="font-medium text-gray-800">{category.name}</span>
+                      <FaChevronRight size={14} className="text-gray-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Subcategories for selected category
+              <MobileSubcategoryList 
+                subcategories={mobileActiveCategory.subcategories} 
+                level={1}
+                parentCategory={mobileActiveCategory}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Dropdown */}
       <div 
         ref={dropdownRef}
-        className={`dropdown-menu ${isVisible ? 'visible' : ''} ${closing ? 'closing' : ''}`}
+        className={`dropdown-menu hidden md:block ${isVisible ? 'visible' : ''} ${closing ? 'closing' : ''}`}
         onMouseEnter={handleMouseEnterDropdown}
         onMouseLeave={handleMouseLeaveDropdown}
       >
@@ -287,7 +440,6 @@ const handleSubcategoryClick = (subcategory) => {
                   <p className="promo-description">
                     {activeCategory.promo.description}
                   </p>
-                 
                 </div>
               </div>
               
@@ -311,7 +463,12 @@ const handleSubcategoryClick = (subcategory) => {
       </div>
       
       {/* Overlay to capture clicks when dropdown is open */}
-      {isVisible && <div className="dropdown-overlay" />}
+      {isVisible && <div className="dropdown-overlay hidden md:block" />}
+      
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-overlay fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" />
+      )}
     </div>
   );
 };

@@ -1,17 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FaStar, FaRegHeart, FaFire, FaShoppingCart, FaEye, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { IoFlash } from "react-icons/io5";
 import { useAllFlashDealsQuery } from "../../../redux/slices/Apis/dashboardApis";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
+import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useSavetoWishListMutation } from "../../../redux/slices/Apis/customersApi";
+import { useWebSocketContext } from "../../../context/WebSocketContext";
+import { useLocation, useNavigate } from "react-router-dom";
+
+
+const MySwal = withReactContent(Swal);
 
 const FlashDeals = () => {
-  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [isHovered, setIsHovered] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+    const [addProductToCart] = useAddProductToCartMutation();
+    const [savetoWishList] = useSavetoWishListMutation();
+      const { data: cartData, refetch } = useGetAppCartQuery();
+        const { add, setAdd } = useWebSocketContext();
+          const { data: wishLists, refetch: wishListRefetch } =
+    useGetAllWishListQuery();
   const { data: flashDealsData, isLoading, error } = useAllFlashDealsQuery();
+    const location = useLocation();
+    const navigate = useNavigate();
   const [productsPerPage] = useState(4);
 
+  const getGuestCart = useCallback(() => {
+    return JSON.parse(localStorage.getItem('guest_cart')) || [];
+  }, []);
+
   // Transform API data to match component structure
-  const transformFlashDeals = (apiData) => {
+  const transformFlashDeals = useCallback((apiData) => {
     if (!apiData?.results) return [];
     
     return apiData.results.map(deal => {
@@ -38,57 +57,9 @@ const FlashDeals = () => {
         endDate: deal.end_date
       };
     });
-  };
+  }, []);
 
   const products = transformFlashDeals(flashDealsData);
-
-  // Calculate time left for the first flash deal (or use default)
-  useEffect(() => {
-    if (products.length > 0 && products[0].endDate) {
-      const updateTimer = () => {
-        const endDate = new Date(products[0].endDate);
-        const now = new Date();
-        const difference = endDate - now;
-
-        if (difference > 0) {
-          const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-          
-          setTimeLeft({ hours, minutes, seconds });
-        } else {
-          // Timer expired
-          setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
-        }
-      };
-
-      updateTimer();
-      const timer = setInterval(updateTimer, 1000);
-
-      return () => clearInterval(timer);
-    } else {
-      // Default timer if no flash deals
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          let { hours, minutes, seconds } = prev;
-          if (seconds > 0) seconds--;
-          else if (minutes > 0) {
-            minutes--;
-            seconds = 59;
-          } else if (hours > 0) {
-            hours--;
-            minutes = 59;
-            seconds = 59;
-          } else {
-            return { hours: 12, minutes: 34, seconds: 56 };
-          }
-          return { hours, minutes, seconds };
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [products]);
 
   // Calculate pagination
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -105,6 +76,8 @@ const FlashDeals = () => {
       setCurrentPage(currentPage + 1);
     }
   };
+
+  
 
   // Previous page
   const prevPage = () => {
@@ -125,16 +98,72 @@ const FlashDeals = () => {
     );
   };
 
-  const TimeUnit = ({ value, label }) => (
-    <div className="flex flex-col items-center">
-      <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[50px]">
-        <span className="text-white text-lg font-bold">
-          {String(value).padStart(2, "0")}
-        </span>
+  // Individual Product Timer Component
+  const ProductTimer = ({ endDate }) => {
+    const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+      let timer;
+      
+      const updateTimer = () => {
+        if (endDate) {
+          const end = new Date(endDate);
+          const now = new Date();
+          const difference = end - now;
+
+          if (difference > 0) {
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            setTimeLeft({ hours, minutes, seconds });
+          } else {
+            // Timer expired
+            setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+          }
+        }
+      };
+
+      // Initial call
+      updateTimer();
+      
+      // Set up interval
+      timer = setInterval(updateTimer, 1000);
+
+      return () => {
+        if (timer) {
+          clearInterval(timer);
+        }
+      };
+    }, [endDate]);
+
+    const TimeUnit = ({ value, label }) => (
+      <div className="flex flex-col items-center">
+        <div className="bg-[#CBA135] rounded px-1 flex justify-center items-center py-1 min-w-[30px]">
+          <span className="text-white text-xs font-bold">
+            {String(value).padStart(2, "0")}
+          </span>
+        </div>
+        <span className="text-gray-600 text-[10px] mt-1">{label}</span>
       </div>
-      <span className="text-white/80 text-xs mt-1">{label}</span>
-    </div>
-  );
+    );
+
+    return (
+      <div className="mt-2">
+        <div className="flex items-center gap-1 mb-1">
+          <FaFire className="text-[#CBA135] text-xs" />
+          <p className="text-gray-600 text-xs font-medium">Ends in</p>
+        </div>
+        <div className="flex gap-1 justify-center items-center">
+          <TimeUnit value={timeLeft.hours} label="H" />
+          <span className="text-[#CBA135] text-xs font-bold mt-1">:</span>
+          <TimeUnit value={timeLeft.minutes} label="M" />
+          <span className="text-[#CBA135] text-xs font-bold mt-1">:</span>
+          <TimeUnit value={timeLeft.seconds} label="S" />
+        </div>
+      </div>
+    );
+  };
 
   // Generate page numbers for pagination
   const getPageNumbers = () => {
@@ -158,16 +187,119 @@ const FlashDeals = () => {
   };
 
   // Handle add to cart
-  const handleAddToCart = (product) => {
-    console.log('Adding to cart:', product);
-    // Add your cart logic here
-  };
+  // const handleAddToCart = (product) => {
+  //   console.log('Adding to cart:', product);
+  //   // Add your cart logic here
+  // };
 
-  // Handle wishlist
-  const handleAddToWishlist = (product) => {
-    console.log('Adding to wishlist:', product);
-    // Add your wishlist logic here
-  };
+    const handleAddToCart = useCallback(
+      async (data) => {
+        const payload = {
+          ...data,
+          id: data.id,
+          quantity: 1,
+          product_id: data.id,
+        };
+        delete payload.prod_id;
+  
+        const token = localStorage.getItem("access_token");
+  
+        if (!token) {
+          // 🛒 Handle guest cart (store in localStorage)
+          const existingCart = getGuestCart();
+  
+          // Check if product already exists in guest cart
+          const existingItemIndex = existingCart.findIndex(
+            (item) => item.id === payload.id
+          );
+  
+          if (existingItemIndex !== -1) {
+            // Update quantity if it already exists
+            existingCart[existingItemIndex].quantity += 1;
+          } else {
+            existingCart.push(payload);
+          }
+  
+          localStorage.setItem("guest_cart", JSON.stringify(existingCart));
+  
+          MySwal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Item added to cart!",
+            showConfirmButton: false,
+            timer: 1800,
+            toast: true,
+          });
+  
+          setAdd((items) => !items);
+  
+          return; // Exit function since user is not logged in
+        }
+  
+        // 🧾 Handle logged-in cart
+        await addProductToCart(payload);
+        refetch();
+  
+        MySwal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Item added to cart!",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+      },
+      [addProductToCart, refetch, getGuestCart, setAdd]
+    );
+
+
+    const handleAddToWishlist = async (item) => {
+      const token = localStorage.getItem("access_token");
+  
+      if (!token) {
+        Swal.fire({
+          title: "Please Sign In Your Account!",
+          text: "You need to log in to access this page.",
+          icon: "warning",
+          confirmButtonText: "Go to Login",
+          confirmButtonColor: "#3085d6",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/login");
+          }
+        });
+  
+        return null; // prevent rendering children until after Swal closes
+      }
+  
+      const payload = {
+        item,
+        product_id: item.id,
+      };
+  
+      try {
+        await savetoWishList(payload).unwrap();
+        wishListRefetch();
+        MySwal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Item added to wishlist!",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+      } catch (error) {
+        console.error("Wishlist error:", error);
+        MySwal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "Failed to add to wishlist",
+          showConfirmButton: false,
+          timer: 1800,
+          toast: true,
+        });
+      }
+    };
 
   // Handle quick view
   const handleQuickView = (product) => {
@@ -217,20 +349,7 @@ const FlashDeals = () => {
             </p>
           </div>
 
-          {/* Timer Section */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/20">
-            <div className="flex items-center gap-3 mb-2">
-              <FaFire className="text-white text-xl" />
-              <p className="text-white font-semibold">Hurry Up! Offer ends in</p>
-            </div>
-            <div className="flex gap-3">
-              <TimeUnit value={timeLeft.hours} label="Hours" />
-              <span className="text-white text-xl font-bold mt-2">:</span>
-              <TimeUnit value={timeLeft.minutes} label="Minutes" />
-              <span className="text-white text-xl font-bold mt-2">:</span>
-              <TimeUnit value={timeLeft.seconds} label="Seconds" />
-            </div>
-          </div>
+          {/* Removed Timer Section from Header */}
         </div>
 
         {/* Product Cards */}
@@ -331,8 +450,8 @@ const FlashDeals = () => {
                       <ProgressBar sold={item.sold} total={item.total} />
                     </div>
 
-                    {/* Price */}
-                    <div className="flex items-center justify-between">
+                    {/* Price and Timer */}
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-gray-900">${item.price}</span>
                         {item.oldPrice > item.price && (
@@ -347,6 +466,9 @@ const FlashDeals = () => {
                         </span>
                       )}
                     </div>
+
+                    {/* Individual Product Timer */}
+                    <ProductTimer endDate={item.endDate} />
 
                     {/* Mobile Add to Cart Button */}
                     <button 

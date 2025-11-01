@@ -7,6 +7,7 @@ import { useGetAppCartQuery } from '../../../redux/slices/Apis/customersApi';
 import CategoryDropdown from '../customersHomepage/Category/CategorySection';
 import CategoryNavigation from '../../profile/CategoryNavigation';
 import FlashDeals from '../_components/FlashDeals';
+import { useAllFeaturedProductsQuery, useGetNewArrivalsQuery } from '../../../redux/slices/Apis/vendorsApi';
 
 
 const CustomerHero = lazy(() => import('../customersHomepage/CustomerHero'));
@@ -20,6 +21,17 @@ const Banner = lazy(() => import('../customersHomepage/Banner'));
 const CustomerLayout = () => {
   const location = useLocation();
   const { data: cartData } = useGetAppCartQuery();
+      const {
+        data: allProducts,
+        isLoading,
+        isError,
+      } = useAllFeaturedProductsQuery();
+  
+      const {
+        data: allFeatured,
+        isLoading: newLoading,
+        isError: newError,
+      } = useGetNewArrivalsQuery();
 
    const storedRole = localStorage.getItem('user_role');
 
@@ -39,9 +51,21 @@ const CustomerLayout = () => {
           <CustomerHero />
           {/* <CategoryNavigation /> */}
           <FlashDeals />
-          <ShopCategory />
-          <FeaturedProducts />
+          {/* <ShopCategory /> */}
+          <FeaturedProducts title={"Featured Products"} subtitle={"Explore our featured products"}  allProducts={allProducts} isLoading={isLoading} isError={isError}/>
           <Banner />
+           <div id="new-arrivals">
+
+              <FeaturedProducts
+              title={"New Arrivals"}
+              subtitle={"Explore our newly added products"}
+                allProducts={allProducts}
+                 isLoading={newLoading}
+                  isError={newError}
+                  
+                  />
+    
+                    </div>
           <WhyUs />
           <StayUpdated />
           <Customers />

@@ -2,6 +2,7 @@ import React, { Suspense, useState, useEffect } from "react";
 import CategoryDropdown from "../customersHomepage/Category/CategorySection";
 import { Outlet, useLocation } from "react-router-dom";
 import FlashDeals from "../_components/FlashDeals";
+import { useAllFeaturedProductsQuery, useGetNewArrivalsQuery } from "../../../redux/slices/Apis/vendorsApi";
 
 // Critical components - load immediately
 const Navbar = React.lazy(() => import("../_components/Navbar"));
@@ -33,6 +34,19 @@ const GuestLayout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const [isHeroLoaded, setIsHeroLoaded] = useState(false);
+    const {
+      data: allProducts,
+      isLoading,
+      isError,
+    } = useAllFeaturedProductsQuery();
+
+    const {
+      data: allFeatured,
+      isLoading: newLoading,
+      isError: newError,
+    } = useGetNewArrivalsQuery();
+
+    
 
   // Preload critical home page components
   useEffect(() => {
@@ -65,12 +79,25 @@ const GuestLayout = () => {
 
             {/* Below-fold components with intersection observer */}
             <LazySection>
-              <FeaturedProducts />
+              <FeaturedProducts title={"Featured Products"} subtitle={"Explore our featured products"}  allProducts={allProducts} isLoading={isLoading} isError={isError}/>
             </LazySection>
 
             <LazySection>
               <WhyUs />
             </LazySection>
+
+                    <div id="new-arrivals">
+                       <LazySection>
+              <FeaturedProducts
+              title={"New Arrivals"}
+              subtitle={"Explore our newly added products"}
+                allProducts={allProducts}
+                 isLoading={newLoading}
+                  isError={newError}
+                  
+                  />
+            </LazySection>
+                    </div>
 
             <LazySection>
               <Customers />

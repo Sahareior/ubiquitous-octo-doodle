@@ -402,13 +402,7 @@ const FlashDealsAdmin = () => {
             
             <td className="px-6 py-5">
               <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => handleEditProduct(deal)}
-                  className="inline-flex items-center p-2.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-200 border border-blue-100 group-hover:border-blue-200"
-                  title="Edit Deal"
-                >
-                  <FaEdit size={14} />
-                </button>
+
                 <button
                   onClick={() => handleDeleteProduct(deal.id)}
                   className="inline-flex items-center p-2.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200 border border-red-100 group-hover:border-red-200"

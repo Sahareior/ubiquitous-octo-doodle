@@ -4,6 +4,7 @@ import { FaChevronDown, FaDownload, FaPlus } from "react-icons/fa";
 import { useGetAllVendorsQuery } from "../../../../redux/slices/Apis/dashboardApis";
 import VendorTable from "./VendorTable";
 import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -100,12 +101,14 @@ const VendorList = () => {
         >
           <FaDownload /> 
         </Button>
-                <Button
-          onClick={handleExportVendors}
-          className="bg-[#CBA135] popmed text-[16px] flex items-center text-white px-7 py-5"
+                <Link to='/vendorpage'
+    
+          className="bg-[#CBA135] popmed text-[16px] flex gap-2 rounded-md  items-center text-white px-7 py-2"
         >
+   
           <FaPlus /> Add a vendor
-        </Button>
+
+        </Link>
 </div>
       </div>
       
