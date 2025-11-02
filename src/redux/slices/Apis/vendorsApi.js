@@ -10,6 +10,7 @@ export const vendorsApi = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
+      headers.set("ngrok-skip-browser-warning", "true");
      
       return headers;
     },
@@ -167,16 +168,23 @@ export const vendorsApi = createApi({
       })
     }),
 
-    findProductsById: build.query({
-      query:(id) => `/products/by-category/${id}/`
-    }),
-
 
 
     getProductsByCategory: build.query({
       query: (categoryId) => `products/by-category/${categoryId}/`,
     }),
 
+    getCategoryById: build.query ({
+      query: (id) => `/categories/${id}/`
+    }),
+
+    categoryUpdateApi: build.mutation({
+      query: ({id,data}) => ({
+        url : `/categories/${id}/`,
+        method: 'PATCH',
+        body: data
+      })
+    }),
     
     getFilteredProducts: build.query({
       query: (filterIds) => ({
@@ -200,6 +208,8 @@ export const vendorsApi = createApi({
       })
     })
 
+
+
     // deleteProduct: build.mutation({
     //   query: (id) => ({
     //     url: `products/${id}/`,
@@ -214,14 +224,15 @@ export const vendorsApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useGetProductsByCategoryQuery,
+  useCategoryUpdateApiMutation,
   useGetNewArrivalsQuery,
   useGetFilteredProductsQuery,
   useCreateFilterNameNTypeMutation,
   useCreateFilterOptionsMutation,
-
+  useGetCategoryByIdQuery,
   useCreateCategoryMutation,
   useChildCategoryQuery,
-  useFindProductsByIdQuery,
+
   useAllFeaturedProductsQuery,
   useVendorEditProductMutation,
   useVenDorNotificationsQuery,

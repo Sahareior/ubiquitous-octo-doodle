@@ -23,8 +23,8 @@ import {
   ShoppingOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
-import { useGetAllProductsQuery } from '../../../../redux/slices/Apis/vendorsApi';
-import { useFeaturedProductToggelMutation } from '../../../../redux/slices/Apis/dashboardApis';
+
+import { useFeaturedProductToggelMutation, useGetAllProductsQuery } from '../../../../redux/slices/Apis/dashboardApis';
 
 const { Search } = Input;
 const { Option } = Select;

@@ -1,482 +1,1902 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Upload, message, Card, Row, Col, Divider, Typography } from "antd";
-import { UploadOutlined, ArrowLeftOutlined, SaveOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { useParams, useNavigate } from "react-router-dom";
-import { useEditCategoryMutation } from "../../../../../redux/slices/Apis/customersApi";
-import Swal from "sweetalert2";
-import imageCompression from "browser-image-compression";
-import { useGetCategoriesQuery } from "../../../../../redux/slices/Apis/vendorsApi";
+import React, { useState, useEffect } from 'react';
+import { 
+  Card, 
+  Input, 
+  Button, 
+  Steps, 
+  Alert, 
+  Tag, 
+  Space,
+  Row,
+  Col,
+  Typography,
+  Progress,
+  Modal,
+  List,
+  Select,
+  Collapse,
+  Tabs,
+  Form
+} from 'antd';
+import { 
+  CheckCircleOutlined, 
+  PlusOutlined,
+  ArrowRightOutlined,
+  CrownOutlined,
+  FolderOutlined,
+  FolderOpenOutlined,
+  StarOutlined,
+  RocketOutlined,
+  DeleteOutlined,
+  FilterOutlined,
+  SettingOutlined,
+  EditOutlined,
+  EyeOutlined,
+  SaveOutlined
+} from '@ant-design/icons';
+import Swal from 'sweetalert2';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaArrowLeft, FaTrash } from 'react-icons/fa6';
+import { 
+  useCategoryUpdateApiMutation,
+  useCreateCategoryMutation, 
+  useCreateFilterNameNTypeMutation, 
+  useCreateFilterOptionsMutation, 
+  useGetCategoriesQuery,
+  useGetCategoryByIdQuery,
+} from '../../../../../redux/slices/Apis/vendorsApi';
+import { Trash } from 'lucide-react';
 
+const { Step } = Steps;
 const { Title, Text } = Typography;
+const { confirm } = Modal;
+const { Option } = Select;
+const { Panel } = Collapse;
+const { TabPane } = Tabs;
 
 const EditCategory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: cateGoryData, refetch } = useGetCategoriesQuery();
-  const [editCategory] = useEditCategoryMutation();
   const [form] = Form.useForm();
-  const [imageUrl, setImageUrl] = useState(null);
-  const [file, setFile] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // RTK Query hooks
+  const [createCategory] = useCreateCategoryMutation();
+  const [createFilterNameNType] = useCreateFilterNameNTypeMutation();
+  const [createFilterOptions] = useCreateFilterOptionsMutation();
+  const [categoryUpdateApi] = useCategoryUpdateApiMutation()
+  
+  const { data: cateGoryData, isLoading: categoriesLoading, refetch } = useGetCategoriesQuery();
+  const { data: categoryByIdData, isLoading: categoryLoading, refetch: refetchCategory } = useGetCategoryByIdQuery(id);
 
+  // State for existing data
+  const [existingCategories, setExistingCategories] = useState({
+    parent: null,
+    subcategories: [],
+    childCategories: []
+  });
+
+  const [existingFilters, setExistingFilters] = useState([]);
+
+  // State for new creations
+  const [createdCategories, setCreatedCategories] = useState({
+    parent: id ? parseInt(id) : null,
+    parentName: '',
+    subcategoryId: null,
+    subcategoryName: '',
+    childSubcategoryId: null,
+    childSubcategoryName: ''
+  });
+
+  const [categoryData, setCategoryData] = useState({
+    subcategoryName: '',
+    childSubcategoryName: ''
+  });
+
+  const [filters, setFilters] = useState([]);
+  const [currentFilterIndex, setCurrentFilterIndex] = useState(0);
+  const [currentFilter, setCurrentFilter] = useState({
+    name: '',
+    filter_type: 'checkbox',
+    options: [''],
+    createdFilterId: null
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [currentStep, setCurrentStep] = useState(1);
+  const [activeFilterTab, setActiveFilterTab] = useState('');
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingFilter, setEditingFilter] = useState(null);
+  const [selectedCategoryForFilters, setSelectedCategoryForFilters] = useState(null);
+
+  // Load existing data when category data is fetched
   useEffect(() => {
-    if (cateGoryData?.results) {
-      const category = cateGoryData.results.find((c) => c.id === Number(id));
-      if (category) {
-        form.setFieldsValue({
-          name: category.name,
-          slug: category.slug,
-          description: category.description,
+    if (categoryByIdData) {
+      // Set parent category info
+      setCreatedCategories(prev => ({
+        ...prev,
+        parentName: categoryByIdData.name
+      }));
+
+      // Extract existing categories
+      const subcategories = categoryByIdData.children || [];
+      const childCategories = subcategories.flatMap(sub => sub.children || []);
+      
+      setExistingCategories({
+        parent: categoryByIdData,
+        subcategories: subcategories,
+        childCategories: childCategories
+      });
+
+      // Extract existing filters from all levels
+      const allFilters = [];
+      
+      // Filters from child categories
+      childCategories.forEach(child => {
+        if (child.filter_data && child.filter_data.length > 0) {
+          child.filter_data.forEach(filter => {
+            allFilters.push({
+              ...filter,
+              categoryLevel: 'child',
+              categoryId: child.id,
+              categoryName: child.name
+            });
+          });
+        }
+      });
+
+      // Filters from subcategories
+      subcategories.forEach(sub => {
+        if (sub.filter_data && sub.filter_data.length > 0) {
+          sub.filter_data.forEach(filter => {
+            allFilters.push({
+              ...filter,
+              categoryLevel: 'subcategory',
+              categoryId: sub.id,
+              categoryName: sub.name
+            });
+          });
+        }
+      });
+
+      // Filters from parent
+      if (categoryByIdData.filter_data && categoryByIdData.filter_data.length > 0) {
+        categoryByIdData.filter_data.forEach(filter => {
+          allFilters.push({
+            ...filter,
+            categoryLevel: 'parent',
+            categoryId: categoryByIdData.id,
+            categoryName: categoryByIdData.name
+          });
         });
-        setImageUrl(category.image);
       }
-    }
-  }, [cateGoryData, id, form]);
 
-  const getBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
+      setExistingFilters(allFilters);
+    }
+  }, [categoryByIdData]);
+
+  // Set default selected category for filters
+  useEffect(() => {
+    if (existingCategories.childCategories.length > 0) {
+      setSelectedCategoryForFilters(existingCategories.childCategories[0].id);
+    } else if (existingCategories.subcategories.length > 0) {
+      setSelectedCategoryForFilters(existingCategories.subcategories[0].id);
+    } else if (existingCategories.parent) {
+      setSelectedCategoryForFilters(existingCategories.parent.id);
+    }
+  }, [existingCategories]);
+
+  const handleInputChange = (field, value) => {
+    setCategoryData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCurrentFilterChange = (field, value) => {
+    setCurrentFilter(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCurrentFilterOptionChange = (index, value) => {
+    const newOptions = [...currentFilter.options];
+    newOptions[index] = value;
+    setCurrentFilter(prev => ({
+      ...prev,
+      options: newOptions
+    }));
+  };
+
+  const addCurrentFilterOption = () => {
+    setCurrentFilter(prev => ({
+      ...prev,
+      options: [...prev.options, '']
+    }));
+  };
+
+  const removeCurrentFilterOption = (index) => {
+    if (currentFilter.options.length > 1) {
+      const newOptions = currentFilter.options.filter((_, i) => i !== index);
+      setCurrentFilter(prev => ({
+        ...prev,
+        options: newOptions
+      }));
+    }
+  };
+
+  const createNewFilter = () => {
+    const newFilter = {
+      name: '',
+      filter_type: 'checkbox',
+      options: [''],
+      createdFilterId: null,
+      targetCategoryId: selectedCategoryForFilters
+    };
+
+    const updatedFilters = [...filters, newFilter];
+    setFilters(updatedFilters);
+    setCurrentFilter(newFilter);
+    setCurrentFilterIndex(updatedFilters.length - 1);
+  };
+
+  const selectFilter = (index) => {
+    if (filters[index]) {
+      setCurrentFilter(filters[index]);
+      setCurrentFilterIndex(index);
+    }
+  };
+
+  const removeFilterTab = (targetKey) => {
+    const index = parseInt(targetKey);
+    const newFilters = filters.filter((_, i) => i !== index);
+    setFilters(newFilters);
+    
+    if (newFilters.length === 0) {
+      createNewFilter();
+    } else if (currentFilterIndex === index) {
+      setCurrentFilter(newFilters[0]);
+      setCurrentFilterIndex(0);
+    } else if (currentFilterIndex > index) {
+      setCurrentFilterIndex(currentFilterIndex - 1);
+    }
+  };
+
+  // Edit existing category
+  const handleEditCategory = (category) => {
+    setEditingCategory(category);
+    
+    console.log(editingCategory.name,'this sis ')
+  };
+
+  const handleSaveCategory = async () => {
+    if (!editingCategory?.name?.trim()) {
+      setError('Category name is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Add your update category API call here
+      console.log('Updating category:', editingCategory);
+     await categoryUpdateApi({ id: editingCategory.id, data: editingCategory.name });
+
+
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Category updated successfully!',
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true
+      });
+
+      setEditingCategory(null);
+      refetchCategory();
+    } catch (err) {
+      setError('Failed to update category');
+      console.error('Error updating category:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete existing category
+  const handleDeleteCategory = (category) => {
+    confirm({
+      title: `Delete ${category.name}?`,
+      content: 'This action cannot be undone. All child categories and filters will also be deleted.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          // Add your delete category API call here
+          console.log('Deleting category:', category);
+
+          Swal.fire({
+            position: 'top-end',
+            title: 'Category deleted!',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1200,
+            toast: true
+          });
+
+          refetchCategory();
+        } catch (err) {
+          setError('Failed to delete category');
+          console.error('Error deleting category:', err);
+        } finally {
+          setLoading(false);
+        }
+      },
     });
+  };
 
-  const handleBeforeUpload = async (file) => {
-    const isImage = file.type.startsWith("image/");
-    if (!isImage) {
-      message.error("You can only upload image files!");
-      return Upload.LIST_IGNORE;
+  // Edit existing filter
+  const handleEditFilter = (filter) => {
+    setEditingFilter(filter);
+  };
+
+  const handleSaveFilter = async () => {
+    if (!editingFilter?.filter_by_type?.name?.trim()) {
+      setError('Filter name is required');
+      return;
     }
+
+    setLoading(true);
+    try {
+      // Add your update filter API call here
+      console.log('Updating filter:', editingFilter);
+
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Filter updated successfully!',
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true
+      });
+
+      setEditingFilter(null);
+      refetchCategory();
+    } catch (err) {
+      setError('Failed to update filter');
+      console.error('Error updating filter:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete existing filter
+  const handleDeleteFilter = (filter) => {
+    confirm({
+      title: 'Delete Filter?',
+      content: 'This will remove the filter and all its options. This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          // Add your delete filter API call here
+          console.log('Deleting filter:', filter);
+
+          Swal.fire({
+            position: 'top-end',
+            title: 'Filter deleted!',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1200,
+            toast: true
+          });
+
+          refetchCategory();
+        } catch (err) {
+          setError('Failed to delete filter');
+          console.error('Error deleting filter:', err);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  // Edit filter option
+  const handleEditFilterOption = async (optionId, newValue) => {
+    if (!newValue.trim()) {
+      setError('Option value is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Add your update filter option API call here
+      console.log('Updating filter option:', optionId, newValue);
+
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Filter option updated!',
+        showConfirmButton: false,
+        timer: 1200,
+        toast: true
+      });
+
+      refetchCategory();
+    } catch (err) {
+      setError('Failed to update filter option');
+      console.error('Error updating filter option:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete filter option
+  const handleDeleteFilterOption = (optionId) => {
+    confirm({
+      title: 'Delete Filter Option?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          // Add your delete filter option API call here
+          console.log('Deleting filter option:', optionId);
+
+          Swal.fire({
+            position: 'top-end',
+            title: 'Option deleted!',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1200,
+            toast: true
+          });
+
+          refetchCategory();
+        } catch (err) {
+          setError('Failed to delete filter option');
+          console.error('Error deleting filter option:', err);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  // Create new subcategory
+  const createSubcategory = async () => {
+    if (!categoryData.subcategoryName.trim()) {
+      setError('Subcategory name is required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
 
     try {
-      // Compression options
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1024,
-        useWebWorker: true,
-        fileType: "image/jpeg",
-        initialQuality: 0.8,
+      const response = await createCategory({
+        name: categoryData.subcategoryName,
+        parent: createdCategories.parent
+      }).unwrap();
+
+      setCreatedCategories(prev => ({
+        ...prev,
+        subcategoryId: response.id,
+        subcategoryName: categoryData.subcategoryName
+      }));
+
+      setCurrentStep(2);
+      
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Subcategory created successfully!',
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true
+      });
+
+      refetchCategory();
+      
+    } catch (err) {
+      setError('Failed to create subcategory');
+      console.error('Error creating subcategory:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create new child subcategory
+  const createChildSubcategory = async () => {
+    if (!categoryData.childSubcategoryName.trim()) {
+      setError('Child subcategory name is required');
+      return;
+    }
+
+    const parentId = createdCategories.subcategoryId || createdCategories.parent;
+    
+    if (!parentId) {
+      setError('Please select a parent category first');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await createCategory({
+        name: categoryData.childSubcategoryName,
+        parent: parentId
+      }).unwrap();
+
+      setCreatedCategories(prev => ({
+        ...prev,
+        childSubcategoryId: response.id,
+        childSubcategoryName: categoryData.childSubcategoryName
+      }));
+
+      setCurrentStep(3);
+      
+      Swal.fire({
+        title: '🎉 Category Created Successfully!',
+        text: 'Category has been successfully created. You can now add multiple filters.',
+        icon: 'success',
+        confirmButtonText: 'Add Filters',
+        confirmButtonColor: '#CBA135',
+        customClass: {
+          popup: 'success-swal-popup'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setActiveFilterTab('filters');
+          if (filters.length === 0) {
+            createNewFilter();
+          }
+        }
+      });
+
+      refetchCategory();
+      
+    } catch (err) {
+      setError('Failed to create child subcategory');
+      console.error('Error creating child subcategory:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create new filter
+  const createFilter = async () => {
+    if (!currentFilter.name.trim()) {
+      setError('Filter name is required');
+      return;
+    }
+
+    const targetCategoryId = selectedCategoryForFilters;
+
+    if (!targetCategoryId) {
+      setError('Please select a category for the filter');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await createFilterNameNType({
+        name: currentFilter.name,
+        filter_type: currentFilter.filter_type,
+        category_ids: [targetCategoryId]
+      }).unwrap();
+
+      const updatedFilter = {
+        ...currentFilter,
+        createdFilterId: response.id
       };
 
-      // Compress the image
-      const compressedFile = await imageCompression(file, options);
-      
-      // Create a new File object with proper name and type
-      const finalFile = new File([compressedFile], file.name, {
-        type: "image/jpeg",
-        lastModified: Date.now(),
-      });
+      setCurrentFilter(updatedFilter);
+      const newFilters = [...filters];
+      newFilters[currentFilterIndex] = updatedFilter;
+      setFilters(newFilters);
 
-      console.log(
-        `Compressed from ${(file.size / 1024 / 1024).toFixed(2)}MB to ${(
-          compressedFile.size /
-          1024 /
-          1024
-        ).toFixed(2)}MB`
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Filter created successfully!',
+        text: 'You can now add filter options',
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true
+      });
+      
+      refetch();
+      refetchCategory();
+
+    } catch (err) {
+      setError('Failed to create filter');
+      console.error('Error creating filter:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create filter options
+  const createOptions = async () => {
+    const validOptions = currentFilter.options.filter(option => option.trim() !== '');
+    
+    if (validOptions.length === 0) {
+      setError('Please add at least one filter option');
+      return;
+    }
+
+    if (!currentFilter.createdFilterId) {
+      setError('Please create a filter first');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const promises = validOptions.map(option => 
+        createFilterOptions({
+          filter_by_type: currentFilter.createdFilterId,
+          value: option.trim()
+        }).unwrap()
       );
 
-      setFile(finalFile);
-      const preview = await getBase64(finalFile);
-      setImageUrl(preview);
+      await Promise.all(promises);
       
-      message.success("Image compressed and ready!");
-
-    } catch (error) {
-      console.error("Compression error:", error);
-      message.error("Failed to compress image. Please try another image.");
-      return Upload.LIST_IGNORE;
-    }
-
-    return false;
-  };
-
-  const handleSubmit = async (values) => {
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("slug", values.slug);
-      formData.append("description", values.description);
-      
-      if (file) {
-        formData.append("image", file);
-      }
-
-      await editCategory({ id, data: formData }).unwrap();
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Category Updated successfully 🎉",
-        confirmButtonColor: "#3085d6",
-      });
       refetch();
-      navigate("/admin-dashboard/category");
-    } catch (error) {
-      message.error("Failed to update category");
-      console.error("Update error:", error);
+      refetchCategory();
+
+      Swal.fire({
+        title: '🎉 Filter Options Created!',
+        text: `Successfully created ${validOptions.length} options for "${currentFilter.name}"`,
+        icon: 'success',
+        confirmButtonText: 'Add Another Filter',
+        confirmButtonColor: '#CBA135',
+        showCancelButton: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          createNewFilter();
+        }
+      });
+
+    } catch (err) {
+      setError('Failed to create filter options');
+      console.error('Error creating filter options:', err);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const removeImage = () => {
-    setFile(null);
-    setImageUrl(null);
-    message.info('Image removed');
+  const deleteFilter = (index) => {
+    confirm({
+      title: 'Delete Filter?',
+      content: 'This will remove the filter and all its options. This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk() {
+        const newFilters = filters.filter((_, i) => i !== index);
+        setFilters(newFilters);
+        
+        if (currentFilterIndex === index) {
+          if (newFilters.length > 0) {
+            setCurrentFilter(newFilters[0]);
+            setCurrentFilterIndex(0);
+          } else {
+            createNewFilter();
+          }
+        } else if (currentFilterIndex > index) {
+          setCurrentFilterIndex(currentFilterIndex - 1);
+        }
+
+        Swal.fire({
+          position: 'top-end',
+          title: 'Filter deleted!',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1200,
+          toast: true
+        });
+      },
+    });
   };
+
+  const resetForm = () => {
+    setCategoryData({
+      subcategoryName: '',
+      childSubcategoryName: ''
+    });
+    setCreatedCategories(prev => ({
+      ...prev,
+      subcategoryId: null,
+      subcategoryName: '',
+      childSubcategoryId: null,
+      childSubcategoryName: ''
+    }));
+    setFilters([]);
+    setCurrentFilter({
+      name: '',
+      filter_type: 'checkbox',
+      options: [''],
+      createdFilterId: null
+    });
+    setCurrentFilterIndex(0);
+    setError('');
+    setCurrentStep(1);
+    setActiveFilterTab('');
+    setEditingCategory(null);
+    setEditingFilter(null);
+  };
+
+  const resetAll = () => {
+    resetForm();
+    navigate('/admin-dashboard/category');
+  };
+
+  const steps = [
+    {
+      title: 'Parent',
+      description: 'Existing Category',
+      icon: <CrownOutlined />
+    },
+    {
+      title: 'Subcategory',
+      description: 'Add/Edit Categories',
+      icon: <FolderOutlined />
+    },
+    {
+      title: 'Child',
+      description: 'Add/Edit Categories',
+      icon: <FolderOpenOutlined />
+    },
+    {
+      title: 'Filters',
+      description: 'Add/Edit Filters',
+      icon: <FilterOutlined />
+    }
+  ];
+
+  const getProgressPercent = () => {
+    return (currentStep / (steps.length - 1)) * 100;
+  };
+
+  const getFilterTypeColor = (type) => {
+    switch (type) {
+      case 'checkbox': return 'blue';
+      case 'radio': return 'green';
+      case 'select': return 'purple';
+      default: return 'default';
+    }
+  };
+
+  // Get all available categories for filter assignment
+  const getAllAvailableCategories = () => {
+    const categories = [];
+    
+    if (existingCategories.parent) {
+      categories.push({
+        id: existingCategories.parent.id,
+        name: `${existingCategories.parent.name} (Parent)`,
+        level: 'parent'
+      });
+    }
+    
+    existingCategories.subcategories.forEach(sub => {
+      categories.push({
+        id: sub.id,
+        name: `${sub.name} (Subcategory)`,
+        level: 'subcategory'
+      });
+    });
+    
+    existingCategories.childCategories.forEach(child => {
+      categories.push({
+        id: child.id,
+        name: `${child.name} (Child)`,
+        level: 'child'
+      });
+    });
+
+    return categories;
+  };
+
+  if (categoryLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <Text className="text-gray-600 mt-4">Loading category data...</Text>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        padding: "24px",
-        background: "linear-gradient(135deg, #f9f5f0 0%, #f3ebe2 100%)",
-        minHeight: "100vh",
-        fontFamily: '"Playfair Display", "Inter", serif',
-      }}
-    >
-      {/* Back Button */}
-      <Button
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e8e0d7",
-          borderRadius: "8px",
-          color: "#7a6a58",
-          marginBottom: "24px",
-          boxShadow: "0 2px 8px rgba(139, 108, 77, 0.08)",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          fontWeight: "500",
-        }}
-        icon={<ArrowLeftOutlined style={{ color: "#7a6a58" }} />}
-        onClick={() => navigate("/admin-dashboard/category")}
-      >
-        Back to Categories
-      </Button>
-
-      {/* Main Card */}
-      <Card
-        style={{
-          borderRadius: "16px",
-          boxShadow: "0 12px 30px rgba(94, 71, 44, 0.12)",
-          maxWidth: "1000px",
-          margin: "auto ",
-          background: "#ffffff",
-          border: "1px solid #e8e0d7",
-          overflow: "hidden",
-        }}
-        bodyStyle={{ padding: 0 }}
-      >
-        <div
-          style={{
-            background: "linear-gradient(90deg, #5c4033 0%, #7a5d48 100%)",
-            padding: "24px 32px",
-            color: "white",
-          }}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        <Card 
+          className="shadow-2xl border-0 rounded-2xl overflow-hidden"
+          bodyStyle={{ padding: 0 }}
         >
-          <Title level={2} style={{ color: "white", margin: 0, fontWeight: 600 }}>
-            Edit Category
-          </Title>
-          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px" }}>
-            Update your furniture category details
-          </Text>
-        </div>
-
-        <div style={{ padding: "32px" }}>
-          {/* Form */}
-          <Form form={form} layout="vertical" onFinish={handleSubmit}>
-            <Row gutter={32}>
-              {/* Left side - Form Fields */}
-              <Col xs={24} md={14}>
-                <div style={{ marginBottom: "32px" }}>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: "#5c4033",
-                      marginBottom: "20px",
-                      paddingBottom: "8px",
-                      borderBottom: "2px solid #f0e8df",
-                    }}
-                  >
-                    Category Information
-                  </h3>
-                  <Form.Item
-                    name="name"
-                    label={
-                      <Text strong style={{ color: "#5c4033", fontSize: "15px" }}>
-                        Category Name
-                      </Text>
-                    }
-                    rules={[{ required: true, message: "Please enter a category name" }]}
-                  >
-                    <Input
-                      size="large"
-                      placeholder="e.g., Living Room Furniture"
-                      style={{
-                        borderRadius: "8px",
-                        border: "1px solid #d9c7b3",
-                        padding: "10px 12px",
-                        background: "#fcf9f6",
-                      }}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="slug"
-                    label={
-                      <Text strong style={{ color: "#5c4033", fontSize: "15px" }}>
-                        URL Slug
-                      </Text>
-                    }
-                    rules={[{ required: true, message: "Please enter a URL slug" }]}
-                  >
-                    <Input
-                      size="large"
-                      placeholder="e.g., living-room-furniture"
-                      style={{
-                        borderRadius: "8px",
-                        border: "1px solid #d9c7b3",
-                        padding: "10px 12px",
-                        background: "#fcf9f6",
-                      }}
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="description"
-                    label={
-                      <Text strong style={{ color: "#5c4033", fontSize: "15px" }}>
-                        Description
-                      </Text>
-                    }
-                  >
-                    <Input.TextArea
-                      rows={4}
-                      placeholder="Describe this category of furniture..."
-                      style={{
-                        borderRadius: "8px",
-                        border: "1px solid #d9c7b3",
-                        background: "#fcf9f6",
-                        resize: "vertical",
-                      }}
-                    />
-                  </Form.Item>
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+            <Row gutter={[16, 16]} align="middle">
+              <Col xs={24} md={12}>
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white bg-opacity-20 p-2 rounded-lg">
+                    <EditOutlined className="text-2xl" />
+                  </div>
+                  <div>
+                    <Title level={2} className="text-white mb-1">
+                      Edit Category & Content
+                    </Title>
+                    <Text className="text-blue-100">
+                      {createdCategories.parentName} (ID: {id})
+                    </Text>
+                  </div>
                 </div>
               </Col>
-
-              {/* Right side - Image Upload */}
-              <Col xs={24} md={10}>
-                <div style={{ marginBottom: "32px" }}>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      color: "#5c4033",
-                      marginBottom: "20px",
-                      paddingBottom: "8px",
-                      borderBottom: "2px solid #f0e8df",
-                    }}
+              <Col xs={24} md={12} className="text-right">
+                <div className="flex items-center justify-end space-x-2">
+                  {(existingFilters.length > 0 || filters.length > 0) && (
+                    <Tag color="orange" className="text-white border-white">
+                      {existingFilters.length + filters.length} Filter{(existingFilters.length + filters.length) > 1 ? 's' : ''}
+                    </Tag>
+                  )}
+                  <Button 
+                    icon={<FaArrowLeft />}
+                    onClick={resetAll}
+                    size="large"
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 border-0 text-white"
                   >
-                    Category Image
-                  </h3>
-                  <div style={{ marginBottom: "20px" }}>
-                    <Upload 
-                      beforeUpload={handleBeforeUpload} 
-                      showUploadList={false}
-                    >
-                      {imageUrl ? (
-                        <div
-                          style={{
-                            position: "relative",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            boxShadow: "0 4px 12px rgba(94, 71, 44, 0.15)",
-                            cursor: "pointer",
-                            transition: "all 0.3s ease",
-                          }}
-                          className="image-preview"
-                        >
-                          <img
-                            src={imageUrl}
-                            alt="category"
-                            style={{ width: "100%", height: "200px", objectFit: "cover" }}
-                          />
-                          <div
-                            className="image-overlay"
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              background: "rgba(92, 64, 51, 0.7)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              opacity: 0,
-                              transition: "opacity 0.3s",
-                              color: "white",
-                              fontWeight: "600",
-                            }}
-                          >
-                            <PlusOutlined style={{ fontSize: "20px", marginRight: "8px" }} />
-                            Change Image
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          className="upload-placeholder"
-                          style={{
-                            border: "2px dashed #d9c7b3",
-                            borderRadius: "12px",
-                            padding: "20px",
-                            textAlign: "center",
-                            backgroundColor: "#fcf9f6",
-                            height: "200px",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            transition: "all 0.3s ease",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "60px",
-                              height: "60px",
-                              borderRadius: "50%",
-                              background: "#f0e8df",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              marginBottom: "16px",
-                            }}
-                          >
-                            <UploadOutlined style={{ fontSize: "24px", color: "#7a6a58" }} />
-                          </div>
-                          <Text style={{ color: "#7a6a58", marginBottom: "8px", fontWeight: 500 }}>
-                            Click to upload image
-                          </Text>
-                          <Text type="secondary" style={{ fontSize: "12px" }}>
-                            JPG, PNG or GIF (max 5MB)
-                          </Text>
-                        </div>
-                      )}
-                    </Upload>
-
-                    {imageUrl && (
-                      <Button
-                        icon={<DeleteOutlined />}
-                        onClick={removeImage}
-                        style={{
-                          width: "100%",
-                          marginTop: "12px",
-                          color: "#f5222d",
-                          borderColor: "#ffccc7",
-                          borderRadius: "8px",
-                          height: "36px",
-                        }}
-                      >
-                        Remove Image
-                      </Button>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      background: "#f9f0ff",
-                      border: "1px solid #d3adf7",
-                      borderRadius: "8px",
-                      padding: "16px",
-                    }}
-                  >
-                    <h4
-                      style={{
-                        color: "#722ed1",
-                        marginBottom: "12px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Image Guidelines
-                    </h4>
-                    <ul
-                      style={{
-                        color: "#9254de",
-                        fontSize: "13px",
-                        paddingLeft: "20px",
-                        margin: 0,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      <li>Use high-quality product images</li>
-                      <li>Recommended size: 800×800px</li>
-                      <li>Show the category's best items</li>
-                      <li>Images are automatically compressed</li>
-                    </ul>
-                  </div>
+                    Go Back
+                  </Button>
                 </div>
               </Col>
             </Row>
+          </div>
 
-            <Divider style={{ borderColor: "#e8e0d7", margin: "24px 0" }} />
-
-            {/* Buttons */}
-            <div style={{ textAlign: "right", marginTop: "8px" }}>
-              <Button
-                onClick={() => navigate("/admin-dashboard/category")}
-                style={{
-                  marginRight: "12px",
-                  borderRadius: "8px",
-                  padding: "0 20px",
-                  height: "42px",
-                  borderColor: "#d9c7b3",
-                  color: "#7a6a58",
-                  fontWeight: "500",
+          <div className="p-6 bg-white border-b">
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <Text strong>Progress</Text>
+                <Text className="text-blue-600 font-semibold">
+                  {Math.round(getProgressPercent())}% Complete
+                </Text>
+              </div>
+              <Progress 
+                percent={getProgressPercent()} 
+                strokeColor={{
+                  '0%': '#1890ff',
+                  '100%': '#722ed1',
                 }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SaveOutlined />}
-                loading={isSubmitting}
-                style={{
-                  borderRadius: "8px",
-                  padding: "0 20px",
-                  height: "42px",
-                  background: "linear-gradient(90deg, #5c4033 0%, #7a5d48 100%)",
-                  border: "none",
-                  fontWeight: "500",
-                  boxShadow: "0 4px 12px rgba(92, 64, 51, 0.2)",
-                }}
-              >
-                Save Changes
-              </Button>
+                showInfo={false}
+              />
             </div>
-          </Form>
-        </div>
-      </Card>
+            
+            <Steps current={currentStep} className="custom-steps">
+              {steps.map((step, index) => (
+                <Step 
+                  key={index}
+                  title={step.title}
+                  description={step.description}
+                  icon={step.icon}
+                  className={index <= currentStep ? 'text-blue-600' : ''}
+                />
+              ))}
+            </Steps>
+          </div>
 
-      <style>
-        {`
-          .upload-placeholder:hover {
-            border-color: #5c4033 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(94, 71, 44, 0.12);
-          }
-          .image-preview:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(94, 71, 44, 0.2);
-          }
-          .image-overlay:hover {
-            opacity: 1 !important;
-          }
-        `}
-      </style>
+          <div className="p-6">
+            <Row gutter={[24, 24]}>
+              <Col xs={24} lg={14}>
+                {error && (
+                  <Alert
+                    message={error}
+                    type="error"
+                    showIcon
+                    closable
+                    onClose={() => setError('')}
+                    className="mb-6 rounded-lg"
+                  />
+                )}
+
+                <Collapse 
+                  defaultActiveKey={['1', '2', '3', '4']}
+                  className="mb-6"
+                >
+                  {/* Edit Existing Categories Panel */}
+                  <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <EditOutlined className="text-purple-500" />
+                        <Text strong>Edit Existing Categories</Text>
+                        <Tag color="blue">{existingCategories.subcategories.length + existingCategories.childCategories.length + 1} Categories</Tag>
+                      </div>
+                    } 
+                    key="1"
+                  >
+                    <div className="space-y-6">
+                      {/* Edit Parent Category */}
+                      <Card 
+                        className="border-l-4 border-l-purple-500 shadow-md"
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 rounded-full bg-purple-100">
+                                <CrownOutlined className="text-lg text-purple-600" />
+                              </div>
+                              <div>
+                                <Text strong>Parent Category</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    Main category - Edit name
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            <Tag color="purple">Level 1</Tag>
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          {editingCategory?.id === existingCategories?.parent?.id ? (
+                            <div className="flex space-x-2">
+                              <Input
+                                value={editingCategory?.name}
+                                onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})}
+                                size="large"
+                                className="flex-1"
+                              />
+                              <Button
+                                icon={<SaveOutlined />}
+                                onClick={handleSaveCategory}
+                                loading={loading}
+                                type="primary"
+                                size="large"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                onClick={() => setEditingCategory(null)}
+                                size="large"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <Text strong>{existingCategories.parent?.name}</Text>
+                              <div className="flex space-x-2">
+                                <Button
+                                  icon={<EditOutlined />}
+                                  onClick={() => handleEditCategory(existingCategories.parent)}
+                                  size="small"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-sm">
+                            <Text type="secondary">ID: {existingCategories.parent?.id}</Text>
+                            <Text type="secondary">Slug: {existingCategories.parent?.slug}</Text>
+                          </div>
+                        </Space>
+                      </Card>
+
+                      {/* Edit Subcategories */}
+                      {existingCategories.subcategories.map((subcategory, index) => (
+                        <Card 
+                          key={subcategory.id}
+                          className="border-l-4 border-l-blue-500 shadow-md"
+                          title={
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="p-2 rounded-full bg-blue-100">
+                                  <FolderOutlined className="text-lg text-blue-600" />
+                                </div>
+                                <div>
+                                  <Text strong>Subcategory</Text>
+                                  <div>
+                                    <Text type="secondary" className="text-xs">
+                                      Second level category
+                                    </Text>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  icon={<EditOutlined />}
+                                  onClick={() => handleEditCategory(subcategory)}
+                                  size="small"
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  icon={<FaTrash />}
+                                  onClick={() => handleDeleteCategory(subcategory)}
+                                  loading={loading}
+                                  danger
+                                  size="small"
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          }
+                        >
+                          <Space direction="vertical" className="w-full" size="middle">
+                            {editingCategory?.id === subcategory.id ? (
+                              <div className="flex space-x-2">
+                                <Input
+                                  value={editingCategory.name}
+                                  onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})}
+                                  size="large"
+                                  className="flex-1"
+                                />
+                                <Button
+                                  icon={<SaveOutlined />}
+                                  onClick={handleSaveCategory}
+                                  loading={loading}
+                                  type="primary"
+                                  size="large"
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  onClick={() => setEditingCategory(null)}
+                                  size="large"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center">
+                                <Text strong>{subcategory.name}</Text>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-sm">
+                              <Text type="secondary">ID: {subcategory.id}</Text>
+                              <Text type="secondary">Slug: {subcategory.slug}</Text>
+                            </div>
+                            <Text type="secondary" className="text-xs">
+                              Child categories: {subcategory.children?.length || 0}
+                            </Text>
+                          </Space>
+                        </Card>
+                      ))}
+
+                      {/* Edit Child Categories */}
+                      {existingCategories.childCategories.map((childCategory, index) => (
+                        <Card 
+                          key={childCategory.id}
+                          className="border-l-4 border-l-green-500 shadow-md"
+                          title={
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="p-2 rounded-full bg-green-100">
+                                  <FolderOpenOutlined className="text-lg text-green-600" />
+                                </div>
+                                <div>
+                                  <Text strong>Child Category</Text>
+                                  <div>
+                                    <Text type="secondary" className="text-xs">
+                                      Third level category
+                                    </Text>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  icon={<EditOutlined />}
+                                  onClick={() => handleEditCategory(childCategory)}
+                                  size="small"
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  icon={<FaTrash />}
+                                  onClick={() => handleDeleteCategory(childCategory)}
+                                  loading={loading}
+                                  danger
+                                  size="small"
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          }
+                        >
+                          <Space direction="vertical" className="w-full" size="middle">
+                            {editingCategory?.id === childCategory.id ? (
+                              <div className="flex space-x-2">
+                                <Input
+                                  value={editingCategory.name}
+                                  onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})}
+                                  size="large"
+                                  className="flex-1"
+                                />
+                                <Button
+                                  icon={<SaveOutlined />}
+                                  onClick={handleSaveCategory}
+                                  loading={loading}
+                                  type="primary"
+                                  size="large"
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  onClick={() => setEditingCategory(null)}
+                                  size="large"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center">
+                                <Text strong>{childCategory.name}</Text>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-sm">
+                              <Text type="secondary">ID: {childCategory.id}</Text>
+                              <Text type="secondary">Slug: {childCategory.slug}</Text>
+                            </div>
+                            <Text type="secondary" className="text-xs">
+                              Filters: {childCategory.filter_data?.length || 0}
+                            </Text>
+                          </Space>
+                        </Card>
+                      ))}
+                    </div>
+                  </Panel>
+
+                  {/* Create New Categories Panel */}
+                  <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <PlusOutlined className="text-green-500" />
+                        <Text strong>Create New Categories</Text>
+                        {(createdCategories.subcategoryId || createdCategories.childSubcategoryId) && (
+                          <Tag color="green" className="ml-2">
+                            New Content
+                          </Tag>
+                        )}
+                      </div>
+                    } 
+                    key="2"
+                  >
+                    <div className="space-y-6">
+                      {/* Existing Parent Category Info */}
+                      <Card 
+                        className="border-l-4 border-l-purple-500 shadow-md"
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 rounded-full bg-purple-100">
+                                <CrownOutlined className="text-lg text-purple-600" />
+                              </div>
+                              <div>
+                                <Text strong>Existing Parent Category</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    You are adding content under this category
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
+                              Existing
+                            </Tag>
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          <Input
+                            value={`${createdCategories.parentName} (ID: ${createdCategories.parent})`}
+                            disabled
+                            size="large"
+                            className="w-full"
+                            prefix={<CrownOutlined className="text-gray-400" />}
+                          />
+                          <div className="flex items-center justify-between">
+                            <Text type="secondary" className="text-sm">
+                              All new content will be created under this parent category
+                            </Text>
+                            <Tag color="green" className="text-sm font-mono">
+                              ID: {createdCategories.parent}
+                            </Tag>
+                          </div>
+                        </Space>
+                      </Card>
+
+                      {/* Subcategory Creation */}
+                      <Card 
+                        className={`transition-all duration-300 ${
+                          createdCategories.subcategoryId 
+                            ? 'border-l-4 border-l-green-500 shadow-md' 
+                            : 'border-l-4 border-l-blue-500'
+                        }`}
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${
+                                createdCategories.subcategoryId ? 'bg-green-100' : 'bg-blue-100'
+                              }`}>
+                                <FolderOutlined className={`text-lg ${
+                                  createdCategories.subcategoryId ? 'text-green-600' : 'text-blue-600'
+                                }`} />
+                              </div>
+                              <div>
+                                <Text strong>Subcategory</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    Create a second level category
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            {createdCategories.subcategoryId && (
+                              <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
+                                Created
+                              </Tag>
+                            )}
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          <Input
+                            placeholder="e.g., Smartphones, Men's Fashion, Furniture..."
+                            value={categoryData.subcategoryName}
+                            onChange={(e) => handleInputChange('subcategoryName', e.target.value)}
+                            disabled={createdCategories.subcategoryId || loading}
+                            size="large"
+                            className="w-full"
+                            prefix={<FolderOutlined className="text-gray-400" />}
+                          />
+                          <div className="flex items-center justify-between">
+                            <Button
+                              type="primary"
+                              icon={<ArrowRightOutlined />}
+                              onClick={createSubcategory}
+                              disabled={
+                                !categoryData.subcategoryName.trim() || 
+                                createdCategories.subcategoryId || 
+                                loading
+                              }
+                              loading={loading && !createdCategories.subcategoryId}
+                              size="large"
+                              className="min-w-40"
+                            >
+                              Create Subcategory
+                            </Button>
+                            {createdCategories.subcategoryId && (
+                              <Tag color="blue" className="text-sm font-mono">
+                                ID: {createdCategories.subcategoryId}
+                              </Tag>
+                            )}
+                          </div>
+                        </Space>
+                      </Card>
+
+                      {/* Child Subcategory Creation */}
+                      <Card 
+                        className={`transition-all duration-300 ${
+                          createdCategories.childSubcategoryId 
+                            ? 'border-l-4 border-l-green-500 shadow-md' 
+                            : (existingCategories.subcategories.length === 0 && !createdCategories.subcategoryId)
+                            ? 'border-l-4 border-l-gray-300 opacity-50' 
+                            : 'border-l-4 border-l-blue-500'
+                        }`}
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${
+                                createdCategories.childSubcategoryId ? 'bg-green-100' : 'bg-blue-100'
+                              }`}>
+                                <FolderOpenOutlined className={`text-lg ${
+                                  createdCategories.childSubcategoryId ? 'text-green-600' : 'text-blue-600'
+                                }`} />
+                              </div>
+                              <div>
+                                <Text strong>Child Category</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    Create a third level category (optional)
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            {createdCategories.childSubcategoryId && (
+                              <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
+                                Created
+                              </Tag>
+                            )}
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          <Input
+                            placeholder="e.g., iPhone, T-Shirts, Sofas..."
+                            value={categoryData.childSubcategoryName}
+                            onChange={(e) => handleInputChange('childSubcategoryName', e.target.value)}
+                            disabled={
+                              (existingCategories.subcategories.length === 0 && !createdCategories.subcategoryId) || 
+                              createdCategories.childSubcategoryId || 
+                              loading
+                            }
+                            size="large"
+                            className="w-full"
+                            prefix={<FolderOpenOutlined className="text-gray-400" />}
+                          />
+                          <div className="flex items-center justify-between">
+                            <Button
+                              type="primary"
+                              icon={<ArrowRightOutlined />}
+                              onClick={createChildSubcategory}
+                              disabled={
+                                !categoryData.childSubcategoryName.trim() || 
+                                (existingCategories.subcategories.length === 0 && !createdCategories.subcategoryId) || 
+                                createdCategories.childSubcategoryId || 
+                                loading
+                              }
+                              loading={loading && !createdCategories.childSubcategoryId}
+                              size="large"
+                              className="min-w-40"
+                            >
+                              Create Child
+                            </Button>
+                            {createdCategories.childSubcategoryId && (
+                              <Tag color="blue" className="text-sm font-mono">
+                                ID: {createdCategories.childSubcategoryId}
+                              </Tag>
+                            )}
+                          </div>
+                        </Space>
+                      </Card>
+                    </div>
+                  </Panel>
+
+                  {/* Edit Existing Filters Panel */}
+                  <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <FilterOutlined className="text-orange-500" />
+                        <Text strong>Edit Existing Filters</Text>
+                        {existingFilters.length > 0 && (
+                          <Tag color="orange" className="ml-2">
+                            {existingFilters.length} Filter{existingFilters.length > 1 ? 's' : ''}
+                          </Tag>
+                        )}
+                      </div>
+                    } 
+                    key="3"
+                  >
+                    <div className="space-y-6">
+                      {existingFilters.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Text type="secondary">No existing filters found for this category hierarchy.</Text>
+                        </div>
+                      ) : (
+                        existingFilters.map((filter, index) => (
+                          <Card 
+                            key={filter.filter_by_type.id}
+                            className="border-l-4 border-l-orange-500 shadow-md"
+                            title={
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <SettingOutlined className="text-orange-600" />
+                                  <div>
+                                    <Text strong>{filter.filter_by_type.name}</Text>
+                                    <div>
+                                      <Text type="secondary" className="text-xs">
+                                        Category: {filter.categoryName} ({filter.categoryLevel})
+                                      </Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Tag color={getFilterTypeColor(filter.filter_by_type.filter_type)}>
+                                    {filter.filter_by_type.filter_type}
+                                  </Tag>
+                                  <Button
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEditFilter(filter)}
+                                    size="small"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => handleDeleteFilter(filter)}
+                                    danger
+                                    size="small"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            }
+                          >
+                            {editingFilter?.filter_by_type?.id === filter.filter_by_type.id ? (
+                              <div className="space-y-4">
+                                <div className="flex space-x-2">
+                                  <Input
+                                    value={editingFilter.filter_by_type.name}
+                                    onChange={(e) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        name: e.target.value
+                                      }
+                                    })}
+                                    placeholder="Filter name"
+                                    size="large"
+                                    className="flex-1"
+                                  />
+                                  <Select
+                                    value={editingFilter.filter_by_type.filter_type}
+                                    onChange={(value) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        filter_type: value
+                                      }
+                                    })}
+                                    size="large"
+                                    style={{ width: 150 }}
+                                  >
+                                    <Option value="checkbox">Checkbox</Option>
+                                    <Option value="radio">Radio</Option>
+                                  </Select>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button
+                                    icon={<SaveOutlined />}
+                                    onClick={handleSaveFilter}
+                                    loading={loading}
+                                    type="primary"
+                                  >
+                                    Save Filter
+                                  </Button>
+                                  <Button
+                                    onClick={() => setEditingFilter(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : null}
+
+                            {/* Filter Options */}
+                            <div className="mt-4">
+                              <Text strong className="block mb-3">Filter Options</Text>
+                              <div className="space-y-2">
+                                {filter.filter_options.map((option, optIndex) => (
+                                  <div key={option.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                                    <Input
+                                      defaultValue={option.value}
+                                      onBlur={(e) => handleEditFilterOption(option.id, e.target.value)}
+                                      size="middle"
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => handleDeleteFilterOption(option.id)}
+                                      danger
+                                      size="small"
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Panel>
+
+                  {/* Create New Filters Panel */}
+                  <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <PlusOutlined className="text-blue-500" />
+                        <Text strong>Create New Filters</Text>
+                        {filters.length > 0 && (
+                          <Tag color="orange" className="ml-2">
+                            {filters.length} New Filter{filters.length > 1 ? 's' : ''}
+                          </Tag>
+                        )}
+                      </div>
+                    } 
+                    key="4"
+                  >
+                    {/* Category Selection for Filters */}
+                    <Card className="mb-4 border-l-4 border-l-purple-500">
+                      <Text strong className="block mb-2">Select Category for Filters</Text>
+                      <Select
+                        value={selectedCategoryForFilters}
+                        onChange={setSelectedCategoryForFilters}
+                        size="large"
+                        className="w-full"
+                        placeholder="Select a category to attach filters"
+                      >
+                        {getAllAvailableCategories().map(category => (
+                          <Option key={category.id} value={category.id}>
+                            {category.name}
+                          </Option>
+                        ))}
+                      </Select>
+                      <Text type="secondary" className="text-xs mt-2">
+                        Choose which category these filters will be attached to
+                      </Text>
+                    </Card>
+
+                    <Tabs
+                      activeKey={currentFilterIndex.toString()}
+                      onChange={(key) => selectFilter(parseInt(key))}
+                      type="editable-card"
+                      onEdit={(targetKey, action) => {
+                        if (action === 'add') {
+                          createNewFilter();
+                        } else {
+                          removeFilterTab(targetKey);
+                        }
+                      }}
+                    >
+                      {filters.map((filter, index) => (
+                        <TabPane 
+                          key={index.toString()}
+                          tab={
+                            <div className="flex items-center space-x-2">
+                              <FilterOutlined />
+                              <span>{filter.name || `Filter ${index + 1}`}</span>
+                              {filter.createdFilterId && (
+                                <CheckCircleOutlined className="text-green-500" />
+                              )}
+                            </div>
+                          }
+                          closable={filters.length > 1}
+                        >
+                          <div className="space-y-6">
+                            {/* Filter Creation Card */}
+                            <Card 
+                              className="border-l-4 border-l-blue-500"
+                              title={
+                                <div className="flex items-center space-x-3">
+                                  <SettingOutlined className="text-blue-600" />
+                                  <div>
+                                    <Text strong>
+                                      {currentFilter.createdFilterId ? 'Edit Filter' : 'Create Filter'} 
+                                      {currentFilter.name && `: ${currentFilter.name}`}
+                                    </Text>
+                                    <div>
+                                      <Text type="secondary" className="text-xs">
+                                        Target Category: {getAllAvailableCategories().find(cat => cat.id === selectedCategoryForFilters)?.name || 'Not selected'}
+                                      </Text>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                              extra={
+                                <div className="flex space-x-2">
+                                  {currentFilter.createdFilterId && (
+                                    <Tag color={getFilterTypeColor(currentFilter.filter_type)}>
+                                      {currentFilter.filter_type}
+                                    </Tag>
+                                  )}
+                                  <Button
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => deleteFilter(index)}
+                                    danger
+                                    size="small"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              }
+                            >
+                              <Space direction="vertical" className="w-full" size="middle">
+                                <Input
+                                  placeholder="e.g., Brand, Size, Color, Material..."
+                                  value={currentFilter.name}
+                                  onChange={(e) => handleCurrentFilterChange('name', e.target.value)}
+                                  disabled={loading || currentFilter.createdFilterId}
+                                  size="large"
+                                  className="w-full"
+                                  prefix={<FilterOutlined className="text-gray-400" />}
+                                />
+                                
+                                <Select
+                                  value={currentFilter.filter_type}
+                                  onChange={(value) => handleCurrentFilterChange('filter_type', value)}
+                                  disabled={loading || currentFilter.createdFilterId}
+                                  size="large"
+                                  className="w-full"
+                                >
+                                  <Option value="checkbox">Checkbox</Option>
+                                  <Option value="radio">Radio Button</Option>
+                                </Select>
+
+                                <div className="flex items-center justify-between">
+                                  <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    onClick={createFilter}
+                                    disabled={
+                                      !currentFilter.name.trim() || 
+                                      !selectedCategoryForFilters || 
+                                      currentFilter.createdFilterId || 
+                                      loading
+                                    }
+                                    loading={loading && !currentFilter.createdFilterId}
+                                    size="large"
+                                    className="min-w-40"
+                                  >
+                                    {currentFilter.createdFilterId ? 'Filter Created' : 'Create Filter'}
+                                  </Button>
+                                  {currentFilter.createdFilterId && (
+                                    <Tag color="blue" className="text-sm font-mono">
+                                      ID: {currentFilter.createdFilterId}
+                                    </Tag>
+                                  )}
+                                </div>
+                              </Space>
+                            </Card>
+
+                            {currentFilter.createdFilterId && (
+                              <Card 
+                                className="border-l-4 border-l-green-500"
+                                title={
+                                  <div className="flex items-center space-x-3">
+                                    <PlusOutlined className="text-green-600" />
+                                    <div>
+                                      <Text strong>Add Filter Options</Text>
+                                      <div>
+                                        <Text type="secondary" className="text-xs">
+                                          Add values for: {currentFilter.name}
+                                        </Text>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
+                                extra={
+                                  <Button
+                                    icon={<PlusOutlined />}
+                                    onClick={addCurrentFilterOption}
+                                    size="small"
+                                  >
+                                    Add Option
+                                  </Button>
+                                }
+                              >
+                                <Space direction="vertical" className="w-full" size="middle">
+                                  {currentFilter.options.map((option, optionIndex) => (
+                                    <div key={optionIndex} className="flex items-center space-x-2">
+                                      <Input
+                                        placeholder={`Option ${optionIndex + 1} (e.g., Apple, Samsung, LG...)`}
+                                        value={option}
+                                        onChange={(e) => handleCurrentFilterOptionChange(optionIndex, e.target.value)}
+                                        disabled={loading}
+                                        size="large"
+                                        className="flex-1"
+                                      />
+                                      {currentFilter.options.length > 1 && (
+                                        <Button
+                                          icon={<DeleteOutlined />}
+                                          onClick={() => removeCurrentFilterOption(optionIndex)}
+                                          danger
+                                          size="large"
+                                        />
+                                      )}
+                                    </div>
+                                  ))}
+                                  
+                                  <div className="flex items-center justify-between pt-4">
+                                    <Button
+                                      type="primary"
+                                      icon={<CheckCircleOutlined />}
+                                      onClick={createOptions}
+                                      disabled={loading || currentFilter.options.every(opt => !opt.trim())}
+                                      loading={loading}
+                                      size="large"
+                                      className="min-w-40"
+                                    >
+                                      Create Options
+                                    </Button>
+                                    <Text type="secondary" className="text-sm">
+                                      {currentFilter.options.filter(opt => opt.trim()).length} valid options
+                                    </Text>
+                                  </div>
+                                </Space>
+                              </Card>
+                            )}
+                          </div>
+                        </TabPane>
+                      ))}
+                    </Tabs>
+
+                    {filters.length === 0 && (
+                      <div className="text-center py-8">
+                        <Button
+                          type="dashed"
+                          icon={<PlusOutlined />}
+                          onClick={createNewFilter}
+                          size="large"
+                          className="h-20 w-full"
+                        >
+                          Create Your First Filter
+                        </Button>
+                      </div>
+                    )}
+                  </Panel>
+                </Collapse>
+              </Col>
+
+              {/* Overview Column */}
+              <Col xs={24} lg={10}>
+                <Card 
+                  title={
+                    <div className="flex items-center space-x-2">
+                      <StarOutlined className="text-yellow-500" />
+                      <Text strong>Overview</Text>
+                    </div>
+                  }
+                  className="bg-gray-50 border-0"
+                  extra={
+                    <Tag color="blue">
+                      {existingCategories.subcategories.length + existingCategories.childCategories.length + 1} Total Categories
+                    </Tag>
+                  }
+                >
+                  {/* Category Hierarchy Summary */}
+                  <div className="mb-6">
+                    <Text strong className="block mb-3">Category Hierarchy</Text>
+                    <div className="space-y-3">
+                      {/* Parent Category */}
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center space-x-3">
+                          <CrownOutlined className="text-green-600" />
+                          <div className="flex-1">
+                            <Text strong>{existingCategories.parent?.name}</Text>
+                            <div>
+                              <Text type="secondary" className="text-xs">
+                                Parent Category • ID: {existingCategories.parent?.id}
+                              </Text>
+                            </div>
+                          </div>
+                          <Tag color="green">Level 1</Tag>
+                        </div>
+                      </div>
+
+                      {/* Subcategories */}
+                      {existingCategories.subcategories.map((subcategory) => (
+                        <div key={subcategory.id} className="p-3 bg-blue-50 rounded-lg border border-blue-200 ml-4">
+                          <div className="flex items-center space-x-3">
+                            <FolderOutlined className="text-blue-600" />
+                            <div className="flex-1">
+                              <Text strong>{subcategory.name}</Text>
+                              <div>
+                                <Text type="secondary" className="text-xs">
+                                  Subcategory • ID: {subcategory.id} • {subcategory.children?.length || 0} children
+                                </Text>
+                              </div>
+                            </div>
+                            <Tag color="blue">Level 2</Tag>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Child Categories */}
+                      {existingCategories.childCategories.map((childCategory) => (
+                        <div key={childCategory.id} className="p-3 bg-purple-50 rounded-lg border border-purple-200 ml-8">
+                          <div className="flex items-center space-x-3">
+                            <FolderOpenOutlined className="text-purple-600" />
+                            <div className="flex-1">
+                              <Text strong>{childCategory.name}</Text>
+                              <div>
+                                <Text type="secondary" className="text-xs">
+                                  Child Category • ID: {childCategory.id} • {childCategory.filter_data?.length || 0} filters
+                                </Text>
+                              </div>
+                            </div>
+                            <Tag color="purple">Level 3</Tag>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Newly Created Categories */}
+                      {createdCategories.subcategoryId && (
+                        <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 ml-4">
+                          <div className="flex items-center space-x-3">
+                            <FolderOutlined className="text-orange-600" />
+                            <div className="flex-1">
+                              <Text strong>{createdCategories.subcategoryName}</Text>
+                              <div>
+                                <Text type="secondary" className="text-xs">
+                                  New Subcategory • ID: {createdCategories.subcategoryId}
+                                </Text>
+                              </div>
+                            </div>
+                            <Tag color="orange">New</Tag>
+                          </div>
+                        </div>
+                      )}
+
+                      {createdCategories.childSubcategoryId && (
+                        <div className="p-3 bg-orange-50 rounded-lg border border-orange-200 ml-8">
+                          <div className="flex items-center space-x-3">
+                            <FolderOpenOutlined className="text-orange-600" />
+                            <div className="flex-1">
+                              <Text strong>{createdCategories.childSubcategoryName}</Text>
+                              <div>
+                                <Text type="secondary" className="text-xs">
+                                  New Child Category • ID: {createdCategories.childSubcategoryId}
+                                </Text>
+                              </div>
+                            </div>
+                            <Tag color="orange">New</Tag>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Filters Summary */}
+                  <div className="mt-6">
+                    <Text strong className="block mb-3">Filters Summary</Text>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Text>Existing Filters:</Text>
+                        <Tag color="blue">{existingFilters.length}</Tag>
+                      </div>
+                      <div className="flex justify-between">
+                        <Text>New Filters:</Text>
+                        <Tag color="orange">{filters.length}</Tag>
+                      </div>
+                      <div className="flex justify-between">
+                        <Text strong>Total Filters:</Text>
+                        <Tag color="green">{existingFilters.length + filters.length}</Tag>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Success Alert */}
+                  {(createdCategories.childSubcategoryId || createdCategories.subcategoryId || filters.length > 0) && (
+                    <Alert
+                      message="Changes Applied Successfully!"
+                      description="Your edits and new content have been saved."
+                      type="success"
+                      showIcon
+                      className="mt-4 rounded-lg"
+                    />
+                  )}
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </Card>
+      </div>
+
+      <style jsx>{`
+        .custom-steps .ant-steps-item-title {
+          font-weight: 600;
+        }
+        .success-swal-popup {
+          border-radius: 12px;
+        }
+      `}</style>
     </div>
   );
 };

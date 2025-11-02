@@ -286,7 +286,11 @@ const CategoryManagement = () => {
       key: "action",
       render: (_, record) => (
         <div className="flex items-center gap-3">
-
+            <IoEyeOutline
+            onClick={() => navigate(`/admin-dashboard/edit-category/${record.id}`)}
+            className="text-gray-400 cursor-pointer"
+            size={20}
+          />
           <MdDelete
             className="text-red-400 cursor-pointer"
             size={20}

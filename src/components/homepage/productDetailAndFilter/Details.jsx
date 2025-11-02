@@ -154,9 +154,13 @@ const filteredProducts = productsData?.results?.filter(
     }
   }, [selectedProduct]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [productId]);
+useEffect(() => {
+  window.scrollTo({
+    top: 200, // leaves 40px space from top
+    behavior: 'auto', // optional for a smooth scroll
+  });
+}, [productId]);
+
 
  
   const handleImageClick = (image, index) => {

@@ -80,7 +80,11 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
 
   const handleSelect = (product) => {
     if (component ==='cart'){
+        navigate(`/details?id=${product.id}`, { replace: false, state: { product } });
+    }
+    else{
       navigate(`/details?id=${product.id}`, { replace: false, state: { product } });
+
     }
   setSelectedProduct(product);
 };

@@ -13,7 +13,7 @@ export const apiSlice = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-     
+     headers.set("ngrok-skip-browser-warning", "true");
       return headers;
     },
   }),

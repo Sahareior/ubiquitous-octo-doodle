@@ -143,13 +143,17 @@ const CategorySearch = ({ categoriesData }) => {
           placeholder="Search categories..."
           className="w-full border border-gray-300 px-4 py-1 pr-12 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 rounded-full bg-white transition-all duration-150"
         />
-        {searchText && (
-          <FiX
-            className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-            size={18}
-            onClick={clearSearch}
-          />
-        )}
+{searchText && (
+  <FiX
+    className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+    size={18}
+    onMouseDown={(e) => {
+      e.preventDefault(); // Prevent input blur
+      clearSearch();
+    }}
+  />
+)}
+
         <div 
           className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
           onClick={() => searchText.trim() && handleSearchChange(searchText)}
