@@ -46,6 +46,7 @@ import {
   useGetCategoryByIdQuery,
 } from '../../../../../redux/slices/Apis/vendorsApi';
 import { Trash } from 'lucide-react';
+import { useDeleteCategoriesMutation } from '../../../../../redux/slices/Apis/customersApi';
 
 const { Step } = Steps;
 const { Title, Text } = Typography;
@@ -67,7 +68,7 @@ const EditCategory = () => {
   
   const { data: cateGoryData, isLoading: categoriesLoading, refetch } = useGetCategoriesQuery();
   const { data: categoryByIdData, isLoading: categoryLoading, refetch: refetchCategory } = useGetCategoryByIdQuery(id);
-
+  const [deleteCategorys] = useDeleteCategoriesMutation()
   // State for existing data
   const [existingCategories, setExistingCategories] = useState({
     parent: null,
@@ -321,37 +322,9 @@ const handleSaveCategory = async () => {
 
 
   // Delete existing category
-  const handleDeleteCategory = (category) => {
-    confirm({
-      title: `Delete ${category.name}?`,
-      content: 'This action cannot be undone. All child categories and filters will also be deleted.',
-      okText: 'Yes, Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        setLoading(true);
-        try {
-          // Add your delete category API call here
-          console.log('Deleting category:', category);
-
-          Swal.fire({
-            position: 'top-end',
-            title: 'Category deleted!',
-            icon: 'success',
-            showConfirmButton: false,
-            timer: 1200,
-            toast: true
-          });
-
-          refetchCategory();
-        } catch (err) {
-          setError('Failed to delete category');
-          console.error('Error deleting category:', err);
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
+  const handleDeleteCategory = async (category) => {
+    await deleteCategorys(category.id)
+    refetchCategory()
   };
 
   // Edit existing filter

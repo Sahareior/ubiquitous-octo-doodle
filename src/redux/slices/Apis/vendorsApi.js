@@ -186,6 +186,13 @@ export const vendorsApi = createApi({
       })
     }),
 
+    deleteCategorys: build.mutation({
+      query: (id) => ({
+        url: `/categories/${id}/`,
+        method:'DELETE'
+      })
+    }),
+
     sendMessage: build.mutation({
       query: (data) => ({
         url: '/send/mail/',
@@ -240,7 +247,7 @@ export const {
   useGetCategoryByIdQuery,
   useCreateCategoryMutation,
   useChildCategoryQuery,
-
+  useDeleteCategorysMutation,
   useAllFeaturedProductsQuery,
   useVendorEditProductMutation,
   useVenDorNotificationsQuery,
