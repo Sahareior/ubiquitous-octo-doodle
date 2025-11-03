@@ -188,6 +188,8 @@ const FeaturedProducts = ({allProducts, isLoading, isError, title, subtitle}) =>
       };
       delete payload.prod_id;
 
+      console.log(data,'thuis ')
+
       const token = localStorage.getItem("access_token");
 
       if (!token) {

@@ -10,7 +10,7 @@ export const vendorsApi = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set("ngrok-skip-browser-warning", "true");
+      // headers.set("ngrok-skip-browser-warning", "true");
      
       return headers;
     },
@@ -179,11 +179,18 @@ export const vendorsApi = createApi({
     }),
 
     categoryUpdateApi: build.mutation({
-      query: ({id,data}) => ({
+      query: ({id,name}) => ({
         url : `/categories/${id}/`,
         method: 'PATCH',
-        body: data
+        body: name
       })
+    }),
+
+    sendMessage: build.mutation({
+      query: (data) => ({
+        url: '/send/mail/',
+        method: 'POST',
+      body:data      })
     }),
     
     getFilteredProducts: build.query({
@@ -224,6 +231,7 @@ export const vendorsApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useGetProductsByCategoryQuery,
+  useSendMessageMutation,
   useCategoryUpdateApiMutation,
   useGetNewArrivalsQuery,
   useGetFilteredProductsQuery,

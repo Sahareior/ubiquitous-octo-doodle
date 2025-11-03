@@ -47,6 +47,7 @@ import dayjs from "dayjs";
 import Swal from "sweetalert2";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
+import { FaEdit } from "react-icons/fa";
 
 dayjs.extend(advancedFormat);
 
@@ -286,7 +287,7 @@ const CategoryManagement = () => {
       key: "action",
       render: (_, record) => (
         <div className="flex items-center gap-3">
-            <IoEyeOutline
+            <FaEdit
             onClick={() => navigate(`/admin-dashboard/edit-category/${record.id}`)}
             className="text-gray-400 cursor-pointer"
             size={20}

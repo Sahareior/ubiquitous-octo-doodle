@@ -32,7 +32,7 @@ const TermsConditions = () => {
       </div>
 
       {/* Display Settings */}
-      <div className="mb-6 bg-[#F9FAFB] p-5">
+      {/* <div className="mb-6 bg-[#F9FAFB] p-5">
         <p className="popmed text-[#111827] mb-2">Display Settings</p>
         <div className="flex flex-wrap gap-6">
           <label className="flex items-center gap-2 text-sm popreg text-gray-700">
@@ -44,7 +44,7 @@ const TermsConditions = () => {
             Show on Vendor Onboarding
           </label>
         </div>
-      </div>
+      </div> */}
 
       {/* Content */}
       <div className="relative p-5">

@@ -36,7 +36,7 @@ import {
 } from '@ant-design/icons';
 import Swal from 'sweetalert2';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaTrash } from 'react-icons/fa6';
+import { FaArrowLeft, FaGear, FaTrash } from 'react-icons/fa6';
 import { 
   useCategoryUpdateApiMutation,
   useCreateCategoryMutation, 
@@ -270,37 +270,55 @@ const EditCategory = () => {
     console.log(editingCategory.name,'this sis ')
   };
 
-  const handleSaveCategory = async () => {
-    if (!editingCategory?.name?.trim()) {
-      setError('Category name is required');
-      return;
-    }
+const handleSaveCategory = async () => {
+  if (!editingCategory?.name?.trim()) {
+    setError('Category name is required');
+    return;
+  }
 
-    setLoading(true);
-    try {
-      // Add your update category API call here
-      console.log('Updating category:', editingCategory);
-     await categoryUpdateApi({ id: editingCategory.id, data: editingCategory.name });
+  console.log(editingCategory,'ad54')
+
+  setLoading(true);
+  try {
+    const payload = {
+      id: editingCategory.id,
+      name: { name: editingCategory.name.trim() } // 👈 body should be an object
+    };
+
+    console.log('Updating category:', payload);
+
+    await categoryUpdateApi(payload);
+
+    Swal.fire({
+      position: 'top-end',
+      icon: 'success',
+      title: 'Category updated successfully!',
+      showConfirmButton: false,
+      timer: 1500,
+      toast: true
+    });
+
+    setEditingCategory(null);
+    refetchCategory();
+    setError(null);
+  } catch (err) {
+    console.error('Error updating category:', err);
+    setError(err?.response?.data?.message || 'Failed to update category');
+    Swal.fire({
+      position: 'top-end',
+      icon: 'error',
+      title: 'Failed to update category',
+      text: err?.response?.data?.message || 'Something went wrong!',
+      showConfirmButton: false,
+      timer: 2000,
+      toast: true
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
 
-      Swal.fire({
-        position: 'top-end',
-        icon: 'success',
-        title: 'Category updated successfully!',
-        showConfirmButton: false,
-        timer: 1500,
-        toast: true
-      });
-
-      setEditingCategory(null);
-      refetchCategory();
-    } catch (err) {
-      setError('Failed to update category');
-      console.error('Error updating category:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Delete existing category
   const handleDeleteCategory = (category) => {
@@ -783,26 +801,26 @@ const EditCategory = () => {
   const getAllAvailableCategories = () => {
     const categories = [];
     
-    if (existingCategories.parent) {
-      categories.push({
-        id: existingCategories.parent.id,
-        name: `${existingCategories.parent.name} (Parent)`,
-        level: 'parent'
-      });
-    }
+    // if (existingCategories.parent) {
+    //   categories.push({
+    //     id: existingCategories.parent.id,
+    //     name: `${existingCategories.parent.name} (Parent)`,
+    //     level: 'parent'
+    //   });
+    // }
     
-    existingCategories.subcategories.forEach(sub => {
-      categories.push({
-        id: sub.id,
-        name: `${sub.name} (Subcategory)`,
-        level: 'subcategory'
-      });
-    });
+    // existingCategories.subcategories.forEach(sub => {
+    //   categories.push({
+    //     id: sub.id,
+    //     name: `${sub.name} (Subcategory)`,
+    //     level: 'subcategory'
+    //   });
+    // });
     
     existingCategories.childCategories.forEach(child => {
       categories.push({
         id: child.id,
-        name: `${child.name} (Child)`,
+        name: `${child.name} `,
         level: 'child'
       });
     });
@@ -836,9 +854,7 @@ const EditCategory = () => {
                     <EditOutlined className="text-2xl" />
                   </div>
                   <div>
-                    <Title level={2} className="text-white mb-1">
-                      Edit Category & Content
-                    </Title>
+                 <h3 className='text-2xl popmed'>Edit Category & Content</h3>
                     <Text className="text-blue-100">
                       {createdCategories.parentName} (ID: {id})
                     </Text>
@@ -1161,7 +1177,155 @@ const EditCategory = () => {
                   </Panel>
 
                   {/* Create New Categories Panel */}
+
+
+                  {/* Edit Existing Filters Panel */}
                   <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <FilterOutlined className="text-orange-500" />
+                        <Text strong>Edit Existing Filters</Text>
+                        {existingFilters.length > 0 && (
+                          <Tag color="orange" className="ml-2">
+                            {existingFilters.length} Filter{existingFilters.length > 1 ? 's' : ''}
+                          </Tag>
+                        )}
+                      </div>
+                    } 
+                    key="3"
+                  >
+                    <div className="space-y-6">
+                      {existingFilters.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Text type="secondary">No existing filters found for this category hierarchy.</Text>
+                        </div>
+                      ) : (
+                        existingFilters.map((filter, index) => (
+                          <Card 
+                            key={filter.filter_by_type.id}
+                            className="border-l-4 border-l-orange-500 shadow-md"
+                            title={
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <SettingOutlined className="text-orange-600" />
+                                  <div>
+                                    <Text strong>{filter.filter_by_type.name}</Text>
+                                    <div>
+                                      <Text type="secondary" className="text-xs">
+                                        Category: {filter.categoryName} ({filter.categoryLevel})
+                                      </Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Tag color={getFilterTypeColor(filter.filter_by_type.filter_type)}>
+                                    {filter.filter_by_type.filter_type}
+                                  </Tag>
+                                  <Button
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEditFilter(filter)}
+                                    size="small"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => handleDeleteFilter(filter)}
+                                    danger
+                                    size="small"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            }
+                          >
+                            {editingFilter?.filter_by_type?.id === filter.filter_by_type.id ? (
+                              <div className="space-y-4">
+                                <div className="flex space-x-2">
+                                  <Input
+                                    value={editingFilter.filter_by_type.name}
+                                    onChange={(e) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        name: e.target.value
+                                      }
+                                    })}
+                                    placeholder="Filter name"
+                                    size="large"
+                                    className="flex-1"
+                                  />
+                                  <Select
+                                    value={editingFilter.filter_by_type.filter_type}
+                                    onChange={(value) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        filter_type: value
+                                      }
+                                    })}
+                                    size="large"
+                                    style={{ width: 150 }}
+                                  >
+                                    <Option value="checkbox">Checkbox</Option>
+                                    <Option value="radio">Radio</Option>
+                                  </Select>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button
+                                    icon={<SaveOutlined />}
+                                    onClick={handleSaveFilter}
+                                    loading={loading}
+                                    type="primary"
+                                  >
+                                    Save Filter
+                                  </Button>
+                                  <Button
+                                    onClick={() => setEditingFilter(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : null}
+
+                            {/* Filter Options */}
+                            <div className="mt-4">
+                              <Text strong className="block mb-3">Filter Options</Text>
+                              <div className="space-y-2">
+                                {filter.filter_options.map((option, optIndex) => (
+                                  <div key={option.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                                    <Input
+                                      defaultValue={option.value}
+                                      onBlur={(e) => handleEditFilterOption(option.id, e.target.value)}
+                                      size="middle"
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => handleDeleteFilterOption(option.id)}
+                                      danger
+                                      size="small"
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Panel>
+<p className="text-base pl-10 font-medium text-gray-600 flex justify-center gap-3 items-center border-b py-10 border-gray-200 ">
+ <FaGear /> Category Workshop
+</p>
+
+
+
+                                    <Panel 
                     header={
                       <div className="flex items-center space-x-2">
                         <PlusOutlined className="text-green-500" />
@@ -1365,148 +1529,7 @@ const EditCategory = () => {
                       </Card>
                     </div>
                   </Panel>
-
-                  {/* Edit Existing Filters Panel */}
-                  <Panel 
-                    header={
-                      <div className="flex items-center space-x-2">
-                        <FilterOutlined className="text-orange-500" />
-                        <Text strong>Edit Existing Filters</Text>
-                        {existingFilters.length > 0 && (
-                          <Tag color="orange" className="ml-2">
-                            {existingFilters.length} Filter{existingFilters.length > 1 ? 's' : ''}
-                          </Tag>
-                        )}
-                      </div>
-                    } 
-                    key="3"
-                  >
-                    <div className="space-y-6">
-                      {existingFilters.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Text type="secondary">No existing filters found for this category hierarchy.</Text>
-                        </div>
-                      ) : (
-                        existingFilters.map((filter, index) => (
-                          <Card 
-                            key={filter.filter_by_type.id}
-                            className="border-l-4 border-l-orange-500 shadow-md"
-                            title={
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <SettingOutlined className="text-orange-600" />
-                                  <div>
-                                    <Text strong>{filter.filter_by_type.name}</Text>
-                                    <div>
-                                      <Text type="secondary" className="text-xs">
-                                        Category: {filter.categoryName} ({filter.categoryLevel})
-                                      </Text>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex space-x-2">
-                                  <Tag color={getFilterTypeColor(filter.filter_by_type.filter_type)}>
-                                    {filter.filter_by_type.filter_type}
-                                  </Tag>
-                                  <Button
-                                    icon={<EditOutlined />}
-                                    onClick={() => handleEditFilter(filter)}
-                                    size="small"
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => handleDeleteFilter(filter)}
-                                    danger
-                                    size="small"
-                                  >
-                                    Delete
-                                  </Button>
-                                </div>
-                              </div>
-                            }
-                          >
-                            {editingFilter?.filter_by_type?.id === filter.filter_by_type.id ? (
-                              <div className="space-y-4">
-                                <div className="flex space-x-2">
-                                  <Input
-                                    value={editingFilter.filter_by_type.name}
-                                    onChange={(e) => setEditingFilter({
-                                      ...editingFilter,
-                                      filter_by_type: {
-                                        ...editingFilter.filter_by_type,
-                                        name: e.target.value
-                                      }
-                                    })}
-                                    placeholder="Filter name"
-                                    size="large"
-                                    className="flex-1"
-                                  />
-                                  <Select
-                                    value={editingFilter.filter_by_type.filter_type}
-                                    onChange={(value) => setEditingFilter({
-                                      ...editingFilter,
-                                      filter_by_type: {
-                                        ...editingFilter.filter_by_type,
-                                        filter_type: value
-                                      }
-                                    })}
-                                    size="large"
-                                    style={{ width: 150 }}
-                                  >
-                                    <Option value="checkbox">Checkbox</Option>
-                                    <Option value="radio">Radio</Option>
-                                  </Select>
-                                </div>
-                                <div className="flex space-x-2">
-                                  <Button
-                                    icon={<SaveOutlined />}
-                                    onClick={handleSaveFilter}
-                                    loading={loading}
-                                    type="primary"
-                                  >
-                                    Save Filter
-                                  </Button>
-                                  <Button
-                                    onClick={() => setEditingFilter(null)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : null}
-
-                            {/* Filter Options */}
-                            <div className="mt-4">
-                              <Text strong className="block mb-3">Filter Options</Text>
-                              <div className="space-y-2">
-                                {filter.filter_options.map((option, optIndex) => (
-                                  <div key={option.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                                    <Input
-                                      defaultValue={option.value}
-                                      onBlur={(e) => handleEditFilterOption(option.id, e.target.value)}
-                                      size="middle"
-                                      className="flex-1"
-                                    />
-                                    <Button
-                                      icon={<DeleteOutlined />}
-                                      onClick={() => handleDeleteFilterOption(option.id)}
-                                      danger
-                                      size="small"
-                                    >
-                                      Delete
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-                  </Panel>
-
+                        
                   {/* Create New Filters Panel */}
                   <Panel 
                     header={

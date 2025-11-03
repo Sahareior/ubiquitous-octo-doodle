@@ -196,11 +196,13 @@ const FlashDeals = () => {
       async (data) => {
         const payload = {
           ...data,
-          id: data.id,
+          id: data.flashDealData.product.id,
           quantity: 1,
-          product_id: data.id,
+          product_id: data.flashDealData.product.id,
         };
         delete payload.prod_id;
+
+        console.log(data,"this is data")
   
         const token = localStorage.getItem("access_token");
   

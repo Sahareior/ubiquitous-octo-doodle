@@ -228,7 +228,7 @@ const AdminDashboard = () => {
       <Layout.Sider
         className="bg-white"
         breakpoint="lg"
-        width={250}
+        width={290}
         collapsedWidth="0"
       >
         <div className="p-4 flex flex-col gap-10 justify-center items-center">

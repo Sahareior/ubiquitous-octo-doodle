@@ -15,6 +15,7 @@ import { Github, Linkedin, Twitter } from 'lucide-react';
 import { FaTeamspeak } from 'react-icons/fa6';
 import { RiRocket2Fill } from 'react-icons/ri';
 import { BiHeart, BiTrophy } from 'react-icons/bi';
+import { Link } from 'react-router-dom';
 
 const AboutUs = () => {
   // Team members data
@@ -206,9 +207,11 @@ const AboutUs = () => {
           <p className="text-xl mb-8 max-w-3xl mx-auto">
             We're always looking for talented individuals to join our growing team.
           </p>
+          <Link to='/vendorpage'>
           <button className="bg-white text-[#795548] font-semibold py-3 px-8 rounded-lg hover:bg-[#F8F4EF] transition-colors duration-300 shadow-sm hover:shadow-md">
-            View Open Positions
+            View Open Positions as Vendor
           </button>
+          </Link>
         </div>
       </section>
     </div>

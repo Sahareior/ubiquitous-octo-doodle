@@ -426,38 +426,37 @@ const transformCategories = (apiCategories) => {
               </div>
             </div>
             
-            <div className="promotional-section">
-              <div className="promo-card">
-                {activeCategory?.imagePreview ? (
-                  <img className='w-full h-60 object-cover' src={activeCategory.imagePreview} alt={activeCategory.name} />
-                ) : (
-                  <div className="w-full h-60 bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-500">No Image</span>
-                  </div>
-                )}
-                <div className="promo-content">
-                  <h4 className="promo-title">{activeCategory.promo.title}</h4>
-                  <p className="promo-description">
-                    {activeCategory.promo.description}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="promo-features">
-                <div className="feature-item">
-                  <span className="feature-icon">🚚</span>
-                  <span className="feature-text">Free Shipping</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">↩️</span>
-                  <span className="feature-text">30-Day Returns</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">🛡️</span>
-                  <span className="feature-text">2-Year Warranty</span>
-                </div>
-              </div>
-            </div>
+<div className="promotional-section">
+  <div className="promo-card bg-gray-50 border rounded-lg p-4">
+    <div className="w-full h-20 flex items-center justify-center bg-gray-100 rounded">
+     
+    </div>
+    <div className="promo-content mt-3 text-center">
+      <h4 className="promo-title text-lg font-semibold text-gray-700">
+        Explore Our Latest Deals
+      </h4>
+      <p className="promo-description text-sm text-gray-500 mt-1">
+        Find top-rated products and special discounts tailored for you.
+      </p>
+    </div>
+  </div>
+
+  <div className="promo-features flex justify-around mt-4 text-gray-600">
+    <div className="feature-item flex flex-col items-center text-sm">
+      <span className="feature-icon text-xl mb-1">🚀</span>
+      <span className="feature-text">Fast Delivery</span>
+    </div>
+    <div className="feature-item flex flex-col items-center text-sm">
+      <span className="feature-icon text-xl mb-1">💬</span>
+      <span className="feature-text">24/7 Support</span>
+    </div>
+    <div className="feature-item flex flex-col items-center text-sm">
+      <span className="feature-icon text-xl mb-1">💳</span>
+      <span className="feature-text">Secure Payment</span>
+    </div>
+  </div>
+</div>
+
           </div>
         )}
       </div>

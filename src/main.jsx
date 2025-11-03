@@ -77,6 +77,8 @@ import GuestLayout from './components/homepage/layouts/GuestLayout.jsx';
 import SellersPage from './components/homepage/layouts/SellersPage.jsx';
 import FlashDealsAdmin from './components/AdminDashboard/pages/flashDeals/FlashDealsAdmin.jsx';
 import Featured_Management from './components/AdminDashboard/pages/featuredProduct/Featured_Management.jsx';
+import ContactUs from './components/homepage/ContactUs/ContactUs.jsx';
+import CancelPage from './components/checkout/CancelPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -93,6 +95,10 @@ const router = createBrowserRouter([
       { path: "terms&conditions", element: <TermsAndConditions /> },
       { path: "privacy", element: <PrivacyPolicy /> },
       { path: "aboutUs", element: <AboutUs /> },
+      {
+        path:"contactUs", element: <ContactUs />
+      },
+
 
           { path: "wishlist", element: <WhiteList /> },
           { path: "cart", element: <Cart /> },
@@ -102,6 +108,9 @@ const router = createBrowserRouter([
           { path: "confirm-order", element: <ConfirmOrder /> },
           { path: "order-track", element: <OrderTracking /> },
           { path: "payments/success", element: <ConfirmationPage /> },
+          {
+            path: "payments/cancel", element: <CancelPage /> 
+          },
           { path: "active", element: <ActiveUsers /> },
           { path: "profile", element: <Profile /> },
           { path: "return", element: <ReturnExchangeForm /> },

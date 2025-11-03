@@ -131,6 +131,11 @@ const Footer = () => {
             </Link>
           </li>
           <li>
+            <Link to="/vendor/contactUs" className="hover:text-[#CBA135] transition-colors duration-200">
+             Contact Us
+            </Link>
+          </li>
+          <li>
             <Link to="/vendor/analytics" className="hover:text-[#CBA135] transition-colors duration-200">
               Sales Analytics
             </Link>
@@ -193,6 +198,11 @@ const Footer = () => {
         <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
           <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-white">Track Order</li>
           <li><Link to="/return" className="hover:text-white">Return Request</Link></li>
+                   <li>
+            <Link to="/contactUs" className="hover:text-[#CBA135] transition-colors duration-200">
+             Contact Us
+            </Link>
+          </li>
           <li className="hover:cursor-pointer">
             <div onClick={handelClick} className="hover:text-white">Be a Vendor</div>
           </li>
@@ -205,6 +215,11 @@ const Footer = () => {
         <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Company</h3>
         <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
           <li><Link to="/aboutUs" className="hover:text-white">About Us</Link></li>
+                             <li>
+            <Link to="/contactUs" className="hover:text-[#CBA135] transition-colors duration-200">
+             Contact Us
+            </Link>
+          </li>
         </ul>
       </div>
     </div>

@@ -177,23 +177,43 @@ useEffect(() => {
         const hasPromotion =
           product.promotion_discount_type && product.promotion_discount_value;
 
+        // 🟢 Flash deal conditions
+        const hasFlashDeal = product.flassdeal_offer_price || product.flassdeal_image;
+
+        // ✅ Determine main price
+        const activePrice = hasFlashDeal
+          ? product.flassdeal_offer_price
+          : hasPromotion
+          ? product.new_price
+          : cartItem.price_snapshot || product.price1;
+
+        // ✅ Determine main image
+        const mainImage = hasFlashDeal
+          ? product.flassdeal_image
+          : product.images?.[0]?.image || product.images?.[0]?.url;
+
         return {
           id: cartItem.id,
           productId: product.id,
           name: product.name,
           sku: product.sku,
           quantity: cartItem.quantity,
-          active_price: hasPromotion
-            ? product.new_price
-            : cartItem.price_snapshot || product.price1,
+          active_price: activePrice,
           old_price: hasPromotion ? product.old_price : null,
           new_price: hasPromotion ? product.new_price : null,
           promotion_discount_type: product.promotion_discount_type,
           promotion_discount_value: product.promotion_discount_value,
           images: product.images,
-          image: product.images?.[0]?.image || product.images?.[0]?.url,
-          // Handle flash deal data if present
-          flashDealData: cartItem.flashDealData,
+          image: mainImage,
+          flashDealData: {
+            offer_price: product.flassdeal_offer_price,
+            image: product.flassdeal_image,
+            id: product.flassdeal_id,
+            is_active: product.flassdeal_is_active,
+            start_date: product.flassdeal_start_date,
+            end_date: product.flassdeal_end_date,
+            available_stock: product.flassdeal_available_stock,
+          },
           originalCartItem: cartItem,
         };
       });
@@ -202,29 +222,42 @@ useEffect(() => {
   } else {
     // 🛒 Guest user → use localStorage cart
     const guestCart = getGuestCart();
+
     // Transform localStorage data to match expected structure
-    const transformedCart = guestCart.map(item => ({
-      id: item.id || item.product_id,
-      productId: item.id || item.product_id,
-      name: item.name,
-      sku: item.sku,
-      quantity: item.quantity,
-      active_price: item.active_price || item.price1 || item.price,
-      old_price: item.old_price || item.oldPrice,
-      new_price: item.new_price || item.price,
-      promotion_discount_type: item.promotion_discount_type,
-      promotion_discount_value: item.promotion_discount_value,
-      discount: item.discount, // For flash deals
-      images: item.images || [],
-      image: item.image, // Direct image property
-      flashDealData: item.flashDealData, // Flash deal data
-      productData: item.productData, // Product data
-      // Store original item for reference
-      originalItem: item
-    }));
+    const transformedCart = guestCart.map((item) => {
+      const hasFlashDeal = item.flassdeal_offer_price || item.flassdeal_image;
+
+      return {
+        id: item.id || item.product_id,
+        productId: item.id || item.product_id,
+        name: item.name,
+        sku: item.sku,
+        quantity: item.quantity,
+        active_price: hasFlashDeal
+          ? item.flassdeal_offer_price
+          : item.active_price || item.price1 || item.price,
+        old_price: item.old_price || item.oldPrice,
+        new_price: item.new_price || item.price,
+        promotion_discount_type: item.promotion_discount_type,
+        promotion_discount_value: item.promotion_discount_value,
+        discount: item.discount, // For flash deals
+        images: item.images || [],
+        image: hasFlashDeal
+          ? item.flassdeal_image
+          : item.image, // ✅ use flash deal image if available
+        flashDealData: item.flashDealData || {
+          offer_price: item.flassdeal_offer_price,
+          image: item.flassdeal_image,
+        },
+        productData: item.productData,
+        originalItem: item,
+      };
+    });
+
     setCartItems(transformedCart);
   }
 }, [token, cartData]);
+
 
   // Check if cart is empty (for both authenticated and guest users)
   const isCartEmpty = () => {
@@ -341,12 +374,15 @@ const calculateItemPrice = (item) => {
 
   const totalDiscountFromPromotions = originalSubtotal - subtotal;
 
+  console.log(totalDiscountFromPromotions,'sasss')
+
   const deliveryFee =
     deliveryType === "express" ? 100 : deliveryType === "pickup" ? 0 : 50;
   const tax = Math.round(subtotal * 0.05);
   const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
-  const total = subtotal + deliveryFee + tax - couponDiscount;
+  const total = subtotal + deliveryFee  - couponDiscount;
 
+  console.log('toadf', total)
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   // Prepare payload with updated cartItems data
@@ -371,6 +407,7 @@ const prepareCheckoutData = () => {
   return {
     data: checkoutCartData,
     subtotal,
+    tax,
     deliveryFee,
     deliveryType,
     delivery_instructions: deliveryInstructions,
@@ -477,10 +514,7 @@ if (!token) {
                   <span>Delivery Fee</span>
                   <span>{formatXAF(deliveryFee)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span>{formatXAF(tax)}</span>
-                </div>
+     
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-600">
                     <span>Coupon ({appliedCoupon.code})</span>

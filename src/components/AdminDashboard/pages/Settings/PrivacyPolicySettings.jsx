@@ -40,7 +40,7 @@ const PrivacyPolicySettings = () => {
       </div>
 
       {/* Toggle List */}
-      <div className="space-y-4 bg-white p-5 shadow-sm">
+      {/* <div className="space-y-4 bg-white p-5 shadow-sm">
         <div className="flex justify-between items-center border-b pb-2">
           <div>
             <p className="font-medium">Registration Page</p>
@@ -72,7 +72,7 @@ const PrivacyPolicySettings = () => {
           </div>
           <Switch defaultChecked onChange={onChange} />
         </div>
-      </div>
+      </div> */}
 
       {/* Policy Content */}
       {clicked ? (

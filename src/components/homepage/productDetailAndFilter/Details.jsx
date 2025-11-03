@@ -72,6 +72,8 @@ const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
   }, []);
 
 
+  
+
 
 useEffect(() => {
   if (!productFromState&& productId) {
@@ -160,6 +162,8 @@ useEffect(() => {
     behavior: 'auto', // optional for a smooth scroll
   });
 }, [productId]);
+
+
 
 
  
@@ -371,7 +375,7 @@ const calculateTotal = () => {
 
   return (
     <div className="bg-[#FAF8F2] relative overflow-hidden min-h-screen">
-     <div className="md:mx-44">
+     <div className="md:mx-44 mx-4">
       <Breadcrumb />
      </div>
       <div className="lg:hidden bg-white p-4 shadow-sm sticky top-0 z-30">
@@ -581,32 +585,48 @@ const calculateTotal = () => {
           <div className="bg-white rounded-xl shadow-sm p-1 md:p-6 lg:p-8 mb-6 md:mb-8">
             <div className="flex flex-col lg:flex-row items-start justify-center gap-6 md:gap-8 lg:gap-9">
            
-              <div className="w-full lg:w-1/2">
-                {mainImage && (
-                  <ZoomSection img={mainImage.image} zoomPaneRef={zoomPaneRef} />
-                )}
+<div className="w-full lg:w-1/2">
+  {mainImage && (
+    <>
+      {/* Show normal image on mobile */}
+      <div className="block lg:hidden">
+        <img
+          className="h-[50vh] w-full object-cover rounded-lg"
+          src={mainImage.image}
+          alt="Product"
+        />
+      </div>
 
-               
-                <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2">
-                  {selectedProduct?.images?.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className={`relative flex-shrink-0 w-20 h-16 md:w-24 md:h-20 lg:w-28 lg:h-24 rounded-lg cursor-pointer overflow-hidden ${
-                        mainImage?.id === image.id ? "ring-2 ring-[#CBA135]" : "border border-gray-200"
-                      }`}
-                      onClick={() => handleImageClick(image, index)}
-                    >
-                     <Image
-  className="w-full h-full object-cover"
-  src={image.image}
-  alt={`Product view ${index + 1}`}
-  preview={false} 
-/>
+      {/* Show zoomable image on large screens */}
+      <div className="hidden lg:block">
+        <ZoomSection img={mainImage.image} zoomPaneRef={zoomPaneRef} />
+      </div>
+    </>
+  )}
 
-                    </div>
-                  ))}
-                </div>
-              </div>
+  {/* Thumbnails */}
+  <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2">
+    {selectedProduct?.images?.map((image, index) => (
+      <div
+        key={image.id}
+        className={`relative flex-shrink-0 w-20 h-16 md:w-24 md:h-20 lg:w-28 lg:h-24 rounded-lg cursor-pointer overflow-hidden ${
+          mainImage?.id === image.id
+            ? "ring-2 ring-[#CBA135]"
+            : "border border-gray-200"
+        }`}
+        onClick={() => handleImageClick(image, index)}
+      >
+        <Image
+          className="w-full h-full object-cover"
+          src={image.image}
+          alt={`Product view ${index + 1}`}
+          preview={false}
+        />
+      </div>
+    ))}
+  </div>
+</div>
+
 
         
         <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
