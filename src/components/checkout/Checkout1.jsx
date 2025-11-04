@@ -38,7 +38,13 @@ const Checkout1 = () => {
     total = 0,
   } = location.state || {};
 
-  console.log(total, "this is data");
+  useEffect(() => {
+  // If the checkout page is accessed without cart data or subtotal, redirect home
+  if ( location?.state?.cartData?.length === 0) {
+    navigate("/", { replace: true });
+  }
+}, [location.state, navigate]);
+
 
   // console.log(delivery_instructions,'this is cartdata')
   // Format XAF currency

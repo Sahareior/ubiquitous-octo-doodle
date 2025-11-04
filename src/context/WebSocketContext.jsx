@@ -18,6 +18,7 @@ export const WebSocketProvider = ({ children }) => {
   const [incoming, setIncoming] = useState(false);
   const [clientmsg, setClientmsg] = useState({});
   const [add,setAdd] = useState(false)
+  const [childCategories,setChildCategories] = useState([])
   
   // inside WebSocketProvider
   const [userId, setUserId] = useState(() => {
@@ -301,6 +302,8 @@ export const WebSocketProvider = ({ children }) => {
       connected,
       add,
       setAdd,
+      setChildCategories,
+      childCategories,
       userId,
       demosocket,
       setUserId,

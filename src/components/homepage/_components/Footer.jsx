@@ -1,51 +1,90 @@
+// Footer.jsx
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaFacebookF, FaInstagram, FaPhone, FaTwitter, FaChartLine, FaBox, FaUsers, FaCog } from 'react-icons/fa';
 import CustomModal from '../../checkout/modal/CustomModal';
 import { useDispatch } from 'react-redux';
-import { useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
+import { useChildCategoryQuery, useGetCategoriesQuery } from '../../../redux/slices/Apis/vendorsApi';
 import { selectedLocation } from '../../../redux/slices/customerSlice';
+import { useWebSocketContext } from '../../../context/WebSocketContext';
 
 const Footer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { data: allCategories, isLoading, isError } = useGetCategoriesQuery();
+  const { 
+    globalMessages, 
+    sendMessage, 
+    connected, 
+    setUserId, 
+    setIncoming, 
+    incoming,
+    childCategories, 
+    clientmsg 
+  } = useWebSocketContext();
 
-  const userType = localStorage.getItem('user_role');
+  // Use the same categories query as CategoryDropdown
+  const { data: categoriesData, isLoading, isError } = useGetCategoriesQuery();
   
+  const userType = localStorage.getItem('user_role');
 
   const handelClick = () => {
     navigate('/vendorpage');
   };
 
-  // For vendors, we don't need the category mappings
-  const categoryMappings = useMemo(() => ({
-    'Living Room': ['living room', 'livingroom', 'living', 'lounge', 'sitting room'],
-    'Bedroom': ['bedroom', 'bedrooms', 'bed room', 'master bedroom', 'sleeping room'],
-    'Dining Room': ['dining room', 'diningroom', 'dining', 'dinner room', 'eating area'],
-    'Office Room': ['office room', 'officeroom', 'office', 'workspace', 'study room', 'study'],
-    'Kitchen': ['kitchen', 'kitchens', 'cooking area', 'culinary space'],
-  }), []);
+  // Function to get only the nested category from childCategories
+  const getTopCategories = useMemo(() => {
+    // First try to use childCategories from WebSocket context
+    if (childCategories?.nested) {
+      // childCategories.nested is an object, not an array
+      return [{
+        id: childCategories.nested.id,
+        name: childCategories.nested.name,
+        slug: childCategories.nested.slug,
+        isParent: false
+      }];
+    }
+    
+    // Fallback: use categories from RTK Query and find leaf nodes
+    if (!categoriesData || !categoriesData.results || !Array.isArray(categoriesData.results)) return [];
 
-  const matchedCategories = useMemo(() => {
-    if (!allCategories?.results?.length) return [];
-
-    return Object.entries(categoryMappings).map(([displayName, variations], index) => {
-      const found = allCategories.results.find(cat => {
-        const catName = cat?.name?.toLowerCase() || '';
-        return variations.some(variation =>
-          catName.includes(variation.toLowerCase()) ||
-          variation.toLowerCase().includes(catName)
-        );
+    const leafCategories = [];
+    
+    // Recursive function to find leaf nodes (categories with no children)
+    const findLeafCategories = (categories) => {
+      categories.forEach(category => {
+        if (category.children && category.children.length > 0) {
+          // If category has children, recursively check them
+          findLeafCategories(category.children);
+        } else {
+          // If category has no children, it's a leaf node - add to results
+          leafCategories.push({
+            id: category.id,
+            name: category.name,
+            slug: category.slug,
+            isParent: false,
+            children: []
+          });
+        }
       });
+    };
 
-      return {
-        displayName,
-        id: found ? found.id : 1001 + index,
-      };
+    // Start with the root categories from results
+    findLeafCategories(categoriesData.results);
+
+    // Return up to 5 leaf categories
+    return leafCategories.slice(0, 5);
+  }, [childCategories, categoriesData]);
+
+  // Navigation handler for categories
+  const handleCategoryClick = (categoryId, isParent) => {
+    navigate('/filter', {
+      state: {
+        categoryId: categoryId, // Using searchId as required
+        isParentCategory: isParent
+      }
     });
-  }, [allCategories, categoryMappings]);
+  };
 
   // Vendor-specific navigation links
   const vendorLinks = [
@@ -71,7 +110,7 @@ const Footer = () => {
     }
   ];
 
-  // Render different content based on user type
+  // Rest of your Footer component remains the same...
   const renderVendorContent = () => (
     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
       {/* Logo and description */}
@@ -180,15 +219,24 @@ const Footer = () => {
       <div>
         <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Categories</h3>
         <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
-          {isLoading ? <li>Loading categories...</li> : 
-           isError ? <li>Failed to load categories</li> :
-           matchedCategories.map(({ displayName, id }) => (
-            <li key={id}>
-              <Link to={`/filter?category=${id}`} className="hover:text-white block w-full">
-                {displayName}
-              </Link>
-            </li>
-          ))}
+          {isLoading ? (
+            <li className="text-[#E5E7EB]">Loading categories...</li>
+          ) : isError ? (
+            <li className="text-[#E5E7EB]">Failed to load categories</li>
+          ) : getTopCategories.length > 0 ? (
+            getTopCategories.map((category) => (
+              <li key={category.id}>
+                <button 
+                  onClick={() => handleCategoryClick(category.id, category.isParent)}
+                  className="hover:text-[#CBA135] transition-colors duration-200 text-left w-full"
+                >
+                  {category.name}
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="text-[#E5E7EB]">No categories available</li>
+          )}
         </ul>
       </div>
 
@@ -196,17 +244,17 @@ const Footer = () => {
       <div>
         <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Support</h3>
         <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
-          <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-white">Track Order</li>
-          <li><Link to="/return" className="hover:text-white">Return Request</Link></li>
-                   <li>
+          <li onClick={() => setIsModalOpen(true)} className="cursor-pointer hover:text-[#CBA135] transition-colors duration-200">Track Order</li>
+          <li><Link to="/return" className="hover:text-[#CBA135] transition-colors duration-200">Return Request</Link></li>
+          <li>
             <Link to="/contactUs" className="hover:text-[#CBA135] transition-colors duration-200">
              Contact Us
             </Link>
           </li>
           <li className="hover:cursor-pointer">
-            <div onClick={handelClick} className="hover:text-white">Be a Vendor</div>
+            <div onClick={handelClick} className="hover:text-[#CBA135] transition-colors duration-200">Be a Vendor</div>
           </li>
-          <li><Link to="/return-policy" className="hover:text-white">Return Policy</Link></li>
+          <li><Link to="/return-policy" className="hover:text-[#CBA135] transition-colors duration-200">Return Policy</Link></li>
         </ul>
       </div>
 
@@ -214,8 +262,8 @@ const Footer = () => {
       <div>
         <h3 className="text-xl popbold text-[#FAF8F2] font-semibold mb-4">Company</h3>
         <ul className="space-y-2 text-[#FAF8F2] popreg text-lg">
-          <li><Link to="/aboutUs" className="hover:text-white">About Us</Link></li>
-                             <li>
+          <li><Link to="/aboutUs" className="hover:text-[#CBA135] transition-colors duration-200">About Us</Link></li>
+          <li>
             <Link to="/contactUs" className="hover:text-[#CBA135] transition-colors duration-200">
              Contact Us
             </Link>

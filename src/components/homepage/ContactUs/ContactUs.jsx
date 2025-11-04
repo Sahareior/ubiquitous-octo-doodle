@@ -199,18 +199,7 @@ const ContactUs = () => {
               <h2 className="text-2xl font-bold text-white mb-8">Contact Information</h2>
               
               <div className="space-y-6">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-indigo-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-3 text-base text-indigo-200">
-                    <p>123 Business Avenue</p>
-                    <p>Suite 100, New York, NY 10001</p>
-                  </div>
-                </div>
+
 
                 <div className="flex">
                   <div className="flex-shrink-0">

@@ -4,12 +4,23 @@ import './Category.css';
 import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaChevronRight } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCategoriesQuery } from '../../../../redux/slices/Apis/customersApi';
+import { useWebSocketContext } from '../../../../context/WebSocketContext';
 
 const CategoryDropdown = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [closing, setClosing] = useState(false);
   const [categories, setCategories] = useState([]);
+  const { 
+    globalMessages, 
+    sendMessage, 
+    connected, 
+    setUserId, 
+    setIncoming, 
+    setChildCategories,
+    incoming, 
+    clientmsg 
+  } = useWebSocketContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileActiveCategory, setMobileActiveCategory] = useState(null);
   const [mobileActiveSubcategory, setMobileActiveSubcategory] = useState(null);
@@ -22,12 +33,22 @@ const CategoryDropdown = () => {
   const timeoutRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
+  console.log(error,'rff')
+
   // Use RTK Query data instead of localhost fetch
   useEffect(() => {
     if (rtkCategories && rtkCategories.results) {
       setCategories(rtkCategories.results);
+      
+      // Store the initial hierarchy when categories are first loaded
+      if (rtkCategories.results.length > 0) {
+        const initialHierarchy = findCategoryHierarchy(rtkCategories.results[0].id);
+        if (initialHierarchy) {
+          setChildCategories(initialHierarchy);
+        }
+      }
     }
-  }, [rtkCategories]);
+  }, [rtkCategories, setChildCategories]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -83,52 +104,52 @@ const CategoryDropdown = () => {
     return null;
   };
 
-  // Handle subcategory click
-// Handle subcategory click — now includes filter_data
-const handleSubcategoryClick = (subcategory) => {
-  const subcategoryId = subcategory.id;
+  // Handle subcategory click — now includes filter_data
+  const handleSubcategoryClick = (subcategory) => {
+    const subcategoryId = subcategory.id;
 
-  if (!subcategoryId) {
-    console.error('No ID found for subcategory:', subcategory);
-    return;
-  }
+    if (!subcategoryId) {
+      console.error('No ID found for subcategory:', subcategory);
+      return;
+    }
 
-  const hierarchy = findCategoryHierarchy(subcategoryId);
+    const hierarchy = findCategoryHierarchy(subcategoryId);
+    setChildCategories(hierarchy);
 
-  if (!hierarchy) {
-    console.error('Could not find category hierarchy for:', subcategory);
-    return;
-  }
+    if (!hierarchy) {
+      console.error('Could not find category hierarchy for:', subcategory);
+      return;
+    }
 
-  // Extract filter_data from the **clicked subcategory** (leaf node)
-const clickedCategory = hierarchy.nested || hierarchy.sub || hierarchy.main;
-const filterData = clickedCategory?.filter_data || [];
+    // Extract filter_data from the **clicked subcategory** (leaf node)
+    const clickedCategory = hierarchy.nested || hierarchy.sub || hierarchy.main;
+    const filterData = clickedCategory?.filter_data || [];
 
-  const navigationData = {
-    selectedCategoryId: hierarchy.main?.id,
-    selectedSubCategoryId: hierarchy.sub?.id,
-    selectedNestedId: hierarchy.nested?.id,
-    categoryHierarchy: hierarchy,
-    selectedCategory: hierarchy.main,
-    selectedSubCategory: hierarchy.sub,
-    selectedNestedCategory: hierarchy.nested,
-    text: hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products",
-    
-    // NEW: Pass filter data for the clicked category
-    filterData: filterData
+    const navigationData = {
+      selectedCategoryId: hierarchy.main?.id,
+      selectedSubCategoryId: hierarchy.sub?.id,
+      selectedNestedId: hierarchy.nested?.id,
+      categoryHierarchy: hierarchy,
+      selectedCategory: hierarchy.main,
+      selectedSubCategory: hierarchy.sub,
+      selectedNestedCategory: hierarchy.nested,
+      text: hierarchy.nested?.name || hierarchy.sub?.name || hierarchy.main?.name || "Products",
+      
+      // NEW: Pass filter data for the clicked category
+      filterData: filterData
+    };
+
+    navigate('/filter', { 
+      state: navigationData
+    });
+
+    // Close all menus
+    setIsVisible(false);
+    setIsMobileMenuOpen(false);
+    setActiveCategory(null);
+    setMobileActiveCategory(null);
+    setMobileActiveSubcategory(null);
   };
-
-  navigate('/filter', { 
-    state: navigationData
-  });
-
-  // Close all menus
-  setIsVisible(false);
-  setIsMobileMenuOpen(false);
-  setActiveCategory(null);
-  setMobileActiveCategory(null);
-  setMobileActiveSubcategory(null);
-};
 
   // Mobile menu handlers
   const toggleMobileMenu = () => {
@@ -233,34 +254,34 @@ const filterData = clickedCategory?.filter_data || [];
   };
 
   // Transform API data to match component structure
-const transformCategories = (apiCategories) => {
-  return apiCategories.map(category => {
-    const transformNode = (node) => ({
-      id: node.id,
-      name: node.name,
-      slug: node.slug,
-      description: node.description || `Explore our ${node.name} collection`,
-      image: node.image,
-      // Preserve filter_data on leaf nodes
-      filter_data: node.filter_data || [],
-      // Recursively transform children
-      children: node.children ? node.children.map(transformNode) : []
+  const transformCategories = (apiCategories) => {
+    return apiCategories.map(category => {
+      const transformNode = (node) => ({
+        id: node.id,
+        name: node.name,
+        slug: node.slug,
+        description: node.description || `Explore our ${node.name} collection`,
+        image: node.image,
+        // Preserve filter_data on leaf nodes
+        filter_data: node.filter_data || [],
+        // Recursively transform children
+        children: node.children ? node.children.map(transformNode) : []
+      });
+
+      const transformed = transformNode(category);
+
+      return {
+        ...transformed,
+        subcategories: transformed.children, // alias for UI
+        imagePreview: transformed.image,
+        promo: {
+          title: `${category.name} Collection`,
+          description: category.description || `Explore our ${category.name} collection`,
+          imageText: category.name
+        }
+      };
     });
-
-    const transformed = transformNode(category);
-
-    return {
-      ...transformed,
-      subcategories: transformed.children, // alias for UI
-      imagePreview: transformed.image,
-      promo: {
-        title: `${category.name} Collection`,
-        description: category.description || `Explore our ${category.name} collection`,
-        imageText: category.name
-      }
-    };
-  });
-};
+  };
 
   const transformedCategories = transformCategories(categories);
 
@@ -426,37 +447,36 @@ const transformCategories = (apiCategories) => {
               </div>
             </div>
             
-<div className="promotional-section">
-  <div className="promo-card bg-gray-50 border rounded-lg p-4">
-    <div className="w-full h-20 flex items-center justify-center bg-gray-100 rounded">
-     
-    </div>
-    <div className="promo-content mt-3 text-center">
-      <h4 className="promo-title text-lg font-semibold text-gray-700">
-        Explore Our Latest Deals
-      </h4>
-      <p className="promo-description text-sm text-gray-500 mt-1">
-        Find top-rated products and special discounts tailored for you.
-      </p>
-    </div>
-  </div>
+            <div className="promotional-section">
+              <div className="promo-card bg-gray-50 border rounded-lg p-4">
+                <div className="w-full h-20 flex items-center justify-center bg-gray-100 rounded">
+                 
+                </div>
+                <div className="promo-content mt-3 text-center">
+                  <h4 className="promo-title text-lg font-semibold text-gray-700">
+                    Explore Our Latest Deals
+                  </h4>
+                  <p className="promo-description text-sm text-gray-500 mt-1">
+                    Find top-rated products and special discounts tailored for you.
+                  </p>
+                </div>
+              </div>
 
-  <div className="promo-features flex justify-around mt-4 text-gray-600">
-    <div className="feature-item flex flex-col items-center text-sm">
-      <span className="feature-icon text-xl mb-1">🚀</span>
-      <span className="feature-text">Fast Delivery</span>
-    </div>
-    <div className="feature-item flex flex-col items-center text-sm">
-      <span className="feature-icon text-xl mb-1">💬</span>
-      <span className="feature-text">24/7 Support</span>
-    </div>
-    <div className="feature-item flex flex-col items-center text-sm">
-      <span className="feature-icon text-xl mb-1">💳</span>
-      <span className="feature-text">Secure Payment</span>
-    </div>
-  </div>
-</div>
-
+              <div className="promo-features flex justify-around mt-4 text-gray-600">
+                <div className="feature-item flex flex-col items-center text-sm">
+                  <span className="feature-icon text-xl mb-1">🚀</span>
+                  <span className="feature-text">Fast Delivery</span>
+                </div>
+                <div className="feature-item flex flex-col items-center text-sm">
+                  <span className="feature-icon text-xl mb-1">💬</span>
+                  <span className="feature-text">24/7 Support</span>
+                </div>
+                <div className="feature-item flex flex-col items-center text-sm">
+                  <span className="feature-icon text-xl mb-1">💳</span>
+                  <span className="feature-text">Secure Payment</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

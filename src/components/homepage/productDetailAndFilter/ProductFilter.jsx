@@ -43,6 +43,8 @@ const ProductFilter = () => {
   const childSubId = navigationState?.selectedNestedCategory?.id;
   const searchId = location?.state?.categoryId
 
+  
+
   const { data: categoryProducts, loading: categoryLoading } = useGetProductsByCategoryQuery(childSubId||searchId );
 
   const pageSize = 6;
