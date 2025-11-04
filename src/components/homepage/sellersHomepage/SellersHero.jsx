@@ -12,27 +12,10 @@ const navigate = useNavigate()
 const token = localStorage.getItem('access_token')
 
   const handelClick = () => {
-    if (!token) {
-      Swal.fire({
-        title: 'Please log in first!',
-        text: 'You need to log in to register as a seller.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Go to Login',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate('/login');
-        }
-      });
-    } else {
-      navigate('/regester-seller',{
-        state: {location: location.state}
-      });
-    }
-  };
+    navigate('/regester-seller',{
+      state: {location: location.state}
+    });
+  }
    
   return (
     <div className="relative">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   TeamOutlined, 
   RocketOutlined, 
@@ -89,6 +89,10 @@ const AboutUs = () => {
       description: 'We love what we do and are committed to making a positive impact through our work.'
     }
   ];
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8F4EF]">

@@ -19,12 +19,15 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
   const { data: allProducts, isLoading } = useGetCustomerProductsQuery();
   const [postReviews, { isLoading: isPosting }] = usePostReviewsMutation();
 
+  const token = localStorage.getItem('access_token');
+
+
   const MAX_IMAGES = 5;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     
-   
     if (uploadedImages.length + files.length > MAX_IMAGES) {
       message.error(`You can only upload up to ${MAX_IMAGES} images`);
       return;
@@ -35,8 +38,14 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
         message.error(`${file.name} is not an image file`);
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        message.error(`${file.name} exceeds 5MB size limit`);
+      if (file.size > MAX_FILE_SIZE) {
+        // Show SweetAlert for large files
+        Swal.fire({
+          title: 'File Size Exceeded',
+          text: `${file.name} exceeds the 5MB size limit. Please choose a smaller file.`,
+          icon: 'warning',
+          confirmButtonColor: '#CBA135',
+        });
         return false;
       }
       return true;
@@ -75,6 +84,12 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
 
   const handleOk = async () => {
 
+    
+  if (!token) {
+    Swal.fire("Authentication Required", "Please log in to write a review.", "warning");
+    return
+  }
+
     if (!review.trim()) {
       Swal.fire("Review Required", "Please write a review before submitting.", "warning");
       return;
@@ -84,12 +99,11 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
 
     try {
       const formData = new FormData();
-     if(id){
+      if(id){
         formData.append("product_id", id);
-     }
-     else{
+      } else {
         formData.append("product_id", selectedProduct);
-     }
+      }
       formData.append("rating", rating);
       formData.append("comment", review);
       uploadedImages.forEach(image => formData.append("uploaded_images", image.file));
@@ -127,32 +141,29 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
         bodyStyle={{ padding: '2rem' }}
       >
         <div className="space-y-6">
+          {!id && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Select Product</label>
+              {isLoading ? <Spin /> : (
+                <Select
+                  showSearch
+                  placeholder="Search and select a product"
+                  value={selectedProduct}
+                  onChange={setSelectedProduct}
+                  className="w-full overflow-y-scroll rounded-md shadow-sm"
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {allProducts?.results?.map(prod => (
+                    <Option key={prod.id} value={prod.id}>{prod.name}</Option>
+                  ))}
+                </Select>
+              )}
+            </div>
+          )}
 
-{
-  !id && (          <div>
-            <label className="block text-sm font-medium mb-2">Select Product</label>
-            {isLoading ? <Spin /> : (
-              <Select
-                showSearch
-                placeholder="Search and select a product"
-                value={selectedProduct}
-                onChange={setSelectedProduct}
-                className="w-full rounded-md shadow-sm"
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().includes(input.toLowerCase())
-                }
-              >
-                {allProducts?.results?.map(prod => (
-                  <Option key={prod.id} value={prod.id}>{prod.name}</Option>
-                ))}
-              </Select>
-            )}
-          </div>
-  )
-}
-
-         
           <div>
             <label className="block text-sm font-medium mb-2">Your Review</label>
             <textarea
@@ -164,7 +175,6 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
             />
           </div>
 
-        
           <div>
             <label className="block text-sm font-medium mb-2">Your Rating</label>
             <Rate
@@ -173,7 +183,6 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
               className="text-[#CBA135] text-xl"
             />
           </div>
-
 
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -225,7 +234,6 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
                           onClick={() => handlePreview(img)}
                         />
                         <div className="absolute top-1 right-1 flex flex-col gap-1">
-   
                           <Button
                             type="text"
                             size="small"
@@ -247,15 +255,13 @@ const DetailsModal = ({ isModalOpen, setIsModalOpen,id }) => {
             <Button
               onClick={handleOk}
               className="bg-[#CBA135] hover:bg-[#b38f29] text-white px-10 py-2 rounded-md shadow-md"
-           
-              loading={isPosting }
+              loading={isPosting}
             >
               Submit Review
             </Button>
           </div>
         </div>
       </Modal>
-
 
       <Modal
         visible={previewVisible}

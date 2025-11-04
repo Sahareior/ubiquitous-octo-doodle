@@ -194,7 +194,7 @@ const CreateCategoryWithFilters = () => {
       const response = await createCategory({
         name: categoryData.parentName
       }).unwrap();
-
+      refetch()
       setCreatedCategories(prev => ({
         ...prev,
         parent: response.id,
@@ -236,6 +236,8 @@ const CreateCategoryWithFilters = () => {
         parent: createdCategories.parent
       }).unwrap();
 
+      refetch()
+
       setCreatedCategories(prev => ({
         ...prev,
         subcategoryId: response.id,
@@ -276,6 +278,8 @@ const CreateCategoryWithFilters = () => {
         name: categoryData.childSubcategoryName,
         parent: createdCategories.subcategoryId
       }).unwrap();
+
+      refetch()
 
       setCreatedCategories(prev => ({
         ...prev,
@@ -978,7 +982,7 @@ const CreateCategoryWithFilters = () => {
                                 >
                                   <Option value="checkbox">Checkbox</Option>
                                   <Option value="radio">Radio Button</Option>
-                                  <Option value="select">Dropdown Select</Option>
+                                
                                 </Select>
 
                                 <div className="flex items-center justify-between">

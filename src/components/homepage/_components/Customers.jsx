@@ -6,6 +6,7 @@ import Sweeper from "../../others/Sweeper";
 
 const Customers = ({ details, reviews }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+     const userType = localStorage.getItem('user_role')
 
 // console.log(reviews,'reviewsssss')
     return (
@@ -15,7 +16,9 @@ const Customers = ({ details, reviews }) => {
             </div>
 
             {/* Disable click and style if details is true */}
-            <p
+{
+    userType !== 'admin' && (
+                    <p
                 onClick={() => {
                     if (!details) {
                         setIsModalOpen(true);
@@ -27,6 +30,8 @@ const Customers = ({ details, reviews }) => {
             >
                 Write a Review
             </p>
+    )
+}
 
             <Sweeper details={details} reviews={reviews} />
             <DetailsModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />

@@ -10,7 +10,7 @@ export const vendorsApi = createApi({
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set("ngrok-skip-browser-warning", "true");
+      // headers.set("ngrok-skip-browser-warning", "true");
      
       return headers;
     },
@@ -214,6 +214,37 @@ export const vendorsApi = createApi({
       query:() => '/products/new-arrivals/'
     }),
 
+    optionsTypeUpdate:build.mutation({
+      query:({id,data}) => ({
+        url: `filter-by-type/detail/${id}/`,
+        method: "PATCH",
+        body:data
+      })
+    }),
+
+    optionsTypeDelete:build.mutation({
+      query:(id) => ({
+        url: `/filter-by-type/${id}/`,
+        method: "DELETE"
+      })
+    }),
+
+    emailSubscribe: build.mutation({
+      query: (data) => ({
+        url: 'subscibe-users/',
+        method: 'POST',
+        body: data
+      })
+    }),
+
+    filterOptionDelete: build.mutation({
+      query:(id) => ({
+        url: `/filter-options/delete/${id}/`,
+        method: "DELETE"
+      })
+    }),
+    // /api/filter-by-type/{id}/
+// /api/filter-by-type/detail/{id}/
     postPayouts: build.mutation({
       query: (data) => ({
         url:'payouts/',
@@ -222,6 +253,7 @@ export const vendorsApi = createApi({
       })
     })
 
+    
 
 
     // deleteProduct: build.mutation({
@@ -237,6 +269,10 @@ export const vendorsApi = createApi({
 
 export const {
   useGetPokemonByNameQuery,
+  useEmailSubscribeMutation,
+  useFilterOptionDeleteMutation,
+  useOptionsTypeUpdateMutation,
+  useOptionsTypeDeleteMutation,
   useGetProductsByCategoryQuery,
   useSendMessageMutation,
   useCategoryUpdateApiMutation,

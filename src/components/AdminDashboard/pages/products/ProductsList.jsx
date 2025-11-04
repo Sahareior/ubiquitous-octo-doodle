@@ -14,6 +14,8 @@ const ProductsList = ({path}) => {
   const { data: products, isLoading } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
 
+  console.log(products,'adaa')
+
   // console.log(products,'this sasasasas')
 
   // --- states for filters ---

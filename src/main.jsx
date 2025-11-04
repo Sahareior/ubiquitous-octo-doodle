@@ -183,9 +183,9 @@ const router = createBrowserRouter([
   {
     path: "vendor-dashboard",
     element: (
-      <VendorProtectedRoute>
+      
         <VendorDashboard />
-      </VendorProtectedRoute>
+      
     ),
     children: [
       { index: true, element: <Navigate to="vendor-overview" replace /> },

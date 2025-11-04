@@ -7,6 +7,11 @@ const Similar = ({ randomProducts,setSelectedProduct,component }) => {
   const productsPerPage = 8;
   const navigate = useNavigate()
 
+
+  if(!randomProducts || randomProducts.length === 0){
+    return <p className="text-center popreg">No products found.</p>;
+  }
+
   const totalPages = Math.ceil((randomProducts?.length || 0) / productsPerPage);
   
 

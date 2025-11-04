@@ -142,12 +142,7 @@ const onFinish = async (values) => {
           </Form.Item>
         </div>
 
-        <div className="bg-white p-4 py-6 rounded-md border border-gray-300">
-          <h3 className="font-medium mb-2">Billing Information</h3>
-          <Form.Item name="sameAsShipping" valuePropName="checked" noStyle>
-            <Checkbox>Same as shipping address</Checkbox>
-          </Form.Item>
-        </div>
+
 
         <Form.Item className="mt-4 mx-auto flex justify-center items-center">
           <button

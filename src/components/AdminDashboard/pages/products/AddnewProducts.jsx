@@ -1331,13 +1331,7 @@ const AddnewProducts = () => {
               </div>
 
               <div className="flex gap-3">
-                <Button 
-                  icon={<Save className="w-4 h-4" />}
-                  size="large"
-                  className="flex items-center gap-2 border-gray-400 text-gray-700 hover:bg-gray-50"
-                >
-                  Save as Draft
-                </Button>
+
                 
                 {current === steps.length - 1 ? (
                   <Button 

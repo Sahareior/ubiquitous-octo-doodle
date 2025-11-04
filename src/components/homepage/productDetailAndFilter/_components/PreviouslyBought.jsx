@@ -6,6 +6,11 @@ const PreviouslyBought = ({ filteredProducts,setSelectedProduct }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   const navigate = useNavigate()
+
+
+  if (!filteredProducts || filteredProducts.length === 0) {
+    return <p className="text-center popreg">No products found.</p>;
+  }
   
 
   const totalPages = Math.ceil((filteredProducts?.length || 0) / productsPerPage);

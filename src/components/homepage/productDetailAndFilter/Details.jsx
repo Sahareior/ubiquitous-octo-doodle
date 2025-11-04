@@ -1,5 +1,5 @@
 import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image, Spin } from "antd";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { use, useCallback, useEffect, useRef, useState } from "react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import Customers from "../_components/Customers";
 import { LiaStarSolid } from "react-icons/lia";
@@ -71,6 +71,7 @@ const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
     return JSON.parse(localStorage.getItem('guest_cart')) || [];
   }, []);
 
+   const userType = localStorage.getItem('user_role')
 
   
 
@@ -861,12 +862,16 @@ const calculateTotal = () => {
                 <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-xs md:text-lg popmed w-28 md:w-36 pb-1">
                   Review 
                 </p>
-                <p
+{
+  userType !== 'admin' && (
+                    <p
                   onClick={() => setIsModalOpen(true)}
                   className="text-[#CBA135] hover:text-yellow-700 cursor-pointer popbold text-xs md:text-base"
                 >
                   Write a Review
                 </p>
+  )
+}
               </div>
             </div>
             <Customers reviews={selectedProduct?.reviews} details={true} />

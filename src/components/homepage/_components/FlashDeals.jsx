@@ -25,6 +25,7 @@ const FlashDeals = () => {
     const navigate = useNavigate();
   const [productsPerPage] = useState(4);
 
+
   const getGuestCart = useCallback(() => {
     return JSON.parse(localStorage.getItem('guest_cart')) || [];
   }, []);
@@ -66,6 +67,9 @@ const FlashDeals = () => {
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(products.length / productsPerPage);
+
+
+  console.log(currentProducts,'flashdeals')
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -306,6 +310,9 @@ const FlashDeals = () => {
   // Handle quick view
   const handleQuickView = (product) => {
     console.log('Quick view:', product);
+
+    navigate(`/details?id=${product.productData.id}`, { state: { productData: product } });
+    
     // Add your quick view logic here
   };
 
@@ -366,7 +373,7 @@ const FlashDeals = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              {currentProducts.map((item) => (
+              {currentProducts?.map((item) => (
                 <div
                   key={item.id}
                   className="group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-2"
@@ -392,12 +399,7 @@ const FlashDeals = () => {
                     <div className={`absolute top-4 right-4 flex flex-col gap-2 transition-all duration-300 ${
                       isHovered === item.id ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
                     }`}>
-                      <button 
-                        onClick={() => handleAddToWishlist(item)}
-                        className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
-                      >
-                        <FaRegHeart className="text-gray-700" size={16} />
-                      </button>
+ 
                       <button 
                         onClick={() => handleQuickView(item)}
                         className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"

@@ -30,6 +30,7 @@ const CategoryDropdown = () => {
   
   const dropdownRef = useRef(null);
   const navRef = useRef(null);
+  const categoryListRef = useRef(null);
   const timeoutRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -65,6 +66,48 @@ const CategoryDropdown = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Scroll handlers for horizontal navigation
+  const scrollLeft = () => {
+    if (categoryListRef.current) {
+      categoryListRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (categoryListRef.current) {
+      categoryListRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
+  // Check if scroll arrows should be visible
+  const [showScrollArrows, setShowScrollArrows] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (categoryListRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = categoryListRef.current;
+        setShowScrollArrows({
+          left: scrollLeft > 0,
+          right: scrollLeft < scrollWidth - clientWidth - 10
+        });
+      }
+    };
+
+    // Check initially and after resize
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    if (categoryListRef.current) {
+      categoryListRef.current.addEventListener('scroll', checkScroll);
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkScroll);
+      if (categoryListRef.current) {
+        categoryListRef.current.removeEventListener('scroll', checkScroll);
+      }
+    };
+  }, [categories]);
 
   // Recursive function to find category hierarchy
   const findCategoryHierarchy = (subcategoryId, level = 0) => {
@@ -353,18 +396,43 @@ const CategoryDropdown = () => {
         className="category-nav hidden md:block"
         onMouseLeave={handleMouseLeaveNav}
       >
-        <ul className="category-list overflow-x-scroll scrollbar-hide">
-          {transformedCategories.map(category => (
-            <li 
-              key={category.id}
-              className={`category-item ${activeCategory?.id === category.id ? 'active' : ''}`}
-              onMouseEnter={() => handleMouseEnterNav(category.id)}
+        <div className="nav-container relative">
+          {/* Left Scroll Arrow */}
+          {showScrollArrows.left && (
+            <button 
+              className="scroll-arrow scroll-arrow-left absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition-colors"
+              onClick={scrollLeft}
             >
-              <span className="category-name">{category.name}</span>
-              <span className="dropdown-arrow">▼</span>
-            </li>
-          ))}
-        </ul>
+              <FaArrowLeft size={14} className="text-gray-600" />
+            </button>
+          )}
+          
+          {/* Right Scroll Arrow */}
+          {showScrollArrows.right && (
+            <button 
+              className="scroll-arrow scroll-arrow-right absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition-colors"
+              onClick={scrollRight}
+            >
+              <FaArrowRight size={14} className="text-gray-600" />
+            </button>
+          )}
+
+          <ul 
+            ref={categoryListRef}
+            className="category-list overflow-x-scroll scrollbar-hide pl-8 pr-8"
+          >
+            {transformedCategories.map(category => (
+              <li 
+                key={category.id}
+                className={`category-item ${activeCategory?.id === category.id ? 'active' : ''}`}
+                onMouseEnter={() => handleMouseEnterNav(category.id)}
+              >
+                <span className="category-name whitespace-nowrap">{category.name}</span>
+                <span className="dropdown-arrow">▼</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
 
       {/* Mobile Menu Trigger */}

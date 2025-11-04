@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSendMessageMutation } from '../../../redux/slices/Apis/vendorsApi';
 
 const ContactUs = () => {
@@ -11,6 +11,10 @@ const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sendMessage] = useSendMessageMutation();
   const [submitStatus, setSubmitStatus] = useState(null);
+
+  useEffect(()=>{
+    window.scrollTo(0,0);
+  },[])
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -178,7 +182,7 @@ const ContactUs = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    className={`w-full flex bg-gradient-to-r from-[#A67B5B] to-[#a18a6d] justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     {isSubmitting ? (
                       <>
@@ -195,7 +199,7 @@ const ContactUs = () => {
             </div>
 
             {/* Contact Information */}
-            <div className="bg-gradient-to-br from-indigo-600 to-yellow-700 py-10 px-6 sm:px-10 lg:py-16">
+            <div className="bg-gradient-to-r from-[#A67B5B] to-[#a18a6d] text-white py-10 px-6 sm:px-10 lg:py-16">
               <h2 className="text-2xl font-bold text-white mb-8">Contact Information</h2>
               
               <div className="space-y-6">
@@ -207,18 +211,18 @@ const ContactUs = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   </div>
-                  <div className="ml-3 text-base text-indigo-200">
+                  <div className="ml-3 popmed text-white">
                     <p>+237696745108</p>
                   </div>
                 </div>
 
-                <div className="flex">
+                <div className="flex gap-2">
                   <div className="flex-shrink-0">
                     <svg className="h-6 w-6 text-indigo-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <div className="ml-3 text-base text-indigo-200">
+                  <div className="ml-3popmed text-white">
                     <p>exchange.xw24@yahoo.com</p>
                   </div>
                 </div>

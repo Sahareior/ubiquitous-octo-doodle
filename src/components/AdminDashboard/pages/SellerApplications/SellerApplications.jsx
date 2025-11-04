@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { Select, Spin } from "antd";
-import { Link } from "react-router-dom";
-import { FaPlus } from "react-icons/fa6";
-
+import { Select, Spin, Button } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
 import SellersTable from "./_components/SellersTable";
 import { useGetAllSellerApplicationQuery } from "../../../../redux/slices/Apis/dashboardApis";
 
@@ -11,86 +9,86 @@ const { Option } = Select;
 const SellerApplications = () => {
   const { data: applicants, isLoading } = useGetAllSellerApplicationQuery();
 
-
-  // filter states
+  // Filter states
   const [searchName, setSearchName] = useState("");
-  const [jobTitle, setJobTitle] = useState(null);
   const [status, setStatus] = useState(null);
 
-  // filter logic
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSearchName("");
+    setStatus(null);
+  };
+
+  // Filter logic
   const filteredApplicants = useMemo(() => {
     if (!applicants?.results) return [];
 
-    return applicants.results.filter((applicant) => {
+    const filtered = applicants.results.filter((applicant) => {
       const matchesName = searchName
         ? applicant.legal_business_name
             .toLowerCase()
             .includes(searchName.toLowerCase())
         : true;
 
-      const matchesJob = jobTitle ? applicant.job_title === jobTitle : true;
-
       const matchesStatus = status
         ? applicant.status.toLowerCase() === status.toLowerCase()
         : true;
 
-      return matchesName && matchesJob && matchesStatus;
+      return matchesName && matchesStatus;
     });
-  }, [applicants, searchName, jobTitle, status]);
 
+    return filtered.sort((a, b) => b.id - a.id);
+  }, [applicants, searchName, status]);
 
-    if(isLoading){
-      return(
-        <div className="flex h-screen justify-center items-center">
-          <Spin size="large" />
-        </div>
-      )
-    }
-  
+  if (isLoading) {
+    return (
+      <div className="flex h-screen justify-center items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="grid grid-cols-1 p-6 bg-white items-center rounded-md md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 bg-white p-6 rounded-md gap-5 items-center shadow-sm">
         {/* Business Name Search */}
         <div>
           <input
             type="text"
-            placeholder="Enter Business Name"
+            placeholder="Search Business Name"
             className="w-full border border-gray-300 rounded-xl px-4 py-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
           />
         </div>
 
-        {/* Job Title */}
-        {/* <div>
-          <Select
-            placeholder="Select Job Title"
-            className="w-full"
-            size="large"
-            allowClear
-            onChange={(val) => setJobTitle(val)}
-          >
-            <Option value="owner">Owner</Option>
-            <Option value="manager">Manager</Option>
-            <Option value="designer">Designer</Option>
-          </Select>
-        </div> */}
-
-        {/* Status */}
+        {/* Status Filter */}
         <div>
           <Select
             placeholder="Select Status"
             className="w-full"
             size="large"
             allowClear
+            value={status}
             onChange={(val) => setStatus(val)}
           >
             <Option value="approved">Approved</Option>
             <Option value="rejected">Rejected</Option>
             <Option value="pending">Pending</Option>
           </Select>
+        </div>
+
+        {/* Reset Button */}
+        <div className="flex justify-end">
+          <Button
+            type="default"
+            icon={<ReloadOutlined />}
+            onClick={handleResetFilters}
+            className="rounded-lg border-gray-300 hover:border-blue-500 hover:text-blue-600"
+          >
+            Reset Filters
+          </Button>
         </div>
       </div>
 

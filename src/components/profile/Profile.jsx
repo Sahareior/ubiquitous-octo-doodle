@@ -8,6 +8,7 @@ import { FaEdit, FaPhoneAlt } from "react-icons/fa";
 import ProfileModal from "./ProfileModal/ProfileModal";
 import { useCustomerProfileUpdateMutation, useGetProfileQuery } from "../../redux/slices/Apis/customersApi";
 import { IoPersonSharp } from "react-icons/io5";
+import imageCompression from "browser-image-compression";
 
 const { Search } = Input;
 
@@ -61,36 +62,40 @@ const handlePhotoChange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  // Validate file type and size
-  if (!file.type.startsWith('image/')) {
-    message.error('Please upload an image file');
-    return;
-  }
-  if (file.size > 2 * 1024 * 1024) { // 2MB limit
-    message.error('Image size should be less than 2MB');
+  if (!file.type.startsWith("image/")) {
+    message.error("Please upload an image file");
     return;
   }
 
   try {
     setIsUpdating(true);
 
-    // Prepare FormData
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+    };
+
+    const compressedFile = await imageCompression(file, options);
+
+    // ✅ Fix missing extension
+    const fixedFile = new File([compressedFile], file.name, { type: file.type });
+
     const formData = new FormData();
-    formData.append('profile_image', file);
+    formData.append("profile_image", fixedFile);
 
-    // Send file using your mutation
     await customerProfileUpdate(formData).unwrap();
-
-    message.success('Profile image updated successfully');
+    message.success("Profile image updated successfully");
     refetch();
   } catch (err) {
     console.error("Error uploading photo:", err);
-    message.error(err.data?.message || 'Failed to update profile image');
+    message.error(err.data?.message || "Failed to update profile image");
   } finally {
     setIsUpdating(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 };
+
 
   const handleAddPhone = async () => {
     if (!phoneValue) {

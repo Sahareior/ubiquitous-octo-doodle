@@ -166,7 +166,7 @@ const CategorySearch = ({ categoriesData }) => {
       {showSearchResults && (searchText || searchResults.length > 0) && isSearchFocused && (
         <div 
           ref={suggestionsRef}
-          className="absolute top-10 w-96 left-[40%] right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] mt-1 overflow-hidden"
+          className="absolute top-10 w-[400px] h-[40vh] overflow-y-auto left-[40%] right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-[99999] mt-1 overflow-hidden"
         >
           {searchResults.length > 0 ? (
             <div className="py-2">

@@ -247,7 +247,7 @@ const CategoryManagement = () => {
       title: "ID",
       dataIndex: "id",
       key: "id",
-      width: 70,
+      width: 90,
       sorter: (a, b) => a.id - b.id,
       render: (text) => <span className="popreg text-[16px]">{text}</span>,
     },
