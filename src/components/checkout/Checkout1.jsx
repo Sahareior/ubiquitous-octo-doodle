@@ -244,7 +244,9 @@ if (checkoutRes.checkout_url) {
     timer: 2000,
     showConfirmButton: false,
     willClose: () => {
-      window.location.replace(checkoutRes.checkout_url); // ✅ prevents back navigation
+      // Replace current history entry before redirecting
+      window.history.replaceState(null, "", "/");
+      window.location.href = checkoutRes.checkout_url;
     },
   });
 }

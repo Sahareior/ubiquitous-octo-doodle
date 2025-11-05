@@ -210,13 +210,13 @@ const EditCategory = () => {
     }));
   };
 
-    const handleDeleteFilterOption = async (optionId) => {
-      await filterOptionDelete(optionId)
-      refetchCategory()
-console.log('Deleting filter option:', optionId);
+  const handleDeleteFilterOption = async (optionId) => {
+    await filterOptionDelete(optionId)
+    refetchCategory()
+    console.log('Deleting filter option:', optionId);
   };
 
-    const handleEditFilterOption = async (optionId, newValue) => {
+  const handleEditFilterOption = async (optionId, newValue) => {
     if (!newValue.trim()) {
       setError('Option value is required');
       return;
@@ -240,6 +240,39 @@ console.log('Deleting filter option:', optionId);
     } catch (err) {
       setError('Failed to update filter option');
       console.error('Error updating filter option:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ADDED: Method to add new filter options to existing filters
+  const handleAddFilterOption = async (filterId, newOptionValue) => {
+    if (!newOptionValue.trim()) {
+      setError('Option value is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Call the API to create a new filter option
+      await createFilterOptions({
+        filter_by_type: filterId,
+        value: newOptionValue.trim()
+      }).unwrap();
+
+      Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: 'Filter option added!',
+        showConfirmButton: false,
+        timer: 1200,
+        toast: true
+      });
+
+      refetchCategory();
+    } catch (err) {
+      setError('Failed to add filter option');
+      console.error('Error adding filter option:', err);
     } finally {
       setLoading(false);
     }
@@ -410,205 +443,200 @@ console.log('Deleting filter option:', optionId);
     refetchCategory()
   };
 
-  // Create new subcategory
-// Create new subcategory - UPDATED with reset functionality
-const createSubcategory = async () => {
-  if (!categoryData.subcategoryName.trim()) {
-    setError('Subcategory name is required');
-    return;
-  }
-
-  setLoading(true);
-  setError('');
-
-  try {
-    const response = await createCategory({
-      name: categoryData.subcategoryName,
-      parent: createdCategories.parent
-    }).unwrap();
-
-    // Store the created subcategory info temporarily for success message
-    const createdSubcategoryInfo = {
-      id: response.id,
-      name: categoryData.subcategoryName
-    };
-
-    // RESET THE FORM STATE FOR NEXT CREATION
-    setCategoryData(prev => ({
-      ...prev,
-      subcategoryName: '' // Clear the input field
-    }));
-
-    // Update created categories but don't block further creations
-    setCreatedCategories(prev => ({
-      ...prev,
-      subcategoryId: response.id,
-      subcategoryName: categoryData.subcategoryName
-    }));
-
-    // Update the selected subcategory for child creation
-    setCategoryData(prev => ({
-      ...prev,
-      selectedSubcategoryForChild: response.id
-    }));
-
-    setCurrentStep(2);
-    
-    Swal.fire({
-      title: '🎉 Subcategory Created Successfully!',
-      text: `"${createdSubcategoryInfo.name}" has been created successfully. You can create another subcategory or proceed to create child categories.`,
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonText: 'Create Another Subcategory',
-      cancelButtonText: 'Create Child Category',
-      confirmButtonColor: '#CBA135',
-      cancelButtonColor: '#1890ff',
-      customClass: {
-        popup: 'success-swal-popup'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Focus remains on subcategory creation - form is already reset
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        // User wants to proceed to child creation
-        // The form will automatically focus on child category input
-      }
-    });
-
-    refetchCategory();
-    
-  } catch (err) {
-    setError('Failed to create subcategory');
-    console.error('Error creating subcategory:', err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Add function to manually reset subcategory creation form
-const resetSubcategoryCreationForm = () => {
-  setCategoryData(prev => ({
-    ...prev,
-    subcategoryName: ''
-  }));
-};
-
-  // Create new child subcategory - UPDATED
-// Create new child subcategory - UPDATED with reset functionality
-const createChildSubcategory = async () => {
-  if (!categoryData.childSubcategoryName.trim()) {
-    setError('Child subcategory name is required');
-    return;
-  }
-
-  // Use the selected subcategory OR the newly created subcategory
-  const parentId = categoryData.selectedSubcategoryForChild || createdCategories.subcategoryId;
-  
-  if (!parentId) {
-    setError('Please select a subcategory first');
-    return;
-  }
-
-  setLoading(true);
-  setError('');
-
-  try {
-    const response = await createCategory({
-      name: categoryData.childSubcategoryName,
-      parent: parentId
-    }).unwrap();
-
-    // Store the created child info temporarily for success message
-    const createdChildInfo = {
-      id: response.id,
-      name: categoryData.childSubcategoryName
-    };
-
-    // RESET THE FORM STATE FOR NEXT CREATION
-    setCategoryData(prev => ({
-      ...prev,
-      childSubcategoryName: '' // Clear the input field
-    }));
-
-    // Update created categories but don't block further creations
-    setCreatedCategories(prev => ({
-      ...prev,
-      childSubcategoryId: response.id,
-      childSubcategoryName: categoryData.childSubcategoryName
-    }));
-
-    setCurrentStep(3);
-    
-    Swal.fire({
-      title: '🎉 Child Category Created Successfully!',
-      text: `"${createdChildInfo.name}" has been created successfully. You can create another child category or add filters.`,
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonText: 'Create Another Child',
-      cancelButtonText: 'Add Filters',
-      confirmButtonColor: '#CBA135',
-      cancelButtonColor: '#1890ff',
-      customClass: {
-        popup: 'success-swal-popup'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Focus remains on child creation - form is already reset
-        // Optionally, you can auto-focus the input field here
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        setActiveFilterTab('filters');
-        if (filters.length === 0) {
-          createNewFilter();
-        }
-      }
-    });
-
-    refetchCategory();
-    
-  } catch (err) {
-    setError('Failed to create child subcategory');
-    console.error('Error creating child subcategory:', err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Add this function to manually reset child creation form
-const resetChildCreationForm = () => {
-  setCategoryData(prev => ({
-    ...prev,
-    childSubcategoryName: ''
-  }));
-  
-  // Optional: Clear the created child info if you want to start completely fresh
-  // setCreatedCategories(prev => ({
-  //   ...prev,
-  //   childSubcategoryId: null,
-  //   childSubcategoryName: ''
-  // }));
-};
-
-// Add a button to reset child creation in your UI
-
-  // Get available subcategories for child creation
-// Get available subcategories for child creation - UPDATED
-const getAvailableSubcategories = () => {
-  const availableSubcategories = [...existingCategories.subcategories];
-  
-  // Add newly created subcategories if they exist
-  if (createdCategories.subcategoryId) {
-    // Check if this subcategory is already in the list
-    const alreadyExists = availableSubcategories.find(sub => sub.id === createdCategories.subcategoryId);
-    if (!alreadyExists) {
-      availableSubcategories.push({
-        id: createdCategories.subcategoryId,
-        name: createdCategories.subcategoryName
-      });
+  // Create new subcategory - UPDATED with reset functionality
+  const createSubcategory = async () => {
+    if (!categoryData.subcategoryName.trim()) {
+      setError('Subcategory name is required');
+      return;
     }
-  }
-  
-  return availableSubcategories;
-};
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await createCategory({
+        name: categoryData.subcategoryName,
+        parent: createdCategories.parent
+      }).unwrap();
+
+      // Store the created subcategory info temporarily for success message
+      const createdSubcategoryInfo = {
+        id: response.id,
+        name: categoryData.subcategoryName
+      };
+
+      // RESET THE FORM STATE FOR NEXT CREATION
+      setCategoryData(prev => ({
+        ...prev,
+        subcategoryName: '' // Clear the input field
+      }));
+
+      // Update created categories but don't block further creations
+      setCreatedCategories(prev => ({
+        ...prev,
+        subcategoryId: response.id,
+        subcategoryName: categoryData.subcategoryName
+      }));
+
+      // Update the selected subcategory for child creation
+      setCategoryData(prev => ({
+        ...prev,
+        selectedSubcategoryForChild: response.id
+      }));
+
+      setCurrentStep(2);
+      
+      Swal.fire({
+        title: '🎉 Subcategory Created Successfully!',
+        text: `"${createdSubcategoryInfo.name}" has been created successfully. You can create another subcategory or proceed to create child categories.`,
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Create Another Subcategory',
+        cancelButtonText: 'Create Child Category',
+        confirmButtonColor: '#CBA135',
+        cancelButtonColor: '#1890ff',
+        customClass: {
+          popup: 'success-swal-popup'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Focus remains on subcategory creation - form is already reset
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          // User wants to proceed to child creation
+          // The form will automatically focus on child category input
+        }
+      });
+
+      refetchCategory();
+      
+    } catch (err) {
+      setError('Failed to create subcategory');
+      console.error('Error creating subcategory:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add function to manually reset subcategory creation form
+  const resetSubcategoryCreationForm = () => {
+    setCategoryData(prev => ({
+      ...prev,
+      subcategoryName: ''
+    }));
+  };
+
+  // Create new child subcategory - UPDATED with reset functionality
+  const createChildSubcategory = async () => {
+    if (!categoryData.childSubcategoryName.trim()) {
+      setError('Child subcategory name is required');
+      return;
+    }
+
+    // Use the selected subcategory OR the newly created subcategory
+    const parentId = categoryData.selectedSubcategoryForChild || createdCategories.subcategoryId;
+    
+    if (!parentId) {
+      setError('Please select a subcategory first');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await createCategory({
+        name: categoryData.childSubcategoryName,
+        parent: parentId
+      }).unwrap();
+
+      // Store the created child info temporarily for success message
+      const createdChildInfo = {
+        id: response.id,
+        name: categoryData.childSubcategoryName
+      };
+
+      // RESET THE FORM STATE FOR NEXT CREATION
+      setCategoryData(prev => ({
+        ...prev,
+        childSubcategoryName: '' // Clear the input field
+      }));
+
+      // Update created categories but don't block further creations
+      setCreatedCategories(prev => ({
+        ...prev,
+        childSubcategoryId: response.id,
+        childSubcategoryName: categoryData.childSubcategoryName
+      }));
+
+      setCurrentStep(3);
+      
+      Swal.fire({
+        title: '🎉 Child Category Created Successfully!',
+        text: `"${createdChildInfo.name}" has been created successfully. You can create another child category or add filters.`,
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Create Another Child',
+        cancelButtonText: 'Add Filters',
+        confirmButtonColor: '#CBA135',
+        cancelButtonColor: '#1890ff',
+        customClass: {
+          popup: 'success-swal-popup'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Focus remains on child creation - form is already reset
+          // Optionally, you can auto-focus the input field here
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          setActiveFilterTab('filters');
+          if (filters.length === 0) {
+            createNewFilter();
+          }
+        }
+      });
+
+      refetchCategory();
+      
+    } catch (err) {
+      setError('Failed to create child subcategory');
+      console.error('Error creating child subcategory:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add this function to manually reset child creation form
+  const resetChildCreationForm = () => {
+    setCategoryData(prev => ({
+      ...prev,
+      childSubcategoryName: ''
+    }));
+    
+    // Optional: Clear the created child info if you want to start completely fresh
+    // setCreatedCategories(prev => ({
+    //   ...prev,
+    //   childSubcategoryId: null,
+    //   childSubcategoryName: ''
+    // }));
+  };
+
+  // Get available subcategories for child creation - UPDATED
+  const getAvailableSubcategories = () => {
+    const availableSubcategories = [...existingCategories.subcategories];
+    
+    // Add newly created subcategories if they exist
+    if (createdCategories.subcategoryId) {
+      // Check if this subcategory is already in the list
+      const alreadyExists = availableSubcategories.find(sub => sub.id === createdCategories.subcategoryId);
+      if (!alreadyExists) {
+        availableSubcategories.push({
+          id: createdCategories.subcategoryId,
+          name: createdCategories.subcategoryName
+        });
+      }
+    }
+    
+    return availableSubcategories;
+  };
 
   // Create new filter
   const createFilter = async () => {
@@ -913,12 +941,296 @@ const getAvailableSubcategories = () => {
                       <div className="flex items-center space-x-2">
                         <EditOutlined className="text-purple-500" />
                         <Text strong>Edit Existing Categories</Text>
-                        <Tag color="blue">{existingCategories.subcategories.length + existingCategories.childCategories.length + 1} Categories</Tag>
+                        <Tag color="blue">
+                          {existingCategories.subcategories.length + existingCategories.childCategories.length + 1} 
+                          Categories
+                        </Tag>
                       </div>
                     } 
                     key="1"
                   >
-                    {/* ... Existing category editing code remains the same ... */}
+                    <div className="space-y-6">
+                      {/* Parent Category */}
+                      {existingCategories.parent && (
+                        <Card 
+                          className="border-l-4 border-l-purple-500 shadow-md"
+                          title={
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <CrownOutlined className="text-purple-600" />
+                                <div>
+                                  <Text className='text-[14px] popmed' strong>Parent Category</Text>
+                                  <div>
+                                    <Text type="secondary" className="text-xs">
+                                      Root level category
+                                    </Text>
+                                  </div>
+                                </div>
+                              </div>
+                              <Tag color="purple">Parent</Tag>
+                            </div>
+                          }
+                        >
+                          {editingCategory?.id === existingCategories.parent.id ? (
+                            <div className="space-y-4">
+                              <Input
+                                value={editingCategory.name}
+                                onChange={(e) => setEditingCategory({
+                                  ...editingCategory,
+                                  name: e.target.value
+                                })}
+                                placeholder="Category name"
+                                size="large"
+                                className="w-full"
+                              />
+                              <div className="flex space-x-2">
+                                <Button
+                                  icon={<SaveOutlined />}
+                                  onClick={handleSaveCategory}
+                                  loading={loading}
+                                  type="primary"
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  onClick={() => setEditingCategory(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Text strong className="text-lg text-red-500 popmed">
+                                  {existingCategories.parent.name}
+                                </Text>
+                                <Tag color="blue" className="text-sm font-mono">
+                                  ID: {existingCategories.parent.id}
+                                </Tag>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  icon={<EditOutlined />}
+                                  onClick={() => handleEditCategory(existingCategories.parent)}
+                                  size="small"
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => handleDeleteCategory(existingCategories.parent)}
+                                  danger
+                                  size="small"
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </Card>
+                      )}
+
+                      {/* Subcategories */}
+                      {existingCategories.subcategories.length > 0 && (
+                        <div>
+                          <Text strong className="block mb-4 text-lg">
+                            Subcategories ({existingCategories.subcategories.length})
+                          </Text>
+                          <div className="space-y-4">
+                            {existingCategories.subcategories.map((subcategory) => (
+                              <Card 
+                                key={subcategory.id}
+                                className="border-l-4 border-l-blue-500 shadow-sm"
+                                title={
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                      <FolderOutlined className="text-blue-600" />
+                                      <div>
+                                        <Text className='text-[14px] popmed' strong>Subcategory</Text>
+                                        <div>
+                                          <Text type="secondary" className="text-xs">
+                                            Second level category
+                                          </Text>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <Tag color="blue">Subcategory</Tag>
+                                  </div>
+                                }
+                              >
+                                {editingCategory?.id === subcategory.id ? (
+                                  <div className="space-y-4">
+                                    <Input
+                                      value={editingCategory.name}
+                                      onChange={(e) => setEditingCategory({
+                                        ...editingCategory,
+                                        name: e.target.value
+                                      })}
+                                      placeholder="Subcategory name"
+                                      size="large"
+                                      className="w-full"
+                                    />
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        icon={<SaveOutlined />}
+                                        onClick={handleSaveCategory}
+                                        loading={loading}
+                                        type="primary"
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        onClick={() => setEditingCategory(null)}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                      <Text strong className="text-[16px] popmed text-red-500">
+                                        {subcategory.name}
+                                      </Text>
+                                      <Tag color="blue" className="text-sm font-mono">
+                                        ID: {subcategory.id}
+                                      </Tag>
+                                      {subcategory.children && subcategory.children.length > 0 && (
+                                        <Tag color="green">
+                                          {subcategory.children.length} child{subcategory.children.length > 1 ? 'ren' : ''}
+                                        </Tag>
+                                      )}
+                                    </div>
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        icon={<EditOutlined />}
+                                        onClick={() => handleEditCategory(subcategory)}
+                                        size="small"
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        icon={<DeleteOutlined />}
+                                        onClick={() => handleDeleteCategory(subcategory)}
+                                        danger
+                                        size="small"
+                                      >
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Child Categories */}
+                      {existingCategories.childCategories.length > 0 && (
+                        <div>
+                          <Text strong className="block mb-4 text-lg">
+                            Child Categories ({existingCategories.childCategories.length})
+                          </Text>
+                          <div className="space-y-4">
+                            {existingCategories.childCategories.map((childCategory) => (
+                              <Card 
+                                key={childCategory.id}
+                                className="border-l-4 border-l-green-500 shadow-sm"
+                                title={
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                      <FolderOpenOutlined className="text-green-600" />
+                                      <div>
+                                        <Text className='text-[14px] popmed' strong>Child Category</Text>
+                                        <div>
+                                          <Text type="secondary" className="text-xs">
+                                            Third level category
+                                          </Text>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <Tag color="green">Child</Tag>
+                                  </div>
+                                }
+                              >
+                                {editingCategory?.id === childCategory.id ? (
+                                  <div className="space-y-4">
+                                    <Input
+                                      value={editingCategory.name}
+                                      onChange={(e) => setEditingCategory({
+                                        ...editingCategory,
+                                        name: e.target.value
+                                      })}
+                                      placeholder="Child category name"
+                                      size="large"
+                                      className="w-full"
+                                    />
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        icon={<SaveOutlined />}
+                                        onClick={handleSaveCategory}
+                                        loading={loading}
+                                        type="primary"
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        onClick={() => setEditingCategory(null)}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                      <Text strong className="text-[16px] popmed text-red-500">
+                                        {childCategory.name}
+                                      </Text>
+                                      <Tag color="green" className="text-sm font-mono">
+                                        ID: {childCategory.id}
+                                      </Tag>
+                                      {/* Show parent subcategory info */}
+                                      {childCategory.parent && (
+                                        <Tag color="orange">
+                                          Parent: {existingCategories.subcategories.find(sub => sub.id === childCategory.parent)?.name || `ID: ${childCategory.parent}`}
+                                        </Tag>
+                                      )}
+                                    </div>
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        icon={<EditOutlined />}
+                                        onClick={() => handleEditCategory(childCategory)}
+                                        size="small"
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        icon={<DeleteOutlined />}
+                                        onClick={() => handleDeleteCategory(childCategory)}
+                                        danger
+                                        size="small"
+                                      >
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Empty State */}
+                      {!existingCategories.parent && existingCategories.subcategories.length === 0 && existingCategories.childCategories.length === 0 && (
+                        <div className="text-center py-8">
+                          <Text type="secondary">No existing categories found for this parent category.</Text>
+                        </div>
+                      )}
+                    </div>
                   </Panel>
 
                   {/* Create New Categories Panel - UPDATED */}
@@ -980,380 +1292,394 @@ const getAvailableSubcategories = () => {
                         </Space>
                       </Card>
 
-                      {/* Subcategory Creation - Same as before */}
-{/* Subcategory Creation - UPDATED with reset capability */}
-<Card 
-  className={`transition-all duration-300 ${
-    createdCategories.subcategoryId 
-      ? 'border-l-4 border-l-green-500 shadow-md' 
-      : 'border-l-4 border-l-blue-500'
-  }`}
-  title={
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className={`p-2 rounded-full ${
-          createdCategories.subcategoryId ? 'bg-green-100' : 'bg-blue-100'
-        }`}>
-          <FolderOutlined className={`text-lg ${
-            createdCategories.subcategoryId ? 'text-green-600' : 'text-blue-600'
-          }`} />
-        </div>
-        <div>
-          <Text strong>Subcategory</Text>
-          <div>
-            <Text type="secondary" className="text-xs">
-              Create multiple second level categories
-            </Text>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        {createdCategories.subcategoryId && (
-          <>
-            <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
-              Created
-            </Tag>
-            <Button
-              size="small"
-              onClick={resetSubcategoryCreationForm}
-              icon={<PlusOutlined />}
-            >
-              New Subcategory
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
-  }
->
-  <Space direction="vertical" className="w-full" size="middle">
-    <Input
-      placeholder="e.g., Smartphones, Men's Fashion, Furniture..."
-      value={categoryData.subcategoryName}
-      onChange={(e) => handleInputChange('subcategoryName', e.target.value)}
-      disabled={loading}
-      size="large"
-      className="w-full"
-      prefix={<FolderOutlined className="text-gray-400" />}
-    />
-    <div className="flex items-center justify-between">
-      <Button
-        type="primary"
-        icon={<ArrowRightOutlined />}
-        onClick={createSubcategory}
-        disabled={
-          !categoryData.subcategoryName.trim() || 
-          loading
-        }
-        loading={loading}
-        size="large"
-        className="min-w-40"
-      >
-        {createdCategories.subcategoryId ? 'Create Another Subcategory' : 'Create Subcategory'}
-      </Button>
-      {createdCategories.subcategoryId && (
-        <Tag color="blue" className="text-sm font-mono">
-          Last ID: {createdCategories.subcategoryId}
-        </Tag>
-      )}
-    </div>
-    
-    {/* Success message when subcategory is created */}
-    {createdCategories.subcategoryId && (
-      <Alert
-        message={`"${createdCategories.subcategoryName}" created successfully!`}
-        description="You can create another subcategory or proceed to create child categories."
-        type="success"
-        showIcon
-        closable
-      />
-    )}
-    
-    {/* Show available subcategories for reference */}
-    {getAvailableSubcategories().length > 0 && (
-      <div className="mt-4">
-        <Text strong className="block mb-2">Available Subcategories:</Text>
-        <div className="flex flex-wrap gap-2">
-          {getAvailableSubcategories().map((subcategory, index) => (
-            <Tag 
-              key={subcategory.id} 
-              color={subcategory.id === createdCategories.subcategoryId ? "green" : "blue"}
-              className="text-sm"
-            >
-              {subcategory.name}
-              {subcategory.id === createdCategories.subcategoryId && " (Latest)"}
-            </Tag>
-          ))}
-        </div>
-      </div>
-    )}
-  </Space>
-</Card>
+                      {/* Subcategory Creation - UPDATED with reset capability */}
+                      <Card 
+                        className={`transition-all duration-300 ${
+                          createdCategories.subcategoryId 
+                            ? 'border-l-4 border-l-green-500 shadow-md' 
+                            : 'border-l-4 border-l-blue-500'
+                        }`}
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${
+                                createdCategories.subcategoryId ? 'bg-green-100' : 'bg-blue-100'
+                              }`}>
+                                <FolderOutlined className={`text-lg ${
+                                  createdCategories.subcategoryId ? 'text-green-600' : 'text-blue-600'
+                                }`} />
+                              </div>
+                              <div>
+                                <Text strong>Subcategory</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    Create multiple second level categories
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              {createdCategories.subcategoryId && (
+                                <>
+                                  <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
+                                    Created
+                                  </Tag>
+                                  <Button
+                                    size="small"
+                                    onClick={resetSubcategoryCreationForm}
+                                    icon={<PlusOutlined />}
+                                  >
+                                    New Subcategory
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          <Input
+                            placeholder="e.g., Smartphones, Men's Fashion, Furniture..."
+                            value={categoryData.subcategoryName}
+                            onChange={(e) => handleInputChange('subcategoryName', e.target.value)}
+                            disabled={loading}
+                            size="large"
+                            className="w-full"
+                            prefix={<FolderOutlined className="text-gray-400" />}
+                          />
+                          <div className="flex items-center justify-between">
+                            <Button
+                              type="primary"
+                              icon={<ArrowRightOutlined />}
+                              onClick={createSubcategory}
+                              disabled={
+                                !categoryData.subcategoryName.trim() || 
+                                loading
+                              }
+                              loading={loading}
+                              size="large"
+                              className="min-w-40"
+                            >
+                              {createdCategories.subcategoryId ? 'Create Another Subcategory' : 'Create Subcategory'}
+                            </Button>
+                            {createdCategories.subcategoryId && (
+                              <Tag color="blue" className="text-sm font-mono">
+                                Last ID: {createdCategories.subcategoryId}
+                              </Tag>
+                            )}
+                          </div>
+                          
+                          {/* Success message when subcategory is created */}
+                          {createdCategories.subcategoryId && (
+                            <Alert
+                              message={`"${createdCategories.subcategoryName}" created successfully!`}
+                              description="You can create another subcategory or proceed to create child categories."
+                              type="success"
+                              showIcon
+                              closable
+                            />
+                          )}
+                          
+                          {/* Show available subcategories for reference */}
+                          {getAvailableSubcategories().length > 0 && (
+                            <div className="mt-4">
+                              <Text strong className="block mb-2">Available Subcategories:</Text>
+                              <div className="flex flex-wrap gap-2">
+                                {getAvailableSubcategories().map((subcategory, index) => (
+                                  <Tag 
+                                    key={subcategory.id} 
+                                    color={subcategory.id === createdCategories.subcategoryId ? "green" : "blue"}
+                                    className="text-sm"
+                                  >
+                                    {subcategory.name}
+                                    {subcategory.id === createdCategories.subcategoryId && " (Latest)"}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </Space>
+                      </Card>
 
-                      {/* Child Subcategory Creation - UPDATED */}
-{/* Child Subcategory Creation - UPDATED with reset capability */}
-<Card 
-  className={`transition-all duration-300 ${
-    createdCategories.childSubcategoryId 
-      ? 'border-l-4 border-l-green-500 shadow-md' 
-      : (getAvailableSubcategories().length === 0)
-      ? 'border-l-4 border-l-gray-300 opacity-50' 
-      : 'border-l-4 border-l-blue-500'
-  }`}
-  title={
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className={`p-2 rounded-full ${
-          createdCategories.childSubcategoryId ? 'bg-green-100' : 'bg-blue-100'
-        }`}>
-          <FolderOpenOutlined className={`text-lg ${
-            createdCategories.childSubcategoryId ? 'text-green-600' : 'text-blue-600'
-          }`} />
-        </div>
-        <div>
-          <Text strong>Child Category</Text>
-          <div>
-            <Text type="secondary" className="text-xs">
-              Create multiple third level categories under subcategories
-            </Text>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        {createdCategories.childSubcategoryId && (
-          <>
-            <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
-              Created
-            </Tag>
-            <Button
-              size="small"
-              onClick={resetChildCreationForm}
-              icon={<PlusOutlined />}
-            >
-              New Child
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
-  }
->
-  <Space direction="vertical" className="w-full" size="middle">
-    {/* Subcategory Selection for Child */}
-    {getAvailableSubcategories().length > 0 && (
-      <div>
-        <Text strong className="block mb-2">Select Subcategory</Text>
-        <Select
-          value={categoryData.selectedSubcategoryForChild}
-          onChange={(value) => handleInputChange('selectedSubcategoryForChild', value)}
-          disabled={loading}
-          size="large"
-          className="w-full"
-          placeholder="Select a subcategory to create child under"
-        >
-          {getAvailableSubcategories().map(subcategory => (
-            <Option key={subcategory.id} value={subcategory.id}>
-              {subcategory.name} (ID: {subcategory.id})
-            </Option>
-          ))}
-        </Select>
-        <Text type="secondary" className="text-xs mt-2">
-          Choose which subcategory this child category will belong to
-        </Text>
-      </div>
-    )}
+                      {/* Child Subcategory Creation - UPDATED with reset capability */}
+                      <Card 
+                        className={`transition-all duration-300 ${
+                          createdCategories.childSubcategoryId 
+                            ? 'border-l-4 border-l-green-500 shadow-md' 
+                            : (getAvailableSubcategories().length === 0)
+                            ? 'border-l-4 border-l-gray-300 opacity-50' 
+                            : 'border-l-4 border-l-blue-500'
+                        }`}
+                        title={
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${
+                                createdCategories.childSubcategoryId ? 'bg-green-100' : 'bg-blue-100'
+                              }`}>
+                                <FolderOpenOutlined className={`text-lg ${
+                                  createdCategories.childSubcategoryId ? 'text-green-600' : 'text-blue-600'
+                                }`} />
+                              </div>
+                              <div>
+                                <Text strong>Child Category</Text>
+                                <div>
+                                  <Text type="secondary" className="text-xs">
+                                    Create multiple third level categories under subcategories
+                                  </Text>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              {createdCategories.childSubcategoryId && (
+                                <>
+                                  <Tag icon={<CheckCircleOutlined />} color="success" className="ml-2">
+                                    Created
+                                  </Tag>
+                                  <Button
+                                    size="small"
+                                    onClick={resetChildCreationForm}
+                                    icon={<PlusOutlined />}
+                                  >
+                                    New Child
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        }
+                      >
+                        <Space direction="vertical" className="w-full" size="middle">
+                          {/* Subcategory Selection for Child */}
+                          {getAvailableSubcategories().length > 0 && (
+                            <div>
+                              <Text strong className="block mb-2">Select Subcategory</Text>
+                              <Select
+                                value={categoryData.selectedSubcategoryForChild}
+                                onChange={(value) => handleInputChange('selectedSubcategoryForChild', value)}
+                                disabled={loading}
+                                size="large"
+                                className="w-full"
+                                placeholder="Select a subcategory to create child under"
+                              >
+                                {getAvailableSubcategories().map(subcategory => (
+                                  <Option key={subcategory.id} value={subcategory.id}>
+                                    {subcategory.name} (ID: {subcategory.id})
+                                  </Option>
+                                ))}
+                              </Select>
+                              <Text type="secondary" className="text-xs mt-2">
+                                Choose which subcategory this child category will belong to
+                              </Text>
+                            </div>
+                          )}
 
-    <Input
-      placeholder="e.g., iPhone, T-Shirts, Sofas..."
-      value={categoryData.childSubcategoryName}
-      onChange={(e) => handleInputChange('childSubcategoryName', e.target.value)}
-      disabled={
-        getAvailableSubcategories().length === 0 || 
-        loading
-      }
-      size="large"
-      className="w-full"
-      prefix={<FolderOpenOutlined className="text-gray-400" />}
-    />
-    <div className="flex items-center justify-between">
-      <Button
-        type="primary"
-        icon={<ArrowRightOutlined />}
-        onClick={createChildSubcategory}
-        disabled={
-          !categoryData.childSubcategoryName.trim() || 
-          !categoryData.selectedSubcategoryForChild ||
-          getAvailableSubcategories().length === 0 || 
-          loading
-        }
-        loading={loading}
-        size="large"
-        className="min-w-40"
-      >
-        {createdCategories.childSubcategoryId ? 'Create Another Child' : 'Create Child'}
-      </Button>
-      {createdCategories.childSubcategoryId && (
-        <Tag color="blue" className="text-sm font-mono">
-          Last ID: {createdCategories.childSubcategoryId}
-        </Tag>
-      )}
-    </div>
-    
-    {/* Success message when child is created */}
-    {createdCategories.childSubcategoryId && (
-      <Alert
-        message={`"${createdCategories.childSubcategoryName}" created successfully!`}
-        description="You can create another child category or proceed to add filters."
-        type="success"
-        showIcon
-        closable
-      />
-    )}
-  </Space>
-</Card>
+                          <Input
+                            placeholder="e.g., iPhone, T-Shirts, Sofas..."
+                            value={categoryData.childSubcategoryName}
+                            onChange={(e) => handleInputChange('childSubcategoryName', e.target.value)}
+                            disabled={
+                              getAvailableSubcategories().length === 0 || 
+                              loading
+                            }
+                            size="large"
+                            className="w-full"
+                            prefix={<FolderOpenOutlined className="text-gray-400" />}
+                          />
+                          <div className="flex items-center justify-between">
+                            <Button
+                              type="primary"
+                              icon={<ArrowRightOutlined />}
+                              onClick={createChildSubcategory}
+                              disabled={
+                                !categoryData.childSubcategoryName.trim() || 
+                                !categoryData.selectedSubcategoryForChild ||
+                                getAvailableSubcategories().length === 0 || 
+                                loading
+                              }
+                              loading={loading}
+                              size="large"
+                              className="min-w-40"
+                            >
+                              {createdCategories.childSubcategoryId ? 'Create Another Child' : 'Create Child'}
+                            </Button>
+                            {createdCategories.childSubcategoryId && (
+                              <Tag color="blue" className="text-sm font-mono">
+                                Last ID: {createdCategories.childSubcategoryId}
+                              </Tag>
+                            )}
+                          </div>
+                          
+                          {/* Success message when child is created */}
+                          {createdCategories.childSubcategoryId && (
+                            <Alert
+                              message={`"${createdCategories.childSubcategoryName}" created successfully!`}
+                              description="You can create another child category or proceed to add filters."
+                              type="success"
+                              showIcon
+                              closable
+                            />
+                          )}
+                        </Space>
+                      </Card>
                     </div>
                   </Panel>
 
-                  {/* Edit Existing Filters Panel - Same as before */}
-                   <Panel 
-                     header={
-                       <div className="flex items-center space-x-2">
-                         <FilterOutlined className="text-orange-500" />
-                         <Text strong>Edit Existing Filters</Text>
-                         {existingFilters.length > 0 && (
-                           <Tag color="orange" className="ml-2">
-                             {existingFilters.length} Filter{existingFilters.length > 1 ? 's' : ''}
-                           </Tag>
-                         )}
-                       </div>
-                     } 
-                     key="3"
-                   >
-                     <div className="space-y-6">
-                       {existingFilters.length === 0 ? (
-                         <div className="text-center py-8">
-                           <Text type="secondary">No existing filters found for this category hierarchy.</Text>
-                         </div>
-                       ) : (
-                         existingFilters.map((filter, index) => (
-                           <Card 
-                             key={filter.filter_by_type.id}
-                             className="border-l-4 border-l-orange-500 shadow-md"
-                             title={
-                               <div className="flex items-center justify-between">
-                                 <div className="flex items-center space-x-3">
-                                   <SettingOutlined className="text-orange-600" />
-                                   <div>
-                                     <Text strong>{filter.filter_by_type.name}</Text>
-                                     <div>
-                                       <Text type="secondary" className="text-xs">
-                                         Category: {filter.categoryName} ({filter.categoryLevel})
-                                       </Text>
-                                     </div>
-                                   </div>
-                                 </div>
-                                 <div className="flex space-x-2">
-                                   <Tag color={getFilterTypeColor(filter.filter_by_type.filter_type)}>
-                                     {filter.filter_by_type.filter_type}
-                                   </Tag>
-                                   <Button
-                                     icon={<EditOutlined />}
-                                     onClick={() => handleEditFilter(filter)}
-                                     size="small"
-                                   >
-                                     Edit
-                                   </Button>
-                                   <Button
-                                     icon={<DeleteOutlined />}
-                                     onClick={() => handleDeleteFilter(filter)}
-                                     danger
-                                     size="small"
-                                   >
-                                     Delete
-                                   </Button>
-                                 </div>
-                               </div>
-                             }
-                           >
-                             {editingFilter?.filter_by_type?.id === filter.filter_by_type.id ? (
-                               <div className="space-y-4">
-                                 <div className="flex space-x-2">
-                                   <Input
-                                     value={editingFilter.filter_by_type.name}
-                                     onChange={(e) => setEditingFilter({
-                                       ...editingFilter,
-                                       filter_by_type: {
-                                         ...editingFilter.filter_by_type,
-                                         name: e.target.value
-                                       }
-                                     })}
-                                     placeholder="Filter name"
-                                     size="large"
-                                     className="flex-1"
-                                   />
-                                   <Select
-                                     value={editingFilter.filter_by_type.filter_type}
-                                     onChange={(value) => setEditingFilter({
-                                       ...editingFilter,
-                                       filter_by_type: {
-                                         ...editingFilter.filter_by_type,
-                                         filter_type: value
-                                       }
-                                     })}
-                                     size="large"
-                                     style={{ width: 150 }}
-                                   >
-                                     <Option value="checkbox">Checkbox</Option>
-                                     <Option value="radio">Radio</Option>
-                                   </Select>
-                                 </div>
-                                 <div className="flex space-x-2">
-                                   <Button
-                                     icon={<SaveOutlined />}
-                                     onClick={handleSaveFilter}
-                                     loading={loading}
-                                     type="primary"
-                                   >
-                                     Save Filter
-                                   </Button>
-                                   <Button
-                                     onClick={() => setEditingFilter(null)}
-                                   >
-                                     Cancel
-                                   </Button>
-                                 </div>
-                               </div>
-                             ) : null}
- 
-                             {/* Filter Options */}
-                             <div className="mt-4">
-                               <Text strong className="block mb-3">Filter Options</Text>
-                               <div className="space-y-2">
-                                 {filter.filter_options.map((option, optIndex) => (
-                                   <div key={option.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                                     <Input
-                                       defaultValue={option.value}
-                                       onBlur={(e) => handleEditFilterOption(option.id, e.target.value)}
-                                       size="middle"
-                                       className="flex-1"
-                                     />
-                                     <Button
-                                       icon={<DeleteOutlined />}
-                                       onClick={() => handleDeleteFilterOption(option.id)}
-                                       danger
-                                       size="small"
-                                     >
-                                       Delete
-                                     </Button>
-                                   </div>
-                                 ))}
-                               </div>
-                             </div>
-                           </Card>
-                         ))
-                       )}
-                     </div>
-                   </Panel>
+                  {/* Edit Existing Filters Panel - UPDATED with Add Option functionality */}
+                  <Panel 
+                    header={
+                      <div className="flex items-center space-x-2">
+                        <FilterOutlined className="text-orange-500" />
+                        <Text strong>Edit Existing Filters</Text>
+                        {existingFilters.length > 0 && (
+                          <Tag color="orange" className="ml-2">
+                            {existingFilters.length} Filter{existingFilters.length > 1 ? 's' : ''}
+                          </Tag>
+                        )}
+                      </div>
+                    } 
+                    key="3"
+                  >
+                    <div className="space-y-6">
+                      {existingFilters.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Text type="secondary">No existing filters found for this category hierarchy.</Text>
+                        </div>
+                      ) : (
+                        existingFilters.map((filter, index) => (
+                          <Card 
+                            key={filter.filter_by_type.id}
+                            className="border-l-4 border-l-orange-500 shadow-md"
+                            title={
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <SettingOutlined className="text-orange-600" />
+                                  <div>
+                                    <Text strong>{filter.filter_by_type.name}</Text>
+                                    <div>
+                                      <Text type="secondary" className="text-xs">
+                                        Category: {filter.categoryName} ({filter.categoryLevel})
+                                      </Text>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Tag color={getFilterTypeColor(filter.filter_by_type.filter_type)}>
+                                    {filter.filter_by_type.filter_type}
+                                  </Tag>
+                                  <Button
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEditFilter(filter)}
+                                    size="small"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => handleDeleteFilter(filter)}
+                                    danger
+                                    size="small"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            }
+                          >
+                            {editingFilter?.filter_by_type?.id === filter.filter_by_type.id ? (
+                              <div className="space-y-4">
+                                <div className="flex space-x-2">
+                                  <Input
+                                    value={editingFilter.filter_by_type.name}
+                                    onChange={(e) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        name: e.target.value
+                                      }
+                                    })}
+                                    placeholder="Filter name"
+                                    size="large"
+                                    className="flex-1"
+                                  />
+                                  <Select
+                                    value={editingFilter.filter_by_type.filter_type}
+                                    onChange={(value) => setEditingFilter({
+                                      ...editingFilter,
+                                      filter_by_type: {
+                                        ...editingFilter.filter_by_type,
+                                        filter_type: value
+                                      }
+                                    })}
+                                    size="large"
+                                    style={{ width: 150 }}
+                                  >
+                                    <Option value="checkbox">Checkbox</Option>
+                                    <Option value="radio">Radio</Option>
+                                  </Select>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <Button
+                                    icon={<SaveOutlined />}
+                                    onClick={handleSaveFilter}
+                                    loading={loading}
+                                    type="primary"
+                                  >
+                                    Save Filter
+                                  </Button>
+                                  <Button
+                                    onClick={() => setEditingFilter(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : null}
+
+                            {/* Filter Options - UPDATED with Add Option functionality */}
+                            <div className="mt-4">
+                              <div className="flex justify-between items-center mb-3">
+                                <Text strong>Filter Options</Text>
+                                <Button
+                                  icon={<PlusOutlined />}
+                                  onClick={() => {
+                                    // Create a simple input for adding new option
+                                    const newOptionValue = prompt('Enter new filter option value:');
+                                    if (newOptionValue) {
+                                      handleAddFilterOption(filter.filter_by_type.id, newOptionValue);
+                                    }
+                                  }}
+                                  size="small"
+                                  type="primary"
+                                >
+                                  Add Option
+                                </Button>
+                              </div>
+                              <div className="space-y-2">
+                                {filter.filter_options.map((option, optIndex) => (
+                                  <div key={option.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                                    <Input
+                                      defaultValue={option.value}
+                                      onBlur={(e) => handleEditFilterOption(option.id, e.target.value)}
+                                      size="middle"
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => handleDeleteFilterOption(option.id)}
+                                      danger
+                                      size="small"
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </Panel>
 
                   {/* Create New Filters Panel - Same as before */}
                   <Panel 

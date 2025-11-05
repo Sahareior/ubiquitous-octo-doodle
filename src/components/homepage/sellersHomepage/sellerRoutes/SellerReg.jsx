@@ -14,7 +14,6 @@ import { useGetProfileQuery } from '../../../../redux/slices/Apis/customersApi';
 const { Option } = Select;
 const MySwal = withReactContent(Swal);
 
-
 const SectionHeader = ({ icon, title, subtitle }) => (
   <div className="flex items-center gap-3 mb-6">
     <p className='p-2 rounded-full bg-[#CBA135]'>{icon}</p>
@@ -25,7 +24,7 @@ const SectionHeader = ({ icon, title, subtitle }) => (
   </div>
 );
 
-const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
+const FileUploader = ({ title, name, onChange, multiple = false, value, error }) => {
   const [previewUrls, setPreviewUrls] = useState([]);
 
   const handleFileChange = useCallback((e) => {
@@ -54,7 +53,7 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
   return (
     <div className="space-y-3 mt-7">
       <h2 className="popbold text-[18px] text-gray-800">{title}</h2>
-      <div className="bg-[#EAE7E1] rounded-xl border border-dashed border-gray-400 p-6 flex flex-col items-center justify-center space-y-3 hover:shadow-md transition-all">
+      <div className={`bg-[#EAE7E1] rounded-xl border ${error ? 'border-red-500' : 'border-dashed border-gray-400'} p-6 flex flex-col items-center justify-center space-y-3 hover:shadow-md transition-all`}>
         <FaCloudUploadAlt className="text-4xl text-[#CBA135]" />
         <p className="popmed text-[16px] text-gray-700">Drag & drop images here</p>
         <p className="popreg text-[14px] text-gray-600 text-center">
@@ -103,6 +102,7 @@ const FileUploader = ({ title, name, onChange, multiple = false, value }) => {
           )}
         </div>
       </div>
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 };
@@ -150,73 +150,104 @@ const SellerReg = () => {
     captcha: ''
   });
 
+  const [errors, setErrors] = useState({});
+
   const steps = useMemo(() => [
     {
       title: 'Contact Info',
-      content: <ContactInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
+      content: <ContactInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} errors={errors} />,
     },
     {
       title: 'Business Info',
-      content: <BusinessInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
+      content: <BusinessInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} errors={errors} />,
     },
     {
       title: 'Verify',
-      content: <VerifyInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} />,
+      content: <VerifyInfoStep formData={formData} setFormData={setFormData} isAdmin={isAdmin} errors={errors} />,
     },
-  ], [formData, isAdmin]);
+  ], [formData, isAdmin, errors]);
+
+  const validateStep = useCallback((step) => {
+    const newErrors = {};
+
+    switch (step) {
+      case 0:
+        if (!formData.firstName.trim()) newErrors.firstName = 'First Name is required';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Last Name is required';
+        if (!formData.jobTitle) newErrors.jobTitle = 'Job Title is required';
+        if (!formData.phone.trim()) newErrors.phone = 'Phone Number is required';
+        
+        if (isAdmin && !formData.email.trim()) {
+          newErrors.email = 'Vendor Email is required for admin';
+        }
+      
+        if (!isAdmin && !formData.email.trim()) {
+          newErrors.email = 'Email is required';
+        }
+
+        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Please enter a valid email address';
+        }
+
+        if (formData.phone && !/^\+?[\d\s-()]{10,}$/.test(formData.phone)) {
+          newErrors.phone = 'Please enter a valid phone number';
+        }
+        break;
+
+      case 1: 
+        if (!formData.businessName.trim()) newErrors.businessName = 'Business Name is required';
+        if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business Address is required';
+        if (!formData.country.trim()) newErrors.country = 'Country is required';
+        if (!formData.city.trim()) newErrors.city = 'City is required';
+        if (!formData.state.trim()) newErrors.state = 'State/Province is required';
+        if (!formData.postalCode.trim()) newErrors.postalCode = 'Postal Code is required';
+        if (!formData.date) newErrors.date = 'Established Date is required';
+        if (!formData.businessType.trim()) newErrors.businessType = 'Business Type is required';
+        if (!formData.taxpayerNumber.trim()) newErrors.taxpayerNumber = 'Taxpayer Number is required';
+        if (!formData.tradeRegisterNumber.trim()) newErrors.tradeRegisterNumber = 'Trade Register Number is required';
+
+        if (formData.postalCode && !/^[A-Za-z0-9\s-]{3,10}$/.test(formData.postalCode)) {
+          newErrors.postalCode = 'Please enter a valid postal code';
+        }
+        break;
+
+      case 2:
+        if (!formData.frontId) newErrors.frontId = 'Front of National ID is required';
+        if (!formData.backId) newErrors.backId = 'Back of National ID is required';
+        if (!formData.businessOwner) newErrors.businessOwner = 'Business Owner document is required';
+        if (!formData.homeLocalizationPlan.trim()) newErrors.homeLocalizationPlan = 'Home Localization Plan is required';
+        if (!formData.businessLocalizationPlan.trim()) newErrors.businessLocalizationPlan = 'Business Localization Plan is required';
+        if (!formData.taxFile) newErrors.taxFile = 'Taxpayer Document is required';
+        if (!formData.tradeFile) newErrors.tradeFile = 'Trade Register Document is required';
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData, isAdmin]);
 
   const nextStep = useCallback(() => {
     if (validateStep(currentStep)) {
       setCurrentStep(currentStep + 1);
+    } else {
+      message.error('Please fix the validation errors before proceeding');
     }
-  }, [currentStep, formData]);
+  }, [currentStep, validateStep]);
 
   const prevStep = useCallback(() => {
     setCurrentStep(currentStep - 1);
   }, [currentStep]);
 
-  const validateStep = useCallback((step) => {
-    switch (step) {
-      case 0:
-        if (!formData.firstName || !formData.lastName || !formData.jobTitle || !formData.phone) {
-          message.error('Please fill all required fields in Contact Information');
-          return false;
-        }
-        
-        if (isAdmin && !formData.email) {
-          message.error('Vendor Email is required for admin');
-          return false;
-        }
-      
-        if (!isAdmin && !formData.email) {
-          message.error('Email is required');
-          return false;
-        }
-        return true;
-      case 1: 
-        if (!formData.businessName || !formData.businessAddress || !formData.country || 
-            !formData.city || !formData.state || !formData.postalCode || !formData.date || 
-            !formData.businessType || !formData.taxpayerNumber || !formData.tradeRegisterNumber) {
-          message.error('Please fill all required fields in Business Information');
-          return false;
-        }
-        return true;
-      case 2: // Verify
-        if (!formData.frontId || !formData.backId || !formData.businessOwner || 
-            !formData.homeLocalizationPlan || !formData.businessLocalizationPlan || 
-            !formData.taxFile || !formData.tradeFile) {
-          message.error('Please fill all required fields in Verification');
-          return false;
-        }
-        return true;
-      default:
-        return true;
-    }
-  }, [formData, isAdmin]);
-
   const handleApply = useCallback(async () => {
+    if (!validateStep(2)) {
+      message.error('Please fix all validation errors before submitting');
+      return;
+    }
+
     try {
- 
       MySwal.fire({
         title: 'Uploading...',
         text: 'Please wait while your application is being submitted',
@@ -227,10 +258,8 @@ const SellerReg = () => {
       });
 
       if (isAdmin) {
-      
         const formPayload = new FormData();
         
-     
         formPayload.append("email", formData.email );
         formPayload.append("first_name", formData.firstName);
         formPayload.append("last_name", formData.lastName);
@@ -268,7 +297,6 @@ const SellerReg = () => {
         });
 
       } else {
-     
         const formPayload = new FormData();
      
         formPayload.append("first_name", formData.firstName);
@@ -309,7 +337,6 @@ const SellerReg = () => {
         });
       }
 
-
       setFormData({
         firstName: '',
         lastName: '',
@@ -336,13 +363,14 @@ const SellerReg = () => {
         captcha: ''
       });
       
+      setErrors({});
       refetch();
-     if(isAdmin){
-       navigate('/admin-dashboard/vendors');
-     }
-     else{
-       navigate('/');
-     }
+      
+      if(isAdmin){
+        navigate('/admin-dashboard/vendors');
+      } else {
+        navigate('/');
+      }
 
     } catch (error) {
       console.error(error);
@@ -355,7 +383,7 @@ const SellerReg = () => {
         confirmButtonColor: '#CBA135'
       });
     }
-  }, [formData, postSeller, adminVendorCreate, navigate, isAdmin, refetch]);
+  }, [formData, postSeller, adminVendorCreate, navigate, isAdmin, refetch, validateStep]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -424,7 +452,7 @@ const SellerReg = () => {
   );
 };
 
-const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
+const ContactInfoStep = ({ formData, setFormData, isAdmin, errors }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -442,7 +470,6 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
         subtitle="Tell us how to reach you"
       />
 
-      {/* Admin Only - Vendor Email Field */}
       {isAdmin && (
         <div className='mt-2 mb-4'>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Vendor Email *</label>
@@ -451,14 +478,14 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.email}
             onChange={handleChange}
             placeholder="Enter vendor email address" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           <p className="text-xs text-gray-500 mt-1">This email will be used for vendor account creation</p>
         </div>
       )}
 
       <div className="grid md:grid-cols-2 gap-4">
-        {/* First Name - For both admin and regular users */}
         <div className='mt-2'>
           <label className="block mb-1 popbold text-[14px] text-gray-700">First Name *</label>
           <input 
@@ -466,11 +493,11 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.firstName}
             onChange={handleChange}
             placeholder="Enter First Name" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.firstName ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
         </div>
 
-        {/* Last Name - For both admin and regular users */}
         <div className='mt-2'>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Last Name *</label>
           <input 
@@ -478,26 +505,28 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.lastName}
             onChange={handleChange}
             placeholder="Enter Last Name" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.lastName ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
         </div>
 
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Job Title *</label>
           <Select
             placeholder="Select Your Role"
-            className="w-full h-[44px]"
+            className={`w-full h-[44px] ${errors.jobTitle ? 'border-red-500' : ''}`}
             suffixIcon={<FiChevronDown className="text-gray-500" />}
             onChange={(value) => handleSelect('jobTitle', value)}
             value={formData.jobTitle || "Select One"} 
+            status={errors.jobTitle ? 'error' : ''}
           >
             <Option value="owner">Owner</Option>
             <Option value="manager">Manager</Option>
             <Option value="designer">Designer</Option>
           </Select>
+          {errors.jobTitle && <p className="text-red-500 text-sm mt-1">{errors.jobTitle}</p>}
         </div>
 
-        {/* Email - For regular users only (admin has separate vendor email field) */}
         {!isAdmin && (
           <div className='mt-2'>
             <label className="block mb-1 popbold text-[14px] text-gray-700">Email Address *</label>
@@ -506,8 +535,9 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter Email Address" 
-              className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+              className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
             />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
         )}
       </div>
@@ -519,14 +549,15 @@ const ContactInfoStep = ({ formData, setFormData, isAdmin }) => {
           value={formData.phone}
           onChange={handleChange}
           placeholder="Enter Phone Number" 
-          className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+          className={`w-full border ${errors.phone ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
         />
+        {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
       </div>
     </>
   );
 };
 
-const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
+const BusinessInfoStep = ({ formData, setFormData, isAdmin, errors }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -555,8 +586,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
           value={formData.businessName}
           onChange={handleChange}
           placeholder="Enter Business Name" 
-          className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+          className={`w-full border ${errors.businessName ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
         />
+        {errors.businessName && <p className="text-red-500 text-sm mt-1">{errors.businessName}</p>}
       </div>
 
       <div className='mt-2'>
@@ -566,8 +598,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
           value={formData.businessAddress}
           onChange={handleChange}
           placeholder="Enter Business Address" 
-          className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+          className={`w-full border ${errors.businessAddress ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
         />
+        {errors.businessAddress && <p className="text-red-500 text-sm mt-1">{errors.businessAddress}</p>}
       </div>
       
       <div className="grid md:grid-cols-2 mt-3 gap-4">
@@ -578,8 +611,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.country}
             onChange={handleChange}
             placeholder="Enter Country Name" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.country ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">City/Town *</label>
@@ -588,8 +622,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.city}
             onChange={handleChange}
             placeholder="Enter City/Town Name" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.city ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">State/Province *</label>
@@ -598,8 +633,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.state}
             onChange={handleChange}
             placeholder="Enter State/Province" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.state ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Postal Code *</label>
@@ -608,20 +644,23 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.postalCode}
             onChange={handleChange}
             placeholder="Enter Postal Code" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.postalCode ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.postalCode && <p className="text-red-500 text-sm mt-1">{errors.postalCode}</p>}
         </div>
       </div>
       <div className="grid md:grid-cols-2 mt-3 gap-4">
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Year*</label>
           <DatePicker
-            className="w-full h-[44px] border border-[#D1D5DB] rounded-md px-4 py-2 text-gray-700"
+            className={`w-full h-[44px] border ${errors.date ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 text-gray-700`}
             placeholder="Enter Date"
             style={{ width: '100%' }}
             popupClassName="custom-datepicker-popup"
             onChange={handleDate}
+            status={errors.date ? 'error' : ''}
           />
+          {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Business Type *</label>
@@ -630,8 +669,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.businessType}
             onChange={handleChange}
             placeholder="Enter Business Type" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.businessType ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.businessType && <p className="text-red-500 text-sm mt-1">{errors.businessType}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Tax payer Number*</label>
@@ -640,8 +680,9 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.taxpayerNumber}
             onChange={handleChange}
             placeholder="Enter Taxpayer Number" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.taxpayerNumber ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.taxpayerNumber && <p className="text-red-500 text-sm mt-1">{errors.taxpayerNumber}</p>}
         </div>
         <div>
           <label className="block mb-1 popbold text-[14px] text-gray-700">Trade register number*</label>
@@ -650,15 +691,16 @@ const BusinessInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.tradeRegisterNumber}
             onChange={handleChange}
             placeholder="Enter register number" 
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]" 
+            className={`w-full border ${errors.tradeRegisterNumber ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`} 
           />
+          {errors.tradeRegisterNumber && <p className="text-red-500 text-sm mt-1">{errors.tradeRegisterNumber}</p>}
         </div>
       </div>
     </>
   );
 };
 
-const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
+const VerifyInfoStep = ({ formData, setFormData, isAdmin, errors }) => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -686,6 +728,7 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
         onChange={handleFileChange}
         multiple={false}
         value={formData.frontId}
+        error={errors.frontId}
       />
 
       <FileUploader 
@@ -694,6 +737,7 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
         onChange={handleFileChange}
         multiple={false}
         value={formData.backId}
+        error={errors.backId}
       />
 
       <FileUploader 
@@ -702,6 +746,7 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
         onChange={handleFileChange}
         multiple={false}
         value={formData.businessOwner}
+        error={errors.businessOwner}
       />
 
       <div className="flex flex-col sm:flex-row mt-6 gap-4">
@@ -714,8 +759,9 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.homeLocalizationPlan}
             onChange={handleChange}
             placeholder="Enter Home localization plan"
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]"
+            className={`w-full border ${errors.homeLocalizationPlan ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`}
           />
+          {errors.homeLocalizationPlan && <p className="text-red-500 text-sm mt-1">{errors.homeLocalizationPlan}</p>}
         </div>
 
         <div className="flex-1 mt-2">
@@ -727,8 +773,9 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
             value={formData.businessLocalizationPlan}
             onChange={handleChange}
             placeholder="Enter Business Localization plan "
-            className="w-full border border-[#D1D5DB] rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]"
+            className={`w-full border ${errors.businessLocalizationPlan ? 'border-red-500' : 'border-[#D1D5DB]'} rounded-md px-4 py-2 placeholder:pl-1 focus:outline-none focus:ring-0 focus:border-[#D1D5DB]`}
           />
+          {errors.businessLocalizationPlan && <p className="text-red-500 text-sm mt-1">{errors.businessLocalizationPlan}</p>}
         </div>
       </div>
 
@@ -740,6 +787,7 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
             onChange={handleFileChange}
             multiple={false}
             value={formData.taxFile}
+            error={errors.taxFile}
           />
         </div>
 
@@ -750,6 +798,7 @@ const VerifyInfoStep = ({ formData, setFormData, isAdmin }) => {
             onChange={handleFileChange}
             multiple={false}
             value={formData.tradeFile}
+            error={errors.tradeFile}
           />
         </div>
       </div>

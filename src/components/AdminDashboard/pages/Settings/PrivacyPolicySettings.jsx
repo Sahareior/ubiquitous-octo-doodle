@@ -4,14 +4,17 @@ import { FaLock } from 'react-icons/fa';
 import { FiEdit } from 'react-icons/fi';
 import EditSection from './editor/EditSection';
 import { useGetPrivacyPolicyQuery } from '../../../../redux/slices/Apis/dashboardApis';
+import { useGetPrivacyCustomersQuery } from '../../../../redux/slices/Apis/vendorsApi';
 
 const PrivacyPolicySettings = () => {
   const [clicked, setClicked] = useState(false);
   const { data: privacy } = useGetPrivacyPolicyQuery();
   
-
+  const {data:updatedPrivacy} = useGetPrivacyCustomersQuery()
   const IsPrivacy = privacy?.results?.filter(items => items.type === 'privacy');
   
+
+  console.log(updatedPrivacy,'this is updated privacy')
   
   const privacyContent = IsPrivacy?.[0]?.content || '';
   const lastUpdated = IsPrivacy?.[0]?.updated_at || 'N/A';
@@ -39,46 +42,13 @@ const PrivacyPolicySettings = () => {
         </button>
       </div>
 
-      {/* Toggle List */}
-      {/* <div className="space-y-4 bg-white p-5 shadow-sm">
-        <div className="flex justify-between items-center border-b pb-2">
-          <div>
-            <p className="font-medium">Registration Page</p>
-            <p className="text-sm text-gray-500">Show privacy policy link on user registration</p>
-          </div>
-          <Switch defaultChecked onChange={onChange} />
-        </div>
-
-        <div className="flex justify-between items-center border-b pb-2">
-          <div>
-            <p className="font-medium">Checkout Page</p>
-            <p className="text-sm text-gray-500">Display privacy policy during checkout process</p>
-          </div>
-          <Switch defaultChecked onChange={onChange} />
-        </div>
-
-        <div className="flex justify-between items-center border-b pb-2">
-          <div>
-            <p className="font-medium">Vendor Signup Form</p>
-            <p className="text-sm text-gray-500">Include privacy policy in vendor registration</p>
-          </div>
-          <Switch defaultChecked onChange={onChange} />
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="font-medium">Require Acceptance</p>
-            <p className="text-sm text-gray-500">Users must accept privacy policy before account creation</p>
-          </div>
-          <Switch defaultChecked onChange={onChange} />
-        </div>
-      </div> */}
+   
 
       {/* Policy Content */}
       {clicked ? (
         <EditSection type='privacy' data={privacyContent} />
       ) : (
-        <div className="bg-[#F9FAFB] border rounded p-4">
+        <div className="bg-white border rounded p-4">
           <div className="flex justify-between items-center mb-3">
             <p className="font-medium">Privacy Policy Content</p>
             <p className="text-sm text-gray-500">Last updated: {new Date(lastUpdated).toLocaleDateString()}</p>

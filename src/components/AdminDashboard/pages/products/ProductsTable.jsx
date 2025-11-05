@@ -209,12 +209,12 @@ const handleDelete = async (keys) => {
     </span>
   ),
 },
-    {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
-      render: (text) => <span className="text-sm popreg">{text}</span>,
-    },
+    // {
+    //   title: 'Category',
+    //   dataIndex: 'category',
+    //   key: 'category',
+    //   render: (text) => <span className="text-sm popreg">{text}</span>,
+    // },
 
     {
       title: 'Price',

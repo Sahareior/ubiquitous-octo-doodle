@@ -3,10 +3,8 @@ import ProductsTable from "./ProductsTable";
 import { Select, Spin } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
-import {
-  useGetAllProductsQuery,
-} from "../../../../redux/slices/Apis/dashboardApis";
-import { useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
+
+import { useGetAllProductsQuery, useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
 const { Option } = Select;
 
@@ -14,7 +12,7 @@ const ProductsList = ({path}) => {
   const { data: products, isLoading } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
 
-  console.log(products,'adaa')
+
 
   // console.log(products,'this sasasasas')
 

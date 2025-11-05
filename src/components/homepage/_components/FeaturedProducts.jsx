@@ -113,7 +113,8 @@ const FeaturedProducts = ({allProducts, isLoading, isError, title, subtitle}) =>
   const [savetoWishList] = useSavetoWishListMutation();
   const dispatch = useDispatch();
   const { data: cartData, refetch } = useGetAppCartQuery();
-  const { add, setAdd } = useWebSocketContext();
+  const webSocketContext = useWebSocketContext();
+  const { add, setAdd } = webSocketContext
   const { data: wishLists, refetch: wishListRefetch } =
     useGetAllWishListQuery();
   const location = useLocation();

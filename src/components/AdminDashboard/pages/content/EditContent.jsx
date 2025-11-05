@@ -8,7 +8,7 @@ const EditContent = ({ bannerData }) => {
   const fileInputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [editingBanner, setEditingBanner] = useState(null);
-  const [bannerUpload] = useBannerUploadMutation();
+  const [bannerUpload, { isLoading }] = useBannerUploadMutation();
   const [updateBanner] = useUpdateBannerMutation();
   const { data: banners, refetch } = useGetAllBannersQuery();
   const [deleteBanner] = useDeleteBannerMutation();

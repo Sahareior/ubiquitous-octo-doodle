@@ -243,8 +243,15 @@ export const vendorsApi = createApi({
         method: "DELETE"
       })
     }),
-    // /api/filter-by-type/{id}/
-// /api/filter-by-type/detail/{id}/
+
+    getTermsCustomers:build.query({
+      query: () => '/terms/'
+    }),
+
+    getPrivacyCustomers:build.query({
+      query: () => '/privacy/'
+    }),
+
     postPayouts: build.mutation({
       query: (data) => ({
         url:'payouts/',
@@ -270,6 +277,8 @@ export const vendorsApi = createApi({
 export const {
   useGetPokemonByNameQuery,
   useEmailSubscribeMutation,
+  useGetTermsCustomersQuery,
+  useGetPrivacyCustomersQuery,
   useFilterOptionDeleteMutation,
   useOptionsTypeUpdateMutation,
   useOptionsTypeDeleteMutation,

@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import EditSection from "./editor/EditSection";
 import { useGetPrivacyPolicyQuery } from "../../../../redux/slices/Apis/dashboardApis";
+import { useGetTermsCustomersQuery } from "../../../../redux/slices/Apis/vendorsApi";
 
 const TermsConditions = () => {
   const [clicked, setClicked] = useState(false)
     const { data: privacy,refetch } = useGetPrivacyPolicyQuery();
+    const {data:updatedTerms} = useGetTermsCustomersQuery()
     
+    console.log(updatedTerms,'this is updated terms')
     // Filter privacy content
     const IsPrivacy = privacy?.results?.filter(items => items.type === 'terms');
 

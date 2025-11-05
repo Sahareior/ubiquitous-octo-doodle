@@ -31,9 +31,9 @@ import {
 } from "lucide-react";
 import imageCompression from 'browser-image-compression';
 import Swal from "sweetalert2";
-import { useChildCategoryQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
+import { useChildCategoryQuery, useGetAllProductsQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationForm from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationForm";
-import { useGetAllProductsQuery } from "../../../../redux/slices/Apis/dashboardApis";
+
 
 const { Panel } = Collapse;
 

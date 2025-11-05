@@ -24,6 +24,7 @@ const ProductFilter = () => {
   const queryParams = new URLSearchParams(location.search);
   const categoryFromUrl = queryParams.get('category'); 
   
+  
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [addProductToCart] = useAddProductToCartMutation();
   const { data: cartData, refetch } = useGetAppCartQuery();
@@ -45,7 +46,7 @@ const ProductFilter = () => {
 
   
 
-  const { data: categoryProducts, loading: categoryLoading } = useGetProductsByCategoryQuery(childSubId||searchId );
+  const { data: categoryProducts, isLoading: categoryLoading } = useGetProductsByCategoryQuery(childSubId||searchId );
 
   const pageSize = 6;
 
@@ -693,9 +694,9 @@ const FilterSidebar = () => (
                             e.stopPropagation();
                             handleWishlist(product);
                           }}
-                          className="absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl"
+                          className={`absolute top-2 right-2 text-black w-8 h-8 flex items-center justify-center hover:text-red-500 bg-slate-100 rounded-full cursor-pointer text-xl   ${storedRole === 'admin' ? 'hidden' : ''}`}
                         >
-                          <FaRegHeart className={checkWishList(product.id) ? "text-red-500" : "text-gray-300"} size={15} />
+                          <FaRegHeart className={checkWishList(product.id) ? "text-red-500 " : "text-gray-300"} size={15} />
                         </div>
 
                         <div className="p-4 space-y-2">

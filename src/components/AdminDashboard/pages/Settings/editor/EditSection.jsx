@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 
 const Delta = Quill.import("delta");
 
-const EditSection = ({ data,type }) => {
+const EditSection = ({ data, type }) => {
   const [range, setRange] = useState();
   const [lastChange, setLastChange] = useState();
   const [readOnly, setReadOnly] = useState(false);
@@ -15,9 +15,10 @@ const EditSection = ({ data,type }) => {
   const [previewHTML, setPreviewHTML] = useState("");
   const navigate = useNavigate();
   const [updatePolices] = useUpdatePolicesMutation();
-   const { data: privacy,refetch } = useGetPrivacyPolicyQuery();
+  const { data: privacy, refetch } = useGetPrivacyPolicyQuery();
 
   const quillRef = useRef(null);
+  const [initialContent, setInitialContent] = useState(null);
 
   useEffect(() => {
     if (location.pathname === "/settings") {
@@ -25,7 +26,21 @@ const EditSection = ({ data,type }) => {
     }
   }, [location.pathname]);
 
-  const text = data;
+  // Convert HTML to Delta when data changes
+  useEffect(() => {
+    if (data && quillRef.current) {
+      try {
+        // Method 1: Use Quill's clipboard to convert HTML to Delta
+        const delta = quillRef.current.clipboard.convert({ html: data });
+        quillRef.current.setContents(delta);
+        setPreviewHTML(data); // Set initial preview
+      } catch (error) {
+        console.error("Error converting HTML to Delta:", error);
+        // Fallback: Insert as plain text
+        quillRef.current.setText(data);
+      }
+    }
+  }, [data, quillRef.current]);
 
   const handleLogContent = async () => {
     if (quillRef.current) {
@@ -33,17 +48,16 @@ const EditSection = ({ data,type }) => {
 
       // ✅ Build payload for API
       const payload = {
-        title: "Privacy Policy", // Or dynamic if you want
-        type: type, // Or "privacy" depending on your case
+        title: "Privacy Policy",
+        type: type,
         content: html,
       };
 
       try {
         const res = await updatePolices(payload).unwrap();
-        // console.log("✅ Updated successfully:", res);
-        refetch()
+        refetch();
         Swal.fire("Success!", "Policy updated successfully", "success");
-        setPreviewHTML(html); // Show preview after success
+        setPreviewHTML(html);
       } catch (error) {
         console.error("❌ Update failed:", error);
         Swal.fire("Error!", "Failed to update policy", "error");
@@ -56,7 +70,7 @@ const EditSection = ({ data,type }) => {
       <Editor
         ref={quillRef}
         readOnly={readOnly}
-        defaultValue={new Delta().insert(text)}
+        defaultValue={initialContent} // Pass null initially, will set via useEffect
         onSelectionChange={setRange}
         onTextChange={setLastChange}
       />
@@ -70,15 +84,6 @@ const EditSection = ({ data,type }) => {
         </button>
       </div>
 
-      {previewHTML && (
-        <div className="preview-container mt-10">
-          <h3 className="preview-title">📄 Preview:</h3>
-          <div
-            className="preview-content"
-            dangerouslySetInnerHTML={{ __html: previewHTML }}
-          />
-        </div>
-      )}
     </div>
   );
 };

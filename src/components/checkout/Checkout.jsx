@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Form, Input, Checkbox, Button, Select } from 'antd';
 import Breadcrumb from '../others/Breadcrumb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useGetAddressQuery, usePostAddressMutation } from '../../redux/slices/Apis/customersApi';
+import { useGetAddressQuery, useGetAppCartQuery, usePostAddressMutation } from '../../redux/slices/Apis/customersApi';
 import Swal from 'sweetalert2';
 
 const { Option } = Select;
@@ -12,11 +12,21 @@ const Checkout = () => {
   const navigate = useNavigate()
   const [postAddress] = usePostAddressMutation()
     const { data: address, refetch } = useGetAddressQuery();
+     const { data:ad, refetch:cartRefetch } = useGetAppCartQuery();
   const location = useLocation()
 
   const isDetails = location.state?.productData ? true : false;
 
-  console.log(location.state,'adadadwert54gf')
+useEffect(() => {
+  if (!ad || ad?.length === 0) {
+    Swal.fire({
+      title: "Cart is Empty",
+      text: "Your cart is empty or already checked out.",
+      icon: "warning",
+      confirmButtonText: "Go to Shop",
+    }).then(() => navigate("/", { replace: true }));
+  }
+}, [ad, navigate]);
   
 
 

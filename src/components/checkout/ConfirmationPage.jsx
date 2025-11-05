@@ -28,18 +28,47 @@ const ConfirmationPage = () => {
     skip: !orderId,
   });
 
-const handleCopy = (text) => {
-  navigator.clipboard.writeText(text);
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text.toString());
+      
+      // Show success message using Antd message
+      message.success('Copied to clipboard!');
+      
+      // Alternative: Show custom popup if preferred
+      const popup = document.createElement("div");
+      popup.textContent = "Copied!";
+      popup.className =
+        "fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in-out z-50";
+      document.body.appendChild(popup);
 
-  const popup = document.createElement("div");
-  popup.textContent = "Copied!";
-  popup.className =
-    "fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in-out";
-  document.body.appendChild(popup);
-
-  setTimeout(() => popup.remove(), 2000);
-};
-
+      setTimeout(() => {
+        if (popup.parentNode) {
+          popup.parentNode.removeChild(popup);
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      message.error('Failed to copy to clipboard');
+      
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = text.toString();
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        message.success('Copied to clipboard!');
+      } catch (fallbackErr) {
+        message.error('Failed to copy to clipboard');
+      }
+      document.body.removeChild(textArea);
+    }
+  };
 
   const downloadPdf = () => {
     const input = pdfRef.current;
@@ -118,8 +147,8 @@ const handleCopy = (text) => {
               <span className='font-medium flex items-center gap-2'>
                 #{orderRecipt.order_id}
                 <BiCopy
-                  onClick={() => handleCopy(orderRecipt.order_id)}
-                  className='cursor-pointer no-print' // Hide from PDF
+                  onClick={() => handleCopy(`#${orderRecipt.order_id}`)}
+                  className='cursor-pointer no-print hover:text-[#CBA135] transition-colors' // Hide from PDF
                   size={20}
                 />
               </span>
@@ -194,18 +223,18 @@ const handleCopy = (text) => {
         <div className='mt-12 flex flex-col justify-center items-center gap-6 no-print'>
           <p 
             onClick={downloadPdf}
-            className='flex items-center gap-2 text-[#CBA135] text-lg cursor-pointer font-medium'
+            className='flex items-center gap-2 text-[#CBA135] text-lg cursor-pointer font-medium hover:text-[#b8962e] transition-colors'
           >
             <FaArrowDownLong /> Download Receipt
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className='bg-[#CBA135] rounded-md hover:bg-yellow-600 w-full max-w-xs h-14 text-white text-lg font-medium'
+            className='bg-[#CBA135] rounded-md hover:bg-yellow-600 w-full max-w-xs h-14 text-white text-lg font-medium transition-colors'
           >
             Track My Order
           </button>
           <Link to='/' className='w-full max-w-xs'>
-            <Button type='default' className='w-full h-14 text-lg font-medium border-2 border-gray-300'>
+            <Button type='default' className='w-full h-14 text-lg font-medium border-2 border-gray-300 hover:border-gray-400'>
               Continue Shopping
             </Button>
           </Link>

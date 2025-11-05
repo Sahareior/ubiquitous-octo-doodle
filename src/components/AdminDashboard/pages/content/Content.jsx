@@ -365,31 +365,7 @@ const Content = () => {
             />
           </div>
 
-          {/* Date Pickers */}
-          <div className="flex gap-4">
-            <div className="w-full">
-              <h5 className="text-[16px] font-medium py-1">Start Date</h5>
-              <input
-                type="date"
-                name="startDate"
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
-                value={formik.values.startDate}
-                onChange={formik.handleChange}
-                disabled={isCompressing}
-              />
-            </div>
-            <div className="w-full">
-              <h5 className="text-[16px] font-medium py-1">End Date</h5>
-              <input
-                type="date"
-                name="endDate"
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
-                value={formik.values.endDate}
-                onChange={formik.handleChange}
-                disabled={isCompressing}
-              />
-            </div>
-          </div>
+
         </div>
 
         {/* Preview */}

@@ -24,7 +24,7 @@ const FlashDeals = () => {
     const location = useLocation();
     const navigate = useNavigate();
   const [productsPerPage] = useState(4);
-
+  const storedRole = localStorage.getItem("user_role");
 
   const getGuestCart = useCallback(() => {
     return JSON.parse(localStorage.getItem('guest_cart')) || [];
@@ -259,53 +259,6 @@ const FlashDeals = () => {
     );
 
 
-    const handleAddToWishlist = async (item) => {
-      const token = localStorage.getItem("access_token");
-  
-      if (!token) {
-        Swal.fire({
-          title: "Please Sign In Your Account!",
-          text: "You need to log in to access this page.",
-          icon: "warning",
-          confirmButtonText: "Go to Login",
-          confirmButtonColor: "#3085d6",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate("/login");
-          }
-        });
-  
-        return null; // prevent rendering children until after Swal closes
-      }
-  
-      const payload = {
-        item,
-        product_id: item.id,
-      };
-  
-      try {
-        await savetoWishList(payload).unwrap();
-        wishListRefetch();
-        MySwal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "Item added to wishlist!",
-          showConfirmButton: false,
-          timer: 1800,
-          toast: true,
-        });
-      } catch (error) {
-        console.error("Wishlist error:", error);
-        MySwal.fire({
-          position: "top-end",
-          icon: "error",
-          title: "Failed to add to wishlist",
-          showConfirmButton: false,
-          timer: 1800,
-          toast: true,
-        });
-      }
-    };
 
   // Handle quick view
   const handleQuickView = (product) => {
@@ -409,7 +362,9 @@ const FlashDeals = () => {
                     </div>
 
                     {/* Quick Add to Cart */}
-                    <button 
+ {
+  !(storedRole === "admin") && (
+                       <button 
                       onClick={() => handleAddToCart(item)}
                       className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-orange-500 px-6 py-3 rounded-full font-semibold shadow-lg transition-all duration-300 ${
                         isHovered === item.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -418,6 +373,8 @@ const FlashDeals = () => {
                       <FaShoppingCart size={14} />
                       Add to Cart
                     </button>
+  )
+ }
                   </div>
 
                   {/* Product Info */}
