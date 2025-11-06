@@ -64,7 +64,7 @@ const Editor = forwardRef(
       }
     }, [readOnly, ref]);
 
-    return <div ref={containerRef} />;
+    return <div className='h-[60vh]' ref={containerRef} />;
   },
 );
 

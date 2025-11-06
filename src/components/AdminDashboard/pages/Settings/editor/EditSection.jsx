@@ -75,9 +75,9 @@ const EditSection = ({ data, type }) => {
         onTextChange={setLastChange}
       />
 
-      <div className="settings-controls">
+      <div className="settings-controls flex justify-end">
         <button
-          className="get-length-btn text-white mt-7 popbold w-[153px] h-[40px] bg-[#2765A1]"
+          className="get-length-btn text-white mt-16 popbold w-[153px] h-[40px] bg-[#2765A1]"
           onClick={handleLogContent}
         >
           Update

@@ -26,7 +26,7 @@ const PrivacyPolicySettings = () => {
   };
 
   return (
-    <div className="bg-[#FAF8F2] shadow rounded-lg p-6 space-y-6">
+    <div className="bg-white shadow rounded-lg p-6 space-y-6">
       {/* Header */}
       <div className="flex bg-white p-5 shadow-sm items-center justify-between">
         <div className="flex items-center gap-2 text-lg font-semibold">

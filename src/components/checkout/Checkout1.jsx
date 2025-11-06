@@ -191,15 +191,7 @@ const Checkout1 = () => {
       return;
     }
 
-    if (!selectedMethod) {
-      Swal.fire({
-        title: "Payment Method Required",
-        text: "Please select a payment method before placing the order!",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
+    
 
     try {
       const vendo = [
@@ -216,7 +208,7 @@ const Checkout1 = () => {
         deliveryFee,
         total: calculatedTotal, // Use calculated total instead of location.state.total
         selected_shipping_address_id: selectedAddress.id,
-        payment_method: selectedMethod,
+     
         vendors: vendo,
         delivery_instructions,
       };
@@ -235,7 +227,7 @@ const Checkout1 = () => {
           total
         }).unwrap();
 
-        // console.log("Checkout Response:", checkoutRes.checkout_url);
+
 if (checkoutRes.checkout_url) {
   Swal.fire({
     title: "Redirecting...",
@@ -244,7 +236,7 @@ if (checkoutRes.checkout_url) {
     timer: 2000,
     showConfirmButton: false,
     willClose: () => {
-      // Replace current history entry before redirecting
+   
       window.history.replaceState(null, "", "/");
       window.location.href = checkoutRes.checkout_url;
     },
@@ -374,9 +366,7 @@ if (checkoutRes.checkout_url) {
             </div>
 
             {/* Payment Method */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-              <ConfirmOrder setSelectedMathod={setSelectedMethod} />
-            </div>
+
           </div>
 
           {/* Right Section: Order Summary */}

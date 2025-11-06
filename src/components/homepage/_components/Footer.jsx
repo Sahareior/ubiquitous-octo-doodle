@@ -87,7 +87,7 @@ const renderVendorContent = () => (
 
 
   const renderCustomerContent = () => (
-    <div className="max-w-7xl justify-items-center mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div className="max-w-7xl md:justify-items-center mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
       {/* Logo and description */}
       <div>
         <img src="/image/footer.png" alt="WIROKO Logo" className="w-[180px] mb-4" />
