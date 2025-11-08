@@ -34,7 +34,10 @@ const CategoryDropdown = () => {
   const timeoutRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  console.log(error,'rff')
+
+  console.log(rtkCategories,'this is rtk category data');
+  console.log(error?.status,'this is transformed categories');
+  
 
   // Use RTK Query data instead of localhost fetch
   useEffect(() => {

@@ -274,7 +274,7 @@ const FlashDealsAdmin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Sales</p>
-                <p className="text-2xl font-bold text-blue-600">${stats.totalSales.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">XAF {stats.totalSales.toFixed(2)}</p>
               </div>
               <FaDollarSign className="text-blue-500 text-xl" />
             </div>
@@ -357,10 +357,10 @@ const FlashDealsAdmin = () => {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className="text-lg font-bold text-gray-900">
-                    ${deal.offer_price}
+                    XAF {deal.offer_price}
                   </span>
                   <span className="text-sm text-gray-500 line-through">
-                    ${deal.product.old_price}
+                    XAF {deal.product.old_price}
                   </span>
                 </div>
                 {deal.product.new_price !== deal.product.old_price && (

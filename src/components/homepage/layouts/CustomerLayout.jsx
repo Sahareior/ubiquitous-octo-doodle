@@ -28,7 +28,7 @@ const CustomerLayout = () => {
       } = useAllFeaturedProductsQuery();
   
       const {
-        data: allFeatured,
+        data: allnewArrivals,
         isLoading: newLoading,
         isError: newError,
       } = useGetNewArrivalsQuery();
@@ -59,7 +59,7 @@ const CustomerLayout = () => {
               <FeaturedProducts
               title={"New Arrivals"}
               subtitle={"Explore our newly added products"}
-                allProducts={allProducts}
+                allProducts={allnewArrivals}
                  isLoading={newLoading}
                   isError={newError}
                   

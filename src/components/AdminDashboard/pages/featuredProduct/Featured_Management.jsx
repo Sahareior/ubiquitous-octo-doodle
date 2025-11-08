@@ -98,7 +98,7 @@ const Featured_Management = () => {
               <h3>{product.name}</h3>
               <p><strong>SKU:</strong> {product.sku}</p>
               <p><strong>Vendor:</strong> {product.vendor_details?.first_name} {product.vendor_details?.last_name}</p>
-              <p><strong>Price:</strong> ${product.price1 || product.old_price}</p>
+              <p><strong>Price:</strong> XAF {product.price1 || product.old_price}</p>
               <p><strong>Stock:</strong> {product.stock_quantity}</p>
               <p><strong>Rating:</strong> {product.average_rating || 'No ratings'} ⭐</p>
               <p><strong>Status:</strong> 
@@ -184,7 +184,7 @@ const Featured_Management = () => {
       width: 120,
       render: (price) => (
         <div style={{ fontWeight: 600, color: '#1890ff' }}>
-          ${price || '0.00'}
+          XAF {price || '0.00'}
         </div>
       ),
       sorter: (a, b) => (a.price1 || 0) - (b.price1 || 0),

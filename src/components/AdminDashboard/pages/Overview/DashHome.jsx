@@ -78,6 +78,8 @@ const DashHome = () => {
     },
   ];
 
+  console.log(data,'overview data')
+
   return (
     <div className="bg-[#FAF8F2] min-h-screen p-6">
       {/* === Top Cards === */}                  
