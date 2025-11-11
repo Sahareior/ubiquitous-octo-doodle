@@ -404,7 +404,7 @@ const calculateTotal = () => {
   height="85%"
   onClose={() => setMobileOrderDrawer(false)}
   open={mobileOrderDrawer}
-  className="lg:hidden"
+  className="lg:hidden custom-scrollbar"
   bodyStyle={{ padding: 0 }}
   headerStyle={{
     background: "linear-gradient(to right, #F8F4EF, #EFEBE9)",
@@ -413,7 +413,7 @@ const calculateTotal = () => {
     padding: "16px 20px",
   }}
 >
-  <div className="p-6 h-full overflow-y-auto bg-gradient-to-b from-[#F8F4EF] to-[#EFEBE9] rounded-t-3xl flex justify-center">
+  <div className="p-6 h-full overflow-y-auto bg-gradient-to-b from-[#F8F4EF] to-[#EFEBE9] rounded-t-3xl flex justify-center custom-scrollbar">
     <Form
       form={form}
       layout="vertical"
@@ -582,8 +582,10 @@ const calculateTotal = () => {
     </Form>
   </div>
 </Drawer>
+
+
         
-          <div className="bg-white rounded-xl shadow-sm p-1 md:p-6 lg:p-8 mb-6 md:mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-1 md:p-6  mb-6 md:mb-8">
             <div className="flex flex-col lg:flex-row items-start justify-center gap-6 md:gap-8 lg:gap-9">
            
 <div className="w-full lg:w-1/2">
@@ -606,7 +608,7 @@ const calculateTotal = () => {
   )}
 
   {/* Thumbnails */}
-  <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2">
+  <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 overflow-x-auto pb-2 custom-scrollbar">
     {selectedProduct?.images?.map((image, index) => (
       <div
         key={image.id}
@@ -630,7 +632,7 @@ const calculateTotal = () => {
 
 
         
-        <div className="w-full lg:w-1/2 space-y-4 md:space-y-6">
+        <div className="w-full lg:w-1/2 space-y-4 h-[80vh] overflow-y-auto md:space-y-6 custom-scrollbar">
   <div
     ref={zoomPaneRef}
     className="absolute hidden md:block rounded-md w-full max-w-md h-[550px] z-50 pointer-events-none"
@@ -773,13 +775,74 @@ const calculateTotal = () => {
       Buy Now
     </button>
   </div>
+
+
+
+  {/* ..................... */}
+
+            <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
+            <div className="mb-4 hidden lg:block">
+              <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-full pb-1">
+                Description
+              </p>
+            </div>
+            <div className=" py-8 bg-white rounded-xl shadow-sm">
+              <h2 className="text-lg md:text-xl lg:text-2xl popbold mb-3 md:mb-4 lg:mb-6">
+                Product Description
+              </h2>
+              <div className=" popreg text-[#666666] text-sm md:text-base">
+                 <p>{selectedProduct?.short_description}</p>
+                <p>{selectedProduct?.full_description}</p>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'specifications' ? 'lg:block hidden' : 'block'}`}>
+            <div className="mb-4 hidden lg:block">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28  pb-1">
+                  Specifications
+                </p>
+<p
+  onClick={handleDownloadSpecs}
+  className="text-[#CBA135] flex gap-2 items-center font-semibold text-sm md:text-base cursor-pointer"
+>
+  <FaLongArrowAltDown size={16} /> Download
+</p>
+
+              </div>
+            </div>
+
+            <div className="  bg-white rounded-xl mt-12 shadow-sm">
+              <h2 className="text-lg md:text-xl lg:text-2xl popbold mb-3 md:mb-4 lg:mb-6">
+                Product Specifications
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 py-5 gap-x-4 md:gap-x-6 lg:gap-x-8 gap-y-2 md:gap-y-3 lg:gap-y-4 pt-2 md:pt-3 lg:pt-4">
+                {productSpecs.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between border-b border-gray-100 items-baseline py-2 md:py-3"
+                  >
+                    <span className="popmed text-xs md:text-sm lg:text-base text-gray-700">
+                      {item.label}
+                    </span>
+                    <span className="text-[#666666] popreg text-xs md:text-sm lg:text-base text-right max-w-[55%]">
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+  
 </div>
 
             </div>
           </div>
 
-        
-          <div className="lg:hidden bg-white rounded-xl shadow-sm mb-6 sticky top-16 z-20">
+                  <div className="lg:hidden bg-white rounded-xl shadow-sm mb-6 sticky top-16 z-20">
             <div className="flex border-b">
               {sectionTabs.map((tab) => (
                 <button
@@ -797,63 +860,9 @@ const calculateTotal = () => {
             </div>
           </div>
 
+
      
-          <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
-            <div className="mb-4 hidden lg:block">
-              <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-32 pb-1">
-                Description
-              </p>
-            </div>
-            <div className="p-4 md:p-6 lg:p-8 bg-white rounded-xl shadow-sm">
-              <h2 className="text-lg md:text-xl lg:text-2xl popbold mb-3 md:mb-4 lg:mb-6">
-                Product Description
-              </h2>
-              <div className="space-y-2 md:space-y-3 lg:space-y-4 popreg text-[#666666] text-sm md:text-base">
-                 <p>{selectedProduct?.short_description}</p>
-                <p>{selectedProduct?.full_description}</p>
 
-              </div>
-            </div>
-          </div>
-
-
-          <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'specifications' ? 'lg:block hidden' : 'block'}`}>
-            <div className="mb-4 hidden lg:block">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <p className="border-b-2 text-[#CBA135] text-base md:text-lg popmed border-[#CBA135] w-28 md:w-36 pb-1">
-                  Specifications
-                </p>
-<p
-  onClick={handleDownloadSpecs}
-  className="text-[#CBA135] flex gap-2 items-center font-semibold text-sm md:text-base cursor-pointer"
->
-  <FaLongArrowAltDown size={16} /> Download
-</p>
-
-              </div>
-            </div>
-
-            <div className="p-4 md:p-6 lg:p-8 bg-white rounded-xl shadow-sm">
-              <h2 className="text-lg md:text-xl lg:text-2xl popbold mb-3 md:mb-4 lg:mb-6">
-                Product Specifications
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 md:gap-x-6 lg:gap-x-8 gap-y-2 md:gap-y-3 lg:gap-y-4 pt-2 md:pt-3 lg:pt-4">
-                {productSpecs.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between border-b border-gray-100 items-baseline py-2 md:py-3"
-                  >
-                    <span className="popmed text-xs md:text-sm lg:text-base text-gray-700">
-                      {item.label}
-                    </span>
-                    <span className="text-[#666666] popreg text-xs md:text-sm lg:text-base text-right max-w-[55%]">
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
 
 
           <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'reviews' ? 'lg:block hidden' : 'block'}`}>
@@ -918,6 +927,25 @@ const calculateTotal = () => {
           </div>
 
       <DetailsModal id={selectedProduct?.id} setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+
+      {/* Enhanced Scrollbar Styles */}
+<style jsx>{`
+  .custom-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Optional: Smooth scrolling */
+  .custom-scrollbar {
+    scroll-behavior: smooth;
+  }
+`}</style>
     </div>
   );
 };
