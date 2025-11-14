@@ -281,7 +281,7 @@ const CategoryDropdown = () => {
                   }
                 }}
               >
-                <span className="mobile-subcategory-name">{subcategory.name}</span>
+                <span className="mobile-subcategory-name pop">{subcategory.name}</span>
                 {hasChildren && <FaChevronRight size={14} className="text-gray-400" />}
               </div>
               

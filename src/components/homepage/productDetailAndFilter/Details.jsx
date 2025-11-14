@@ -1,4 +1,4 @@
-import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image, Spin } from "antd";
+import { Button, Rate, Tag, Form, Input, Select, DatePicker, Radio, Drawer, Image, Spin, Collapse } from "antd";
 import React, { use, useCallback, useEffect, useRef, useState } from "react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import Customers from "../_components/Customers";
@@ -76,17 +76,28 @@ const [selectedProduct, setSelectedProduct] = useState(productFromState|| null);
   
 
 
-useEffect(() => {
-  if (!productFromState&& productId) {
-    getProductById(productId);
+const getProductId = () => {
+  if (location?.state?.product?.id) {
+    return location.state.product.id;
   }
-}, [productId, productFromState, getProductById]);
+  return productId;
+};
 
+const currentProductId = getProductId();
+
+useEffect(() => {
+  if (currentProductId && !location?.state?.product) {
+    // Only fetch if we have ID but no product data
+    getProductById(currentProductId);
+  } else if (location?.state?.product) {
+    // Use the product data from location state directly
+    setSelectedProduct(location.state.product);
+  }
+}, [currentProductId, location?.state?.product, getProductById]);
 
 useEffect(() => {
   if (data) {
     setSelectedProduct(data);
-    console.log(data,'adad')
   }
 }, [data]);
 
@@ -234,6 +245,24 @@ useEffect(() => {
   );
 
   const handleOrder = (data) => {
+    const token = localStorage.getItem("access_token");
+    
+        if (!token) {
+          Swal.fire({
+            title: "Please Sign In Your Account!",
+            text: "You need to log in to buy something!.",
+            icon: "warning",
+            confirmButtonText: "Go to Login",
+            confirmButtonColor: "#3085d6",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate("/login");
+            }
+          });
+    
+          return null; // prevent rendering children until after Swal closes
+        }
+
     setOrderFormVisible(true);
     setMobileOrderDrawer(true);
   };
@@ -241,6 +270,7 @@ useEffect(() => {
 
 
   const handleChange = (value) => {
+    
     if (value === "new") {
       navigate("/checkout", {
           state:{productData:selectedProduct}
@@ -270,6 +300,7 @@ useEffect(() => {
 
 
   const handleOrderSubmit = async (values) => {
+    
     try {
     const payload = {
       discount_amount: values.discount_amount ?? null,
@@ -290,7 +321,7 @@ useEffect(() => {
       const res = await createSingleOrder(payload);
 
       if (res.data.order_id) {
-        const checkoutRes = await createCheckout({ order_id: res.data.order_id }).unwrap();
+        const checkoutRes = await createCheckout({ order_id: res.data.order_id, total:calculateTotal()}).unwrap();
 
         if (checkoutRes.checkout_url) {
           setTimeout(() => {
@@ -484,43 +515,11 @@ const calculateTotal = () => {
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item
-          name="delivery_date"
-          label={<span className="text-sm text-[#795548] font-medium">Preferred Delivery Date</span>}
-          className="mb-0"
-        >
-          <DatePicker
-            className="w-full rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
-            disabledDate={(current) => current && current < new Date().setHours(0, 0, 0, 0)}
-            suffixIcon={<FaCalendarAlt className="text-[#8D6E63]" />}
-          />
-        </Form.Item>
+
       </div>
 
 
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#5D4037]">
-          <FaCreditCard className="text-[#8D6E63]" />
-          Payment Method
-        </h3>
-        <Form.Item
-          name="payment_method"
-          rules={[{ required: true, message: "Please select a payment method" }]}
-          className="mb-0"
-        >
-          <Select
-            className="w-full rounded-xl border-[#D7CCC8] hover:border-[#A67B5B] focus:border-[#8D6E63] focus:ring-2 focus:ring-[#EFEBE9] transition-all duration-200"
-            suffixIcon={<FaChevronDown className="text-[#8D6E63]" />}
-          >
-            <Option value="cash" className="flex items-center">
-              <span>Cash on Delivery</span>
-            </Option>
-            <Option value="online" className="flex items-center">
-              <span>Online Payment</span>
-            </Option>
-          </Select>
-        </Form.Item>
-      </div>
+
 
    
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#D7CCC8] hover:shadow-md transition-all">
@@ -777,7 +776,23 @@ const calculateTotal = () => {
   </div>
 
 
-
+                  <div className="lg:hidden bg-white rounded-xl shadow-sm mb-6 pt-14  top-16 z-20">
+            <div className="flex border-b">
+              {sectionTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setCurrentSection(tab.id)}
+                  className={`flex-1 py-3 text-center text-sm font-medium ${
+                    currentSection === tab.id
+                      ? "text-[#CBA135] border-b-2 border-[#CBA135]"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
   {/* ..................... */}
 
             <div className={`mb-8 md:mb-12 shadow-md lg:mb-16 ${currentSection !== 'description' ? 'lg:block hidden' : 'block'}`}>
@@ -792,7 +807,23 @@ const calculateTotal = () => {
               </h2>
               <div className=" popreg text-[#666666] text-sm md:text-base">
                  <p>{selectedProduct?.short_description}</p>
-                <p>{selectedProduct?.full_description}</p>
+             <Collapse 
+             className="mt-4"
+  items={[
+    {
+      key: '1',
+      label: 'Full Description',
+      children: (
+        <div 
+          className="popreg text-[#666666] text-sm md:text-base"
+          dangerouslySetInnerHTML={{ __html: selectedProduct?.full_description }}
+        />
+      ),
+    }
+  ]} 
+  defaultActiveKey={['1']}  
+/>
+                {/* <p>{selectedProduct?.full_description}</p> */}
 
               </div>
             </div>
@@ -836,36 +867,8 @@ const calculateTotal = () => {
               </div>
             </div>
           </div>
-  
-</div>
 
-            </div>
-          </div>
-
-                  <div className="lg:hidden bg-white rounded-xl shadow-sm mb-6 sticky top-16 z-20">
-            <div className="flex border-b">
-              {sectionTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setCurrentSection(tab.id)}
-                  className={`flex-1 py-3 text-center text-sm font-medium ${
-                    currentSection === tab.id
-                      ? "text-[#CBA135] border-b-2 border-[#CBA135]"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-
-     
-
-
-
-          <div className={`mb-8 md:mb-12 lg:mb-16 ${currentSection !== 'reviews' ? 'lg:block hidden' : 'block'}`}>
+                    <div className={`mb-8 md:hidden md:mb-12 lg:mb-16`}>
             <div className="mb-4 lg:block">
               <div className="flex   justify-between items-start sm:items-center gap-2">
                 <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-xs md:text-lg popmed w-28 md:w-36 pb-1">
@@ -885,6 +888,39 @@ const calculateTotal = () => {
             </div>
             <Customers reviews={selectedProduct?.reviews} details={true} />
           </div>
+  
+</div>
+
+            </div>
+          </div>
+
+
+
+
+     
+
+          <div className={`mb-8 hidden md:block md:mb-12 lg:mb-16 ${currentSection !== 'reviews' ? 'lg:block hidden' : 'block'}`}>
+            <div className="mb-4 lg:block">
+              <div className="flex   justify-between items-start sm:items-center gap-2">
+                <p className="border-b-2 text-[#CBA135] border-[#CBA135] text-xs md:text-lg popmed w-28 md:w-36 pb-1">
+                  Review 
+                </p>
+{
+  userType !== 'admin' && (
+                    <p
+                  onClick={() => setIsModalOpen(true)}
+                  className="text-[#CBA135] hover:text-yellow-700 cursor-pointer popbold text-xs md:text-base"
+                >
+                  Write a Review
+                </p>
+  )
+}
+              </div>
+            </div>
+            <Customers reviews={selectedProduct?.reviews} details={true} />
+          </div>
+
+
 
 
           <div className="mb-8 md:mb-12 lg:mb-16">

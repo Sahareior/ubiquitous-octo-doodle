@@ -428,7 +428,7 @@ const FeaturedProducts = ({allProducts, isLoading, isError, title, subtitle}) =>
       ref={componentTopRef}
     >
       {/* Header & Search */}
-      <div className="flex flex-col md:flex-row justify-between MD:items-start items-center gap-4">
+      <div className="flex my-10 md:flex-row flex-start justify-between MD:items-start items-center gap-4">
         <div>
           <h2 className="text-[30px] popbold font-extrabold">
             {title}

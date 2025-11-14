@@ -110,15 +110,10 @@ const CustomersNavbar = ({ cartCount }) => {
   const profileImg = profileData?.profile_image || annomalyImage
   return (
     <>
-      <div className="w-full px-4 md:px-8 lg:px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
+      <div className="w-full px-1 md:px-8 lg:px-20 py-3 shadow-md flex justify-between items-center bg-white relative">
         {/* Logo and Mobile Menu Button */}
         <div className="flex items-center gap-2">
-          <button 
-            className="lg:hidden text-gray-700"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <IoMdMenu size={24} />
-          </button>
+
           
           <Link to="/" className="flex-shrink-0">
             <img
@@ -217,87 +212,7 @@ const CustomersNavbar = ({ cartCount }) => {
       </div>
 
       {/* Mobile Menu Drawer */}
-      <Drawer
-        title={
-          <div className="flex justify-between items-center">
-            <span>Menu</span>
-            <button onClick={() => setMobileMenuOpen(false)}>
-              <IoMdClose size={20} />
-            </button>
-          </div>
-        }
-        placement="left"
-        onClose={() => setMobileMenuOpen(false)}
-        open={mobileMenuOpen}
-        width={280}
-        className="md:hidden"
-      >
-        <div className="flex flex-col h-full">
-          {/* Mobile Search - Only in drawer */}
-
-          {/* Mobile Category Dropdown */}
-
-
-          {/* Admin Dashboard Link */}
-          {isAdmin && (
-            <div className="mb-6">
-              <Link
-                to="/admin-dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2 bg-[#CBA135] text-white rounded-md text-center hover:bg-[#b38f2e] transition"
-              >
-                Admin Dashboard
-              </Link>
-            </div>
-          )}
-
-          {/* Mobile Navigation Links */}
-          <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-3">Account</h4>
-            <div className="space-y-2">
-              <Link 
-                to="/profile" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                My Profile
-              </Link>
-              {!isAdmin && (
-                <>
-                  <Link 
-                    to="wishlist" 
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                  >
-                    My Wishlist
-                  </Link>
-                  <Link 
-                    to="cart" 
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                  >
-                    My Cart
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Logout Button at bottom */}
-          <div className="mt-auto pt-4 border-t border-gray-200">
-            <button
-              onClick={() => {
-                handleLogout();
-                setMobileMenuOpen(false);
-              }}
-              className="flex items-center w-full px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
-            >
-              <RxExit size={18} className="mr-2" />
-              Logout
-            </button>
-          </div>
-        </div>
-      </Drawer>
+   
     </>
   );
 };

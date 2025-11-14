@@ -698,3 +698,9 @@ color: white;
     font-size: 12px !important;
   }
 }
+
+.ant-collapse{
+  background-color: transparent;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  border: none;
+}

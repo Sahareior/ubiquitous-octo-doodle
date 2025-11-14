@@ -1,9 +1,15 @@
 import { useDispatch } from 'react-redux';
 import { Outlet } from 'react-router-dom';
+import { useGetAppCartQuery } from './redux/slices/Apis/customersApi';
+import { useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 
 function App() {
 
+
+  
+  
 
   // useEffect(() => {
   //   if (customerId) {

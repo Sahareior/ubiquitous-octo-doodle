@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useAddProductToCartMutation, useGetAllWishListQuery, useGetAppCartQuery, useGetCategoriesQuery, useGetCustomerProductsQuery, useSavetoWishListMutation } from '../../../redux/slices/Apis/customersApi';
 import { useWebSocketContext } from '../../../context/WebSocketContext';
-import { useGetProductsByCategoryQuery } from '../../../redux/slices/Apis/vendorsApi';
+import { useGetAllProductsQuery, useGetProductsByCategoryQuery } from '../../../redux/slices/Apis/vendorsApi';
 
 const MySwal = withReactContent(Swal);
 
@@ -45,8 +45,10 @@ const ProductFilter = () => {
   const searchId = location?.state?.categoryId
 
   
-
+  const {data:allproducts} = useGetAllProductsQuery();
   const { data: categoryProducts, isLoading: categoryLoading } = useGetProductsByCategoryQuery(childSubId||searchId );
+
+  // console.log(categoryProducts?.products,'categoryProductssdddddddddddddd')
 
   const pageSize = 6;
 

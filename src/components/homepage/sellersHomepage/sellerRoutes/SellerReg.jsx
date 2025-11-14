@@ -10,6 +10,7 @@ import { usePostSellerMutation } from '../../../../redux/slices/apiSlice';
 import { useNavigate } from 'react-router-dom';
 import { useAdminVendorCreateMutation, useGetAllSellerApplicationQuery } from '../../../../redux/slices/Apis/dashboardApis';
 import { useGetProfileQuery } from '../../../../redux/slices/Apis/customersApi';
+import Breadcrumb from '../../../others/Breadcrumb';
 
 const { Option } = Select;
 const MySwal = withReactContent(Swal);
@@ -391,6 +392,7 @@ const SellerReg = () => {
 
   return (
     <div className="bg-[#FAF8F2] px-4 md:px-20 py-20 pb-28">
+        <Breadcrumb />
       {isAdmin && (
         <div className="max-w-3xl mx-auto mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
