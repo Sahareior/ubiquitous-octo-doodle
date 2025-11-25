@@ -1,20 +1,23 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ProductsTable from "./ProductsTable";
 import { Select, Spin } from "antd";
 import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 
-import { useGetAllProductsQuery, useGetCategoriesQuery } from "../../../../redux/slices/Apis/vendorsApi";
+import { 
+  useGetAllProductsQuery, 
+  useGetCategoriesQuery, 
+  useGetProductsByCategoryQuery, 
+  useLazyGetProductsByCategoryQuery 
+} from "../../../../redux/slices/Apis/vendorsApi";
 
 const { Option } = Select;
 
 const ProductsList = ({path}) => {
   const { data: products, isLoading } = useGetAllProductsQuery();
   const { data: categories } = useGetCategoriesQuery();
-
-
-
-  // console.log(products,'this sasasasas')
+  const [getProductsByCategory, { data: categoryProducts, isLoading: categoryLoading }] = 
+    useLazyGetProductsByCategoryQuery();
 
   // --- states for filters ---
   const [searchText, setSearchText] = useState("");
@@ -22,11 +25,56 @@ const ProductsList = ({path}) => {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
 
+  // Function to extract all products from category response (including subcategories)
+  const extractAllProducts = (categoryData) => {
+    if (!categoryData) return [];
+    
+    const allProducts = [];
+    
+    const extractFromNode = (node) => {
+      // Add products from current node
+      if (node.products && node.products.length > 0) {
+        allProducts.push(...node.products);
+      }
+      
+      // Recursively extract from children
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => extractFromNode(child));
+      }
+    };
+    
+    // If it's a root category with children array
+    if (categoryData.children && Array.isArray(categoryData.children)) {
+      categoryData.children.forEach(child => extractFromNode(child));
+    } else {
+      // If it's directly the node structure
+      extractFromNode(categoryData);
+    }
+    
+    return allProducts;
+  };
+
+  // Fetch category products when category changes
+  useEffect(() => {
+    if (selectedCategory !== "All") {
+      getProductsByCategory(selectedCategory);
+    }
+  }, [selectedCategory, getProductsByCategory]);
+
   // --- filter & sort logic ---
   const filteredProducts = useMemo(() => {
-    let filtered = products?.results || [];
+    let filtered = [];
 
-    // console.log(filtered,'ad')
+    // Determine which data source to use
+    if (selectedCategory !== "All" && categoryProducts) {
+      // Use category products (including subcategories)
+      filtered = extractAllProducts(categoryProducts);
+    } else {
+      // Use all products
+      filtered = products?.results || [];
+    }
+
+    console.log('Filtered products before filtering:', filtered.length);
 
     // 🔍 search filter
     if (searchText.trim() !== "") {
@@ -35,8 +83,8 @@ const ProductsList = ({path}) => {
       );
     }
 
-    // 📂 category filter (by id)
-    if (selectedCategory !== "All") {
+    // 📂 category filter (by id) - only needed when using all products
+    if (selectedCategory !== "All" && !categoryProducts) {
       filtered = filtered.filter((item) =>
         item.categories.includes(Number(selectedCategory))
       );
@@ -71,10 +119,15 @@ const ProductsList = ({path}) => {
     }
 
     return filtered;
-  }, [products, searchText, selectedCategory, selectedStatus, sortOption]);
+  }, [products, categoryProducts, selectedCategory, searchText, selectedStatus, sortOption]);
 
+  const handleCategoryChange = (value) => {
+    setSelectedCategory(value);
+  };
 
-  if(isLoading){
+  const isLoadingState = isLoading || (selectedCategory !== "All" && categoryLoading);
+
+  if(isLoadingState){
     return(
       <div className="flex h-screen justify-center items-center">
         <Spin size="large" />
@@ -88,7 +141,6 @@ const ProductsList = ({path}) => {
       <div className="flex justify-between items-center pt-4">
         <p className="text-[34px] popbold">Products List</p>
         <div className="flex gap-4">
-          {/* vendor-dashboard/addproducts */}
           <Link to={path === '/vendor-dashboard/vendor-products' ? '/vendor-dashboard/addproducts' : '/admin-dashboard/add-product'}>
             <button className="bg-[#CBA135] popmed flex justify-end py-3 px-5 rounded-md text-end items-center gap-3 text-white">
               <FaPlus /> Add New Products
@@ -114,9 +166,10 @@ const ProductsList = ({path}) => {
         <div>
           <Select
             value={selectedCategory}
-            onChange={(val) => setSelectedCategory(val)}
+            onChange={handleCategoryChange}
             className="w-full"
             size="large"
+            loading={isLoading}
           >
             <Option value="All">All Categories</Option>
             {categories?.results?.map((cat) => (
@@ -162,7 +215,11 @@ const ProductsList = ({path}) => {
 
       {/* Table */}
       <div>
-        <ProductsTable path={path} products={filteredProducts} />
+        <ProductsTable 
+          path={path} 
+          products={filteredProducts} 
+          isLoading={selectedCategory !== "All" && categoryLoading}
+        />
       </div>
     </div>
   );

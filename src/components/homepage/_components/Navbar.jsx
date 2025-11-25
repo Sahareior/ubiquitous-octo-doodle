@@ -123,7 +123,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full md:px-28 py-3 shadow-md flex justify-between items-center bg-white relative">
+    <div className="w-full md:px-28 px-3 py-3 shadow-md flex justify-between items-center bg-white relative">
       {/* Left Section: Logo */}
       <Link to='/' className="flex items-center gap-6">
         <img src="/image/logo.png" alt="Logo" className="md:h-[32px] h-6 w-auto object-contain" />

@@ -173,7 +173,7 @@ useEffect(() => {
     top: 200, // leaves 40px space from top
     behavior: 'auto', // optional for a smooth scroll
   });
-}, [productId]);
+}, [productId,location]);
 
 
 
@@ -929,11 +929,11 @@ const calculateTotal = () => {
                 <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-xs md:text-lg w-36 md:w-44 pb-1">
                   You also bought
                 </p>
-                <Link to="/filter">
+                {/* <Link to="/filter">
                   <p className="text-[#CBA135] popbold text-xs md:text-base">
                     View all
                   </p>
-                </Link>
+                </Link> */}
               </div>
             </div>
             <Similier setSelectedProduct={setSelectedProduct} randomProducts={randomProducts} />
@@ -945,14 +945,15 @@ const calculateTotal = () => {
                 <p className="border-b-2 text-[#CBA135] popmed border-[#CBA135] text-xs md:text-lg w-36 md:w-44 pb-1">
                   Compare Similar
                 </p>
-                <Link to="/filter">
+                {/* <Link to="/filter">
                   <p className="text-[#CBA135] popbold text-xs md:text-base">
                     View all
                   </p>
-                </Link>
+                </Link> */}
               </div>
             </div>
-            <PreviouslyBought setSelectedProduct={setSelectedProduct} filteredProducts={filteredProducts} />
+             <Similier setSelectedProduct={setSelectedProduct} randomProducts={filteredProducts} />
+            {/* <PreviouslyBought setSelectedProduct={setSelectedProduct} filteredProducts={filteredProducts} /> */}
           </div>
         </div>
       </div>

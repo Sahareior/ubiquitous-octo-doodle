@@ -73,17 +73,14 @@ const Checkout1 = () => {
     0
   );
 
-  const originalSubtotal = cartData.reduce(
-    (acc, item) => acc + calculateOriginalItemPrice(item) * item.quantity,
-    0
-  );
 
-  const totalDiscountFromPromotions = originalSubtotal - subtotalWithPromotions;
+
+  
 
   const calculatedTotal = subtotalWithPromotions + deliveryFee;
   console.log(calculatedTotal);
   // Total items
-  const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+
 
   const handleAddressDelete = async (id) => {
     try {
@@ -109,77 +106,6 @@ const Checkout1 = () => {
 
 
 
-  // const handlePlaceOrder = async () => {
-  //   if (!selectedAddress) {
-  //     Swal.fire({
-  //       title: "Address Required",
-  //       text: "Please select an address before placing the order!",
-  //       icon: "warning",
-  //       confirmButtonText: "OK",
-  //     });
-  //     return;
-  //   }
-
-  //   if (!selectedMethod) {
-  //     Swal.fire({
-  //       title: "Payment Method Required",
-  //       text: "Please select a payment method before placing the order!",
-  //       icon: "warning",
-  //       confirmButtonText: "OK",
-  //     });
-  //     return;
-  //   }
-
-  //   try {
-  //     const vendo = [...new Set(cartData.map(item => item.product.vendor_id))];
-
-  //     const orderData = {
-  //       cart: cartData,
-  //       subtotal: subtotalWithPromotions,
-  //       deliveryType: location.state.deliveryType,
-  //       deliveryFee,
-  //       total:calculatedTotal,
-  //       selected_shipping_address_id: selectedAddress.id,
-  //       payment_method: selectedMethod,
-  //       vendors: vendo,
-  //       delivery_instructions
-
-  //     };
-  //     // console.log(orderData,'orderData')
-
-  //     const res = await createOrderFromCart(orderData).unwrap();
-  //     // console.log("Order Response:", res[0].order_id);
-
-  //     if (res[0].order_id) {
-  //       const checkoutRes = await createCheckout({
-  //         order_id: res[0].order_id,
-  //       }).unwrap();
-
-  //       // console.log("Checkout Response:", checkoutRes.checkout_url);
-
-  //       if (checkoutRes.checkout_url) {
-  //         Swal.fire({
-  //           title: "Redirecting...",
-  //           text: "You are being redirected to the payment page.",
-  //           icon: "success",
-  //           timer: 2000,
-  //           showConfirmButton: false,
-  //           willClose: () => {
-  //             window.location.href = checkoutRes.checkout_url;
-  //           },
-  //         });
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error placing order:", error);
-  //     Swal.fire({
-  //       title: "Order Failed",
-  //       text: "Something went wrong while placing your order. Please try again.",
-  //       icon: "error",
-  //       confirmButtonText: "OK",
-  //     });
-  //   }
-  // };
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       Swal.fire({

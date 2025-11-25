@@ -201,7 +201,7 @@ const Banner = () => {
   const currentBanner = banners.results[currentIndex];
 
   return (
-    <div className="relative w-full h-64 md:h-[40rem] bg-[#FAF8F2] overflow-hidden shadow-2xl group">
+    <div className="relative w-full h-64 md:h-[40rem] mt-9 md:mt-1  overflow-hidden shadow-2xl group">
       {/* Slide Container with Enhanced Transitions */}
       <div className="relative w-full h-full">
         {/* Current Slide */}

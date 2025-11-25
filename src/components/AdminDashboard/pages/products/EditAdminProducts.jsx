@@ -614,7 +614,7 @@ const EditAdminProducts = () => {
       icon: <Package className="w-5 h-5" />
     },
     { 
-      title: 'SEO & Specifications', 
+      title: ' Specifications', 
       description: 'SEO and product specs',
       icon: <Search className="w-5 h-5" />
     },
@@ -816,10 +816,6 @@ const EditAdminProducts = () => {
         if (!formData.stock_quantity || formData.stock_quantity < 0) newErrors.stock_quantity = "Valid stock quantity is required";
         break;
       
-      case 4: // SEO & Specifications
-        if (!formData.seo_title.trim()) newErrors.seo_title = "SEO title is required";
-        if (!formData.meta_description.trim()) newErrors.meta_description = "Meta description is required";
-        break;
       
       default:
         break;
@@ -1030,6 +1026,14 @@ const handleSubmit = async () => {
         confirmButtonColor: "#3085d6",
       });
       refetch();
+       setFormData('');
+        setSelectedParent(null);
+        setSelectedSubcategory(null);
+        setSelectedChildren([]);
+        setFilterSelections({});
+        setImages([]);
+        setCurrent(0);
+        setErrors({});
     }
   } catch (err) {
     console.error('Update error:', err);
@@ -1379,7 +1383,7 @@ const handleSubmit = async () => {
 
           {current === 4 && (
             <div className="space-y-6">
-              <InputField 
+              {/* <InputField 
                 label="SEO Title" 
                 name="seo_title" 
                 value={formData.seo_title} 
@@ -1399,7 +1403,7 @@ const handleSubmit = async () => {
                 error={errors.meta_description}
                 maxLength={160}
                 rows={3}
-              />
+              /> */}
               <ProductSpecificationForm setFormData={setFormData} formData={formData} />
             </div>
           )}

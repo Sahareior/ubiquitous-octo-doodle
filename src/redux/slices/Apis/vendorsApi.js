@@ -276,6 +276,7 @@ export const vendorsApi = createApi({
 
 export const {
   useGetPokemonByNameQuery,
+  useLazyGetProductsByCategoryQuery,
   useEmailSubscribeMutation,
   useGetTermsCustomersQuery,
   useGetPrivacyCustomersQuery,

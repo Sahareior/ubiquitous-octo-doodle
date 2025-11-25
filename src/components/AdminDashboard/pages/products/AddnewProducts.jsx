@@ -33,6 +33,7 @@ import imageCompression from 'browser-image-compression';
 import Swal from "sweetalert2";
 import { useChildCategoryQuery, useGetAllProductsQuery, useGetCategoriesQuery, useVendorProductCreateMutation } from "../../../../redux/slices/Apis/vendorsApi";
 import ProductSpecificationForm from "../../../VendorDashboard/Pages/Vendorproducts/shared/ProductSpecificationForm";
+import { useNavigate } from "react-router-dom";
 
 
 const { Panel } = Collapse;
@@ -567,7 +568,7 @@ const AddnewProducts = () => {
   const { data: categories } = useGetCategoriesQuery();
   const { data: products, refetch } = useGetAllProductsQuery();
   const { data: childCategoriesData, isLoading: loadingChildCategories } = useChildCategoryQuery();
-  
+  const navigate = useNavigate()
   const [vendorProductCreate] = useVendorProductCreateMutation();
 
   // Lifted category selection state
@@ -706,10 +707,8 @@ const AddnewProducts = () => {
         if (!formData.stock_quantity || formData.stock_quantity < 0) newErrors.stock_quantity = "Valid stock quantity is required";
         break;
       
-      case 4: // SEO & Specifications
-        if (!formData.seo_title.trim()) newErrors.seo_title = "SEO title is required";
-        if (!formData.meta_description.trim()) newErrors.meta_description = "Meta description is required";
-        break;
+ 
+       
       
       default:
         break;
@@ -931,6 +930,7 @@ const AddnewProducts = () => {
         setImages([]);
         setCurrent(0);
         setErrors({});
+        navigate(-1, { replace: true });
       }
     } catch (err) {
       console.log(err);
@@ -995,7 +995,7 @@ const AddnewProducts = () => {
         icon: <Package className="w-5 h-5" />
       },
       4: {
-        title: "SEO & Specifications",
+        title: " Specifications",
         description: "Optimize for search and add technical details",
         icon: <Search className="w-5 h-5" />
       }
@@ -1250,13 +1250,13 @@ const AddnewProducts = () => {
 
           {current === 4 && (
             <div className="space-y-6">
-              <InputField 
+              {/* <InputField 
                 label="SEO Title" 
                 name="seo_title" 
                 value={formData.seo_title} 
                 onChange={handleChange} 
                 placeholder="SEO title for search engines" 
-                required
+               
                 error={errors.seo_title}
                 maxLength={60}
               />
@@ -1266,11 +1266,11 @@ const AddnewProducts = () => {
                 value={formData.meta_description} 
                 onChange={handleChange} 
                 placeholder="Meta description for search engines" 
-                required
+               
                 error={errors.meta_description}
                 maxLength={160}
                 rows={3}
-              />
+              /> */}
               <ProductSpecificationForm setFormData={setFormData} formData={formData} />
             </div>
           )}

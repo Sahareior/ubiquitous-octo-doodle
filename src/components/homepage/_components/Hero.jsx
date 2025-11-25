@@ -22,6 +22,8 @@ const Hero = () => {
         className="
           absolute top-1/2 -translate-y-1/2 
           left-4 sm:left-10 lg:left-16
+          pb-9
+       
           w-[92%] sm:w-[80%] md:w-[65%] lg:w-[45%]
           p-4 sm:p-6 md:p-8 flex flex-col gap-3 sm:gap-5 rounded-2xl
           bg-gradient-to-r from-[rgba(147,116,86,0.37)] via-[rgba(131,162,137,0.37)] to-[rgba(172,185,188,0.37)]

@@ -39,17 +39,19 @@ const CustomerHero = () => {
     }
   };
 
+    const userType = localStorage.getItem('user_role')
+
   return (
     <div>
       <div
-        className="flex flex-col items-center md:flex-row justify-around p-6 py-24 gap-6"
+        className="flex flex-col items-center md:flex-row justify-around p-6 py-24 gap-9"
         style={{
           background: "linear-gradient(90deg, #EAE7E1 0%, #FAF8F2 100%)",
         }}
       >
         {/* Text Section */}
-        <div className="max-w-xl space-y-3 text-center md:text-left">
-          <h2 className="text-[48px] popbold mb-4 text-gray-800">
+        <div className="max-w-xl space-y-5 text-center md:text-left">
+          <h2 className="md:text-[48px] text-[36px] popbold mb-4 text-gray-800">
             Furnish Your Home with Timeless Elegance
           </h2>
           <h4 className="text-lg popreg mb-6 text-gray-600">
@@ -61,11 +63,15 @@ const CustomerHero = () => {
                 Shop New Arrivals
               </Button>
     
-            <Link to="/wishlist" >
+        {
+          userType !== 'admin' && (
+                        <Link to="/wishlist" >
               <Button className="bg-white py-5 popbold border-[#CBA135] px-8 text-[#CBA135] hover:bg-[#CBA135]/10">
                 View Wishlist
               </Button>
             </Link>
+          )
+        }
           </div>
         </div>
 
