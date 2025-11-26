@@ -78,7 +78,7 @@ const Checkout1 = () => {
   
 
   const calculatedTotal = subtotalWithPromotions + deliveryFee;
-  console.log(calculatedTotal);
+
   // Total items
 
 
@@ -139,13 +139,10 @@ const Checkout1 = () => {
         delivery_instructions,
       };
 
-      console.log("Order Dataadad:", orderData);
-      console.log("Subtotal:", subtotalWithPromotions);
-      console.log("Delivery Fee:", deliveryFee);
-      console.log("Total:", calculatedTotal);
+   
 
       const res = await createOrderFromCart(orderData).unwrap();
-      console.log("Order Response:", res[0].order_id);
+    
 
       if (res[0].order_id) {
         const checkoutRes = await createCheckout({

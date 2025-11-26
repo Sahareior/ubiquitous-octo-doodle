@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Category.css';
 import { FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronUp, FaBars, FaTimes, FaChevronRight } from 'react-icons/fa';
+import { BsSliders2 } from "react-icons/bs";
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCategoriesQuery } from '../../../../redux/slices/Apis/customersApi';
 import { useWebSocketContext } from '../../../../context/WebSocketContext';
@@ -35,8 +36,7 @@ const CategoryDropdown = () => {
   const mobileMenuRef = useRef(null);
 
 
-  console.log(rtkCategories,'this is rtk category data');
-  console.log(error?.status,'this is transformed categories');
+ 
   
 
   // Use RTK Query data instead of localhost fetch
@@ -445,7 +445,7 @@ const CategoryDropdown = () => {
           className="w-full flex items-center justify-between p-4 bg-white border-b border-gray-200 text-lg font-semibold"
         >
           <span>Browse Categories</span>
-          {isMobileMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+          {isMobileMenuOpen ? <FaTimes size={18} /> : <BsSliders2 size={18} />}
         </button>
       </div>
 
@@ -478,7 +478,7 @@ const CategoryDropdown = () => {
                       onClick={() => handleMobileCategoryClick(category)}
                       className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 rounded-lg"
                     >
-                      <span className="font-medium text-gray-800">{category.name}</span>
+                      <span className="font-bold text-gray-800">{category.name}</span>
                       <FaChevronRight size={14} className="text-gray-400" />
                     </button>
                   </div>

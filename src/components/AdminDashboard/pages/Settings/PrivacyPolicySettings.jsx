@@ -14,7 +14,7 @@ const PrivacyPolicySettings = () => {
   const IsPrivacy = privacy?.results?.filter(items => items.type === 'privacy');
   
 
-  console.log(updatedPrivacy,'this is updated privacy')
+
   
   const privacyContent = IsPrivacy?.[0]?.content || '';
   const lastUpdated = IsPrivacy?.[0]?.updated_at || 'N/A';

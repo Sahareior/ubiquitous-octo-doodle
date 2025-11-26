@@ -213,7 +213,7 @@ const EditCategory = () => {
   const handleDeleteFilterOption = async (optionId) => {
     await filterOptionDelete(optionId)
     refetchCategory()
-    console.log('Deleting filter option:', optionId);
+    
   };
 
   const handleEditFilterOption = async (optionId, newValue) => {
@@ -225,7 +225,7 @@ const EditCategory = () => {
     setLoading(true);
     try {
       // Add your update filter option API call here
-      console.log('Updating filter option:', optionId, newValue);
+     
 
       Swal.fire({
         position: 'top-end',
@@ -745,7 +745,7 @@ const EditCategory = () => {
   };
 
   const deleteFilter = (index) => {
-    console.log('Deleting filter at index:', index);
+  
   };
 
   const resetForm = () => {

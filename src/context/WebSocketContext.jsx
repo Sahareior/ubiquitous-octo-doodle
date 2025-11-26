@@ -38,13 +38,13 @@ export const WebSocketProvider = ({ children }) => {
 
   const connectWebSocket = useCallback(() => {
     if (isConnectingRef.current) {
-      console.log('🔄 WebSocket connection already in progress...');
+
       return;
     }
     
     const token = localStorage.getItem("access_token");
     if (!token) {
-      console.log("❌ No token available for WebSocket connection");
+
       setTimeout(connectWebSocket, 2000);
       return;
     }
@@ -58,7 +58,7 @@ export const WebSocketProvider = ({ children }) => {
     reconnectAttemptsRef.current += 1;
     const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL}chat/?token=${token}`;
 
-    console.log(`🔄 Attempting WebSocket connection (attempt ${reconnectAttemptsRef.current})...`);
+
 
     try {
       const socket = new WebSocket(wsUrl);
@@ -66,7 +66,7 @@ export const WebSocketProvider = ({ children }) => {
       socketRef.current = socket;
 
       socket.onopen = () => {
-        console.log("✅ WebSocket connected successfully");
+       
         setConnected(true);
         isConnectingRef.current = false;
         reconnectAttemptsRef.current = 0;
@@ -80,7 +80,7 @@ export const WebSocketProvider = ({ children }) => {
         
         // Send any queued messages
         if (messageQueueRef.current.length > 0) {
-          console.log(`📤 Sending ${messageQueueRef.current.length} queued messages`);
+      
           messageQueueRef.current.forEach(msg => {
             if (socket.readyState === WebSocket.OPEN) {
               socket.send(JSON.stringify(msg));
@@ -93,7 +93,7 @@ export const WebSocketProvider = ({ children }) => {
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('📩 Received WebSocket message:', data);
+       
           
           // Set clientmsg first
           setClientmsg(data);
@@ -101,13 +101,13 @@ export const WebSocketProvider = ({ children }) => {
           // Handle different message types
           if (data.error === 'user_id and message required') {
             setIncoming(false);
-            console.log('⚠️ Server error - missing user_id or message');
+            
             return;
           }
           
           if (data.type === 'status' && data.status === 'connected') {
             setIncoming(true);
-            console.log('✅ Connection confirmed by server');
+          
             return;
           }
           
@@ -122,7 +122,7 @@ export const WebSocketProvider = ({ children }) => {
               );
               
               if (isDuplicate) {
-                console.log('🔄 Duplicate message detected by message_id, skipping');
+              
                 return prev;
               }
 
@@ -132,12 +132,12 @@ export const WebSocketProvider = ({ children }) => {
               );
               
               if (isTempDuplicate) {
-                console.log('🔄 Duplicate message detected by tempId, skipping');
+            
                 return prev;
               }
 
               // This is a new message - add it
-              console.log('💾 Adding new message to state:', data);
+              
               const newMessage = {
                 text: data.message,
                 sender: data.sender === userId ? "me" : data.sender,
@@ -165,7 +165,7 @@ export const WebSocketProvider = ({ children }) => {
       };
 
       socket.onclose = (e) => {
-        console.log(`❌ WebSocket disconnected: ${e.code} ${e.reason}`);
+    
         setConnected(false);
         isConnectingRef.current = false;
         
@@ -181,7 +181,7 @@ export const WebSocketProvider = ({ children }) => {
           const jitter = Math.random() * 1000;
           const delay = exponentialDelay + jitter;
           
-          console.log(`🔄 Reconnecting in ${Math.round(delay/1000)} seconds...`);
+       
           reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
         } else {
           console.error('🚨 Max reconnection attempts reached. Please refresh the page.');
@@ -209,7 +209,7 @@ export const WebSocketProvider = ({ children }) => {
       sender: userId
     };
 
-    console.log('📤 Sending message:', messageObj);
+    
 
     // Always add to optimistic UI immediately
     setGlobalMessages(prev => [
@@ -228,14 +228,14 @@ export const WebSocketProvider = ({ children }) => {
     if (socketRef.current?.readyState === WebSocket.OPEN && connected) {
       try {
         socketRef.current.send(JSON.stringify(messageObj));
-        console.log('✅ Message sent via WebSocket');
+      
       } catch (error) {
         console.error('❌ Error sending message:', error);
         messageQueueRef.current.push(messageObj);
       }
     } else {
       messageQueueRef.current.push(messageObj);
-      console.log("📝 Message queued - WebSocket not connected");
+     
       
       if (!isConnectingRef.current) {
         connectWebSocket();
@@ -274,7 +274,7 @@ export const WebSocketProvider = ({ children }) => {
   useEffect(() => {
     // Only connect if we have a userId and aren't already connected/connecting
     if (userId && !connected && !isConnectingRef.current) {
-      console.log('👤 User ID available, connecting WebSocket...');
+  
       connectWebSocket();
     }
     

@@ -68,7 +68,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
   const displayPrice = item.new_price || item.active_price || item.price1 || item.price;
   const oldPrice = item.old_price || item.oldPrice;
   
-  console.log('Cart item:', item, 'Image URL:', imageUrl);
+
 
   return (
     <div className="bg-white rounded-xl mt-6 p-2 md:flex items-center gap-6 shadow-sm">
@@ -107,7 +107,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove, formatXAF }) => {
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end mt-4 gap-2">
         <button
           onClick={() => onDecrease(item.id || item.product_id)}
           className="w-8 h-8 border rounded-full hover:bg-gray-100 flex justify-center items-center"
@@ -144,6 +144,7 @@ const Cart = () => {
   const { data: productsData } = useGetAllProductsQuery();
    const {add,setAdd} = useWebSocketContext()
   const navigate = useNavigate();
+  const [hasScrolled, setHasScrolled] = useState(false);
   const token = localStorage.getItem('access_token');
   
   // Map API cart data to local state
@@ -167,6 +168,13 @@ const Cart = () => {
       console.error("Error saving guest cart:", error);
     }
   };
+
+  useEffect(() => {
+    if (!hasScrolled) {
+      window.scrollTo(0, 0);
+      setHasScrolled(true);
+    }
+  }, [hasScrolled]);
 
 useEffect(() => {
   if (token) {
@@ -374,7 +382,7 @@ const calculateItemPrice = (item) => {
 
   const totalDiscountFromPromotions = originalSubtotal - subtotal;
 
-  console.log(totalDiscountFromPromotions,'sasss')
+ 
 
   const deliveryFee =
     deliveryType === "express" ? 100 : deliveryType === "pickup" ? 0 : 50;
@@ -382,7 +390,7 @@ const calculateItemPrice = (item) => {
   const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
   const total = subtotal + deliveryFee  - couponDiscount;
 
-  console.log('toadf', total)
+ 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   // Prepare payload with updated cartItems data
@@ -461,7 +469,7 @@ if (!token) {
 
         <div className="flex flex-col  lg:flex-row gap-10">
           {/* Cart Items */}
-          <div className="flex-1 md:p-9 bg-[#EAE7E1]">
+          <div className="flex-1 md:p-9 p-2 bg-[#EAE7E1]">
             {cartItems.map((item) => (
               <CartItem
                 key={item.id}
@@ -564,7 +572,7 @@ if (!token) {
         {/* The rest of your component remains the same */}
         <div className="flex py-9 justify-between ">
           <h4 className="popmed text-[30px]">You may also need</h4>
-          <h5 className="popbold text-[16px] text-[#CBA135]">View All</h5>
+          
         </div>
         <Similar component='cart' randomProducts={productsData?.results || []} title="You may also like" />
       </div>

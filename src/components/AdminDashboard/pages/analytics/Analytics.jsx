@@ -22,7 +22,7 @@ const Analytics = () => {
   const {data:topProductsSells} = useTopProductsSellQuery()
   const { data: customerList,refetch } = useGetAllCustomersQuery();
   const { data: vendors } = useGetAllVendorsQuery();
-  // console.log(customerList,vendors)
+ 
 
   // Format currency function
   const formatCurrency = (amount) => {
@@ -46,7 +46,7 @@ const Analytics = () => {
   ];
 
 
-  // console.log(data, 'xxx')
+  
   const cards = [
     {
       title: "Total Revenue",

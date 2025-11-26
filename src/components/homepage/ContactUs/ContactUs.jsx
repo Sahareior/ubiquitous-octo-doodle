@@ -41,7 +41,7 @@ const ContactUs = () => {
       // Send data to API
       const result = await sendMessage(apiData).unwrap();
       
-      console.log('Message sent successfully:', result);
+    
       setSubmitStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {

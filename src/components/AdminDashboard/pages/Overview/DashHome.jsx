@@ -22,7 +22,7 @@ const DashHome = () => {
   const {data:vendors} = useGetTopVendorsQuery()
   const {data:topCate} = useTopCategoryQuery()
 
-  console.log(topCate,'this is vendors')
+
 
   // console.log(notifications,'notify')
 

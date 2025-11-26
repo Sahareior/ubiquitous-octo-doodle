@@ -35,7 +35,7 @@ const ProductCard = React.memo(
 
     const storedRole = localStorage.getItem("user_role"); // "customer" or "vendor"
 
-    console.log(storedRole);
+  
 
     return (
       <div className="shadow-md">
@@ -189,7 +189,7 @@ const FeaturedProducts = ({allProducts, isLoading, isError, title, subtitle}) =>
       };
       delete payload.prod_id;
 
-      console.log(data,'thuis ')
+    
 
       const token = localStorage.getItem("access_token");
 

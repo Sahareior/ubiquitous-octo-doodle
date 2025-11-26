@@ -272,7 +272,7 @@ const EditCategory = () => {
   const handleEditCategory = (category) => {
     setEditingCategory(category);
     
-    console.log(editingCategory.name,'this sis ')
+  
   };
 
 const handleSaveCategory = async () => {
@@ -281,7 +281,7 @@ const handleSaveCategory = async () => {
     return;
   }
 
-  console.log(editingCategory,'ad54')
+ 
 
   setLoading(true);
   try {
@@ -290,7 +290,7 @@ const handleSaveCategory = async () => {
       name: { name: editingCategory.name.trim() } // 👈 body should be an object
     };
 
-    console.log('Updating category:', payload);
+    
 
     await categoryUpdateApi(payload);
 
@@ -345,8 +345,7 @@ const handleSaveCategory = async () => {
     setLoading(true);
     try {
       // Add your update filter API call here
-          // console.log('Updating filter:', editingFilter.filter_by_type.name);
-      console.log('Updating filter:', editingFilter.filter_by_type.id);
+   
 
 
 
@@ -373,7 +372,7 @@ const handleSaveCategory = async () => {
 
   // Delete existing filter
   const handleDeleteFilter = (filter) => {
-    console.log('Deleting filter:', filter);
+  
       optionsTypeDelete(filter.filter_by_type.id)
       refetchCategory()
   };
@@ -388,7 +387,7 @@ const handleSaveCategory = async () => {
     setLoading(true);
     try {
       // Add your update filter option API call here
-      console.log('Updating filter option:', optionId, newValue);
+      
 
       Swal.fire({
         position: 'top-end',
@@ -410,7 +409,7 @@ const handleSaveCategory = async () => {
 
   // Delete filter option
   const handleDeleteFilterOption = (optionId) => {
-console.log('Deleting filter option:', optionId);
+
   };
 
   // Create new subcategory
@@ -622,7 +621,7 @@ console.log('Deleting filter option:', optionId);
   };
 
   const deleteFilter = (index) => {
-console.log('Deleting filter at index:', index);
+
   };
 
   const resetForm = () => {

@@ -206,7 +206,7 @@ const FlashDeals = () => {
         };
         delete payload.prod_id;
 
-        console.log(data,"this is data")
+       
   
         const token = localStorage.getItem("access_token");
   
@@ -262,7 +262,7 @@ const FlashDeals = () => {
 
   // Handle quick view
   const handleQuickView = (product) => {
-    console.log('Quick view:', product);
+  
 
     navigate(`/details?id=${product.productData.id}`, { state: { productData: product } });
     

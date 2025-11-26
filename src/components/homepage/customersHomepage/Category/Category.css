@@ -456,7 +456,7 @@
 }
 
 .mobile-subcategory-name {
-  font-weight: 500;
+  font-weight: 600;
   color: #a83838;
 }
 
@@ -477,12 +477,13 @@
 .mobile-subcategory-list.level-1 .mobile-subcategory-name {
   font-size: 16px;
   font-weight: 600;
+
 }
 
 .mobile-subcategory-list.level-2 .mobile-subcategory-name {
   font-size: 15px;
-  font-weight: 500;
-  color: #2e0651;
+  font-weight: 700;
+  color: #cda01a;
 }
 
 .mobile-subcategory-list.level-3 .mobile-subcategory-name {

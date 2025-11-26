@@ -1011,7 +1011,7 @@ const handleSubmit = async () => {
     formDataToSend.append("existing_images", JSON.stringify(existingImageIds));
 
     // Debug: Log what's being sent
-    console.log('FormData contents:');
+
     for (let [key, value] of formDataToSend.entries()) {
       console.log(key, value);
     }

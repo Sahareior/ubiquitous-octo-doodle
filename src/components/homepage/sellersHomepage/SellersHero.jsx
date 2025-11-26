@@ -7,7 +7,7 @@ const SellersHero = () => {
 const navigate = useNavigate()
    const storedRole = localStorage.getItem('user_role'); // "customer" or "vendor"
    const location = useLocation()
-   console.log(location.pathname)
+   
 
 const token = localStorage.getItem('access_token')
 

@@ -16,7 +16,7 @@ const fallbackData = [
 const BarCharts = () => {
   const { data: topCategories, error, isLoading } = useTopCategoryQuery();
   
-  console.log(topCategories, 'this is top categories data');
+
 
   // Transform API data for the chart
   const chartData = React.useMemo(() => {

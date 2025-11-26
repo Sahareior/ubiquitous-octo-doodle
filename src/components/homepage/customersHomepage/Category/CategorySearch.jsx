@@ -179,7 +179,7 @@ const CategorySearch = ({ categoriesData }) => {
                   onTouchStart={handleSuggestionTouchStart}
                 >
                   <FiSearch className="text-gray-400" size={16} />
-                  <span className="text-gray-800 text-sm">{category.name}</span>
+                  <span className="text-gray-800  text-sm">{category.name}</span>
                 </div>
               ))}
             </div>

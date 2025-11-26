@@ -35,7 +35,7 @@ const CustomModal = ({ isModalOpen, setIsModalOpen }) => {
       
       if (result.data) {
         // If data is successfully fetched, navigate to order track page
-        console.log('Order data:', result.data);
+      
         handleOk(); // Close modal
         
         // Navigate to order track page with the order data

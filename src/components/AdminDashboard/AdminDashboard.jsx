@@ -55,7 +55,7 @@ const AdminDashboard = () => {
     setIncoming,
     incoming,
   } = useWebSocketContext();
-  console.log(profileData?.first_name, "incomingggggg");
+
 
   localStorage.setItem("notify", JSON.stringify(notifications));
 

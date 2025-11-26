@@ -39,7 +39,7 @@ const Featured_Management = () => {
 
   const products = data?.results || [];
 
-  console.log(products,'thisasd')
+
 
   // Filter products based on search and filters
   const filteredProducts = products.filter(product => {

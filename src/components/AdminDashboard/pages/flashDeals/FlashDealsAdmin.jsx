@@ -134,7 +134,7 @@ const FlashDealsAdmin = () => {
 
   const toggleProductStatus = async (id, currentStatus) => {
     // You might want to implement an API call here to update the status
-    console.log(`Toggling status for product ${id} from ${currentStatus}`);
+   
   };
 
   // Countdown Timer Component for each deal

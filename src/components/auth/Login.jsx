@@ -22,7 +22,7 @@ const Login = () => {
   const { data: cartData, refetch } = useGetAppCartQuery();
   const location = useLocation();
 
-  console.log('Location state:', location.state);
+
 
   const userType = localStorage.getItem('user_role')
 
@@ -31,7 +31,7 @@ const Login = () => {
     return JSON.parse(localStorage.getItem('guest_cart')) || [];
   };
 
-  console.log(userType)
+ 
   // Function to add guest cart items to user cart after login
   const addGuestCartToUserCart = async () => {
 
@@ -43,10 +43,10 @@ const Login = () => {
     
     if (location.state && Array.isArray(location.state)) {
       guestCartItems = location.state;
-      console.log('Using guest cart from location state:', guestCartItems.length);
+   
     } else {
       guestCartItems = getGuestCart();
-      console.log('Using guest cart from localStorage:', guestCartItems.length);
+    
     }
 
     if (guestCartItems.length === 0) {
@@ -55,7 +55,7 @@ const Login = () => {
     }
 
     try {
-      console.log('Processing guest cart items:', guestCartItems.length);
+     
       
       const results = [];
       

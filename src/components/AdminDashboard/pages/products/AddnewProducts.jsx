@@ -854,7 +854,7 @@ const AddnewProducts = () => {
       return;
     }
 
-    console.log(formData, 'data to be send');
+    
 
     setLoading(true);
 

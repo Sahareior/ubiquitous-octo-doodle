@@ -29,7 +29,7 @@ const FloatingChat = ({ targetedId }) => {
     [customerData]
   );
 
-  console.log(targetedId,'this is targeted id')
+  
   
   const [newMessage, setNewMessage] = useState("");
   const [activeReceiver, setActiveReceiver] = useState(targetedId || 1);
@@ -51,7 +51,7 @@ const FloatingChat = ({ targetedId }) => {
   // Set userId only once when component mounts
   useEffect(() => {
     if (customerId) {
-      console.log('👤 Setting user ID in context:', customerId);
+     
       setUserId(customerId);
     }
   }, [customerId, setUserId]);
@@ -148,7 +148,7 @@ const FloatingChat = ({ targetedId }) => {
       .filter(msg => msg.text && msg.text.trim())
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
-    console.log(`📨 Merged ${mergedMessages.length} messages for receiver ${activeReceiver}`);
+    
     return mergedMessages;
   }, [globalMessages, previousMessages, activeReceiver, customerId]);
 
@@ -161,11 +161,11 @@ const FloatingChat = ({ targetedId }) => {
 
   const handleSend = useCallback(() => {
     if (!newMessage.trim() || !connected || !activeReceiver || !customerId) {
-      console.log('❌ Cannot send message - missing requirements');
+      
       return;
     }
     
-    console.log(`📤 Sending message to ${activeReceiver}:`, newMessage);
+    
     sendMessage(activeReceiver, newMessage);
     setNewMessage("");
   }, [newMessage, connected, activeReceiver, customerId, sendMessage]);
@@ -191,13 +191,7 @@ const FloatingChat = ({ targetedId }) => {
   const annomalyImage = "/image/ann.png";
   const profileImage = profileData?.profile_image || annomalyImage;
 
-  console.log('🔧 Debug info:', {
-    customerId,
-    activeReceiver,
-    connected,
-    messageCount: allMessages.length,
-    hasClientMsg: !!clientmsg
-  });
+
 
 
   return (

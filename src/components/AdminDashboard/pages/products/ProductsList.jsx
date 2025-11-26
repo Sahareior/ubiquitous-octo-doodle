@@ -74,7 +74,7 @@ const ProductsList = ({path}) => {
       filtered = products?.results || [];
     }
 
-    console.log('Filtered products before filtering:', filtered.length);
+   
 
     // 🔍 search filter
     if (searchText.trim() !== "") {

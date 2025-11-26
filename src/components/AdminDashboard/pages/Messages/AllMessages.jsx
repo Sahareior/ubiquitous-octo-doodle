@@ -100,16 +100,11 @@ const allConversationMessages = selectedConversation
 
   // Add this useEffect to debug the AllMessages component
 useEffect(() => {
-  console.log('🔍 AllMessages Debug:');
-  console.log('   Selected Conversation:', selectedConversation);
-  console.log('   Global Messages Count:', globalMessages.length);
-  console.log('   Current Conversation Messages:', currentConversationMessages.length);
-  console.log('   Previous Messages Count:', previousMessages.length);
-  console.log('   All Conversation Messages:', allConversationMessages.length);
+
   
   // Log the actual messages for debugging
   if (selectedConversation) {
-    console.log('   Current Conversation Messages Details:', currentConversationMessages);
+    console.log('   Current Conversation Messages Details:');
   }
 }, [globalMessages, selectedConversation, currentConversationMessages, previousMessages, allConversationMessages]);
 

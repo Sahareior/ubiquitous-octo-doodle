@@ -27,7 +27,7 @@ const [bulkAction, setBulkAction] = useState(null);
   const [bulkOrderStatus] = useBulkOrderStatusMutation()
   const [bulkOrderDelete] = useBulkOrderDeleteMutation()
 
-  // console.log(orders,'this is orders')
+
   // Map API data to table format
 useEffect(() => {
   if (orders?.length) {

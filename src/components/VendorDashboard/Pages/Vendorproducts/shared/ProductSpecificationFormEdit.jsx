@@ -17,7 +17,6 @@ const InputField = ({ label, name, placeholder, type = "text", value, onChange }
 
 const ProductSpecificationFormEdit = ({ formData, setFormData }) => {
 
-  console.log('this is formData', formData)
 
   const handleChange = (e) => {
     const { name, value } = e.target;
