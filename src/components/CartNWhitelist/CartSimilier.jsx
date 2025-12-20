@@ -2,27 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
-const Similar = ({ randomProducts, setSelectedProduct, component }) => {
+const CartSimilier = ({ randomProducts, setSelectedProduct, component }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   const navigate = useNavigate();
   const productsRef = useRef(null);
 
   // Scroll to top when currentPage changes
-useEffect(() => {
-  // Disable browser scroll restoration
-  if ('scrollRestoration' in window.history) {
-    window.history.scrollRestoration = 'manual';
-  }
-
-  // Force scroll to top
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: 'auto',
-  });
-}, []);
-
+  useEffect(() => {
+    // Scroll to the top of the component
+    if (productsRef.current) {
+      productsRef.current.scrollIntoView({ 
+        behavior: 'auto', 
+        block: 'start' 
+      });
+    }
+  }, [currentPage]);
 
   if (!randomProducts || randomProducts.length === 0) {
     return <p className="text-center popreg">No products found.</p>;
@@ -187,4 +182,4 @@ useEffect(() => {
   );
 };
 
-export default Similar;
+export default CartSimilier;

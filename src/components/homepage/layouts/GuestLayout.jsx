@@ -41,7 +41,7 @@ const GuestLayout = () => {
     } = useAllFeaturedProductsQuery();
 
     const {
-      data: allFeatured,
+      data: newArrivals,
       isLoading: newLoading,
       isError: newError,
     } = useGetNewArrivalsQuery();
@@ -91,7 +91,7 @@ const GuestLayout = () => {
               <FeaturedProducts
               title={"New Arrivals"}
               subtitle={"Explore our newly added products"}
-                allProducts={allProducts}
+                allProducts={newArrivals}
                  isLoading={newLoading}
                   isError={newError}
                   

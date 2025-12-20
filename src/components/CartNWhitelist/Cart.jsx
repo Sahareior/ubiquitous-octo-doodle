@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { AiOutlineMinus, AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Breadcrumb from "../others/Breadcrumb";
 import {
   useCartQuantityDecrementMutation,
@@ -146,9 +146,12 @@ const Cart = () => {
   const navigate = useNavigate();
   const [hasScrolled, setHasScrolled] = useState(false);
   const token = localStorage.getItem('access_token');
+  const location = useLocation()
   
   // Map API cart data to local state
   const [cartItems, setCartItems] = useState([]);
+
+  console.log(location.state.path,'s')
 
   // Get guest cart from localStorage
   const getGuestCart = () => {
@@ -170,11 +173,11 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    if (!hasScrolled) {
+ 
       window.scrollTo(0, 0);
-      setHasScrolled(true);
-    }
-  }, [hasScrolled]);
+    
+    
+  }, []);
 
 useEffect(() => {
   if (token) {
